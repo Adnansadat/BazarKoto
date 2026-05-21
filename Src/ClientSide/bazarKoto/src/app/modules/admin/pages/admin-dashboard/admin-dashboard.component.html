@@ -1,0 +1,116 @@
+<main class="admin-dashboard-page">
+  <section class="dashboard-hero">
+    <div>
+      <span>Admin dashboard</span>
+      <h1>Manage traffic, ads, and BazarKoto data</h1>
+      <p>
+        Track website traffic, peak hours, ad-ready page views, and the market, product, and
+        price records that keep BazarKoto reliable.
+      </p>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="traffic-title">
+    <div class="section-heading">
+      <div>
+        <span>Traffic intelligence</span>
+        <h2 id="traffic-title">Website traffic and ad readiness</h2>
+      </div>
+      <button type="button">Export report</button>
+    </div>
+
+    <p class="dashboard-state" *ngIf="isLoading">Loading dashboard data...</p>
+    <p class="dashboard-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <div class="metric-grid" *ngIf="!isLoading && !errorMessage">
+      <article class="metric-card" *ngFor="let metric of trafficMetrics">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+        <p>{{ metric.helper }}</p>
+        <em>{{ metric.trend }}</em>
+      </article>
+    </div>
+  </section>
+
+  <section class="dashboard-section split-grid" aria-labelledby="peak-title">
+    <article class="panel">
+      <div class="section-heading compact">
+        <div>
+          <span>Peak hours</span>
+          <h2 id="peak-title">Best traffic windows</h2>
+        </div>
+      </div>
+
+      <p class="dashboard-state" *ngIf="isLoading">Loading peak hours...</p>
+
+      <div class="list-table" *ngIf="!isLoading && !errorMessage">
+        <div *ngIf="peakHours.length === 0">
+          <strong>0</strong>
+          <span>visits</span>
+          <em>No peak hour data yet</em>
+        </div>
+        <div *ngFor="let hour of peakHours">
+          <strong>{{ hour.time }}</strong>
+          <span>{{ hour.visits }} visits</span>
+          <em>{{ hour.share }}</em>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="section-heading compact">
+        <div>
+          <span>Moderation</span>
+          <h2>Records needing attention</h2>
+        </div>
+      </div>
+
+      <p class="dashboard-state" *ngIf="isLoading">Loading moderation queue...</p>
+
+      <div class="queue-list" *ngIf="!isLoading && !errorMessage">
+        <button type="button" *ngFor="let item of moderationQueue">
+          <span>{{ item.label }}</span>
+          <strong>{{ item.count }}</strong>
+          <em>{{ item.helper }}</em>
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="data-title">
+    <div class="section-heading">
+      <div>
+        <span>Data overview</span>
+        <h2 id="data-title">Market, product, and price records</h2>
+      </div>
+    </div>
+
+    <div class="metric-grid" *ngIf="!isLoading && !errorMessage">
+      <article class="metric-card" *ngFor="let metric of dataMetrics">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+        <p>{{ metric.helper }}</p>
+        <em>{{ metric.trend }}</em>
+      </article>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="management-title">
+    <div class="section-heading">
+      <div>
+        <span>Operations</span>
+        <h2 id="management-title">Data manipulation tools</h2>
+      </div>
+    </div>
+
+    <div class="management-grid">
+      <article class="management-card" *ngFor="let area of managementAreas">
+        <h3>{{ area.title }}</h3>
+        <p>{{ area.description }}</p>
+        <div>
+          <button type="button" *ngFor="let action of area.actions">{{ action }}</button>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,82 @@
+<main class="live-prices-page">
+  <section class="container live-prices-section" aria-labelledby="live-prices-title">
+    <div class="table-heading">
+      <div>
+        <span class="eyebrow">Live market list</span>
+        <h1 id="live-prices-title">All Product Prices</h1>
+      </div>
+
+      <p>Search product prices by item name and filter by category.</p>
+    </div>
+
+    <div class="table-toolbar">
+      <label class="table-search">
+        <span>Search product</span>
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search rice, potato, onion..."
+        />
+      </label>
+
+      <div class="table-tabs" role="tablist" aria-label="Price category filters">
+        <button
+          *ngFor="let category of categories"
+          type="button"
+          [class.active]="selectedCategory === category.value"
+          (click)="setCategory(category.value)"
+        >
+          {{ category.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <p class="table-status" *ngIf="isLoading">Loading prices...</p>
+      <p class="table-status error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="table-status" *ngIf="!isLoading && !errorMessage && filteredRows.length === 0">
+        No matching prices found.
+      </p>
+
+      <div class="price-table-wrap" *ngIf="!isLoading && !errorMessage && filteredRows.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Market</th>
+              <th>Category</th>
+              <th>Primary Unit</th>
+              <th>Price</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of pagedRows">
+              <td><strong>{{ row.productName }}</strong></td>
+              <td>{{ row.marketName }}</td>
+              <td><span class="category-pill">{{ row.category }}</span></td>
+              <td>{{ row.unit }}</td>
+              <td><strong>৳ {{ row.pricePerUnit }}/{{ row.unit }}</strong></td>
+              <td>
+                <span class="change-pill" [class.up]="row.change > 0" [class.down]="row.change < 0">
+                  {{ row.change > 0 ? '+' : '' }}{{ row.change }}%
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-bar" *ngIf="filteredRows.length > 0">
+        <span>Showing {{ pageStart }}-{{ pageEnd }} of {{ filteredRows.length }}</span>
+
+        <div>
+          <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+          <strong>Page {{ currentPage }} of {{ totalPages }}</strong>
+          <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,39 @@
+<footer class="site-footer">
+  <div class="container footer-shell">
+    <section class="footer-brand">
+      <a routerLink="/home" [attr.aria-label]="'footer.brand.ariaLabel' | translate">
+        <img
+          src="/images/bazar-koto-mark-v2.png"
+          [alt]="'footer.brand.logoAlt' | translate"
+        />
+
+        <strong>
+          <span>Bazar</span><em>Koto</em>
+        </strong>
+      </a>
+
+      <p>{{ 'footer.brand.description' | translate }}</p>
+    </section>
+
+    <nav [attr.aria-label]="'footer.nav.ariaLabel' | translate">
+      <a routerLink="/about">{{ 'footer.nav.about' | translate }}</a>
+      <a routerLink="/contact">{{ 'footer.nav.contact' | translate }}</a>
+      <a routerLink="/privacy-policy">{{ 'footer.nav.privacy' | translate }}</a>
+    </nav>
+
+    <section class="footer-meta">
+      <strong>{{ 'footer.meta.copyright' | translate }}</strong>
+
+      <p>
+        {{ 'footer.meta.createdBy' | translate }}
+        <a
+          href="https://www.linkedin.com/in/adnan-sadat-dip-598105292"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ 'footer.meta.developerName' | translate }}
+        </a>
+      </p>
+    </section>
+  </div>
+</footer>

@@ -1,0 +1,312 @@
+<main class="prices-page" [attr.aria-label]="'prices.page.ariaLabel' | translate">
+  <section class="price-hero" aria-labelledby="prices-page-title">
+    <div class="container hero-shell">
+      <div>
+        <span class="eyebrow">{{ 'prices.hero.eyebrow' | translate }}</span>
+        <h1 id="prices-page-title">{{ 'prices.hero.title' | translate }}</h1>
+        <p>
+          {{ 'prices.hero.description' | translate }}
+        </p>
+      </div>
+
+      <div
+        class="context-card"
+        role="status"
+        [attr.aria-label]="'prices.context.ariaLabel' | translate"
+      >
+        <span>{{ 'prices.context.label' | translate }}</span>
+        <strong>{{ selectedMarketName || 'Select market' }}</strong>
+        <small>{{ selectedProductName || 'Select product' }} · {{ selectedCategoryName }}</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="container submission-grid" aria-labelledby="share-price-title">
+    <article class="submission-panel">
+      <div class="panel-heading">
+        <span class="step">{{ 'prices.step.final' | translate }}</span>
+        <div>
+          <h2 id="share-price-title">{{ 'prices.form.title' | translate }}</h2>
+          <p id="share-price-helper">{{ 'prices.form.helper' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <p class="field-error notes-field" *ngIf="priceErrorMessage">{{ priceErrorMessage }}</p>
+        <p class="status-message notes-field" *ngIf="priceSuccessMessage">{{ priceSuccessMessage }}</p>
+        <p class="notes-field" *ngIf="isLoadingPrices">Loading markets, products, and prices...</p>
+        <p class="field-error notes-field" *ngIf="locationErrorMessage">{{ locationErrorMessage }}</p>
+        <p class="field-error notes-field" *ngIf="productErrorMessage">{{ productErrorMessage }}</p>
+
+        <label>
+          <span>Division</span>
+          <select
+            [(ngModel)]="selectedDivisionId"
+            (ngModelChange)="onDivisionChange()"
+            [disabled]="isLoadingDivisions"
+          >
+            <option value="">Select division</option>
+            <option *ngFor="let division of divisions" [value]="division.id">{{ getLocationName(division) }}</option>
+          </select>
+          <small *ngIf="isLoadingDivisions">Loading divisions...</small>
+        </label>
+
+        <label>
+          <span>District</span>
+          <select
+            [(ngModel)]="selectedDistrictId"
+            (ngModelChange)="onDistrictChange()"
+            [disabled]="!selectedDivisionId || isLoadingDistricts"
+          >
+            <option value="">Select district</option>
+            <option *ngFor="let district of districts" [value]="district.id">{{ getLocationName(district) }}</option>
+          </select>
+          <small *ngIf="isLoadingDistricts">Loading districts...</small>
+        </label>
+
+        <label>
+          <span>Upazila</span>
+          <select
+            [(ngModel)]="selectedUpazilaId"
+            (ngModelChange)="onUpazilaChange()"
+            [disabled]="!selectedDistrictId || isLoadingUpazilas"
+          >
+            <option value="">Select upazila</option>
+            <option *ngFor="let upazila of upazilas" [value]="upazila.id">{{ getLocationName(upazila) }}</option>
+          </select>
+          <small *ngIf="isLoadingUpazilas">Loading upazilas...</small>
+        </label>
+
+        <label>
+          <span>Union/Ward</span>
+          <select
+            [(ngModel)]="selectedUnionOrWardId"
+            (ngModelChange)="onUnionOrWardChange()"
+            [disabled]="!selectedUpazilaId || isLoadingUnionOrWards"
+          >
+            <option value="">All unions/wards</option>
+            <option *ngFor="let unionOrWard of unionOrWards" [value]="unionOrWard.id">{{ getLocationName(unionOrWard) }}</option>
+          </select>
+          <small *ngIf="isLoadingUnionOrWards">Loading unions/wards...</small>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.market' | translate }}</span>
+          <input
+            #marketInput
+            type="search"
+            [(ngModel)]="marketSearch"
+            (ngModelChange)="loadMarkets()"
+            placeholder="Search market"
+            [attr.aria-describedby]="'share-price-helper'"
+          />
+          <select
+            [(ngModel)]="selectedMarketId"
+            (ngModelChange)="onMarketChange()"
+            [disabled]="isLoadingMarkets"
+          >
+            <option value="">Select market</option>
+            <option *ngFor="let market of markets" [value]="market.id">{{ market.marketName }}</option>
+          </select>
+          <small *ngIf="isLoadingMarkets">Loading markets...</small>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.category' | translate }}</span>
+          <select
+            [(ngModel)]="selectedCategoryId"
+            (ngModelChange)="onCategoryChange()"
+            [disabled]="isLoadingCategories"
+          >
+            <option value="">Select category</option>
+            <option *ngFor="let category of categories" [value]="category.id">{{ getCategoryName(category) }}</option>
+          </select>
+          <small *ngIf="isLoadingCategories">Loading categories...</small>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.product' | translate }}</span>
+          <input
+            type="search"
+            [(ngModel)]="productSearch"
+            (ngModelChange)="loadProducts()"
+            placeholder="Search product"
+          />
+          <select
+            [(ngModel)]="selectedProductId"
+            (ngModelChange)="onProductChange()"
+            [disabled]="isLoadingProducts"
+          >
+            <option value="">Select product</option>
+            <option *ngFor="let product of products" [value]="product.id">{{ getProductName(product) }}</option>
+          </select>
+          <small *ngIf="isLoadingProducts">Loading products...</small>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.unit' | translate }}</span>
+          <select [(ngModel)]="selectedUnit">
+            <option *ngFor="let unit of units" [value]="unit.value">{{ unit.labelKey | translate }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.pricePerUnit' | translate }}</span>
+          <input type="number" [(ngModel)]="price" min="0" />
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.quantityChecked' | translate }}</span>
+          <input type="number" [(ngModel)]="quantity" min="1" />
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.date' | translate }}</span>
+          <input type="date" [(ngModel)]="priceDate" />
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.time' | translate }}</span>
+          <input type="time" [(ngModel)]="priceTime" />
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.sellerType' | translate }}</span>
+          <select [(ngModel)]="sellerType">
+            <option *ngFor="let type of sellerTypes" [value]="type.value">
+              {{ type.labelKey | translate }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.priceSource' | translate }}</span>
+          <select [(ngModel)]="priceSource">
+            <option *ngFor="let source of sources" [value]="source.value">
+              {{ source.labelKey | translate }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>{{ 'prices.form.quality' | translate }}</span>
+          <select [(ngModel)]="quality">
+            <option *ngFor="let item of qualities" [value]="item.value">
+              {{ item.labelKey | translate }}
+            </option>
+          </select>
+        </label>
+
+        <label class="notes-field">
+          <span>{{ 'prices.form.notes' | translate }}</span>
+          <textarea
+            [(ngModel)]="notes"
+            rows="4"
+            [placeholder]="'prices.form.notesPlaceholder' | translate"
+          ></textarea>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <a class="back-arrow" routerLink="/products" aria-label="Back to products">
+          <span aria-hidden="true">&larr;</span>
+        </a>
+
+        <div class="primary-actions">
+          <button
+            type="button"
+            (click)="submitPrice()"
+            [disabled]="isSubmittingPrice"
+            [attr.aria-label]="'prices.actions.submitPriceAria' | translate"
+          >
+            {{ 'prices.actions.submitPrice' | translate }}
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <aside
+      class="summary-panel"
+      aria-labelledby="submission-summary-title"
+      [attr.aria-label]="'prices.summary.ariaLabel' | translate"
+    >
+      <span class="eyebrow">{{ 'prices.summary.eyebrow' | translate }}</span>
+      <h2 id="submission-summary-title">{{ 'prices.summary.title' | translate }}</h2>
+
+      <dl>
+        <div>
+          <dt>{{ 'prices.summary.market' | translate }}</dt>
+          <dd>{{ selectedMarketName }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'prices.summary.product' | translate }}</dt>
+          <dd>{{ selectedProductName }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'prices.summary.rate' | translate }}</dt>
+          <dd>৳ {{ price }}/{{ selectedUnitLabelKey | translate }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'prices.summary.quantity' | translate }}</dt>
+          <dd>{{ quantity }} {{ selectedUnitLabelKey | translate }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'prices.summary.totalValue' | translate }}</dt>
+          <dd>৳ {{ totalPrice }}</dd>
+        </div>
+      </dl>
+
+      <dl *ngIf="priceSummary">
+        <div>
+          <dt>Average</dt>
+          <dd>৳ {{ priceSummary.averagePrice }}/{{ priceSummary.unit || selectedUnit }}</dd>
+        </div>
+        <div>
+          <dt>Min / Max</dt>
+          <dd>৳ {{ priceSummary.minimumPrice }} / ৳ {{ priceSummary.maximumPrice }}</dd>
+        </div>
+        <div>
+          <dt>Submissions</dt>
+          <dd>{{ priceSummary.submissionCount }}</dd>
+        </div>
+      </dl>
+
+      <div class="today-prices">
+        <strong>Today’s approved prices</strong>
+        <p *ngIf="isLoadingPrices">Loading today’s prices...</p>
+        <p *ngIf="!isLoadingPrices && todayPrices.length === 0">No approved prices found.</p>
+        <article *ngFor="let item of todayPrices">
+          <span>{{ currentLanguage === 'bn' ? item.productNameBn : item.productNameEn }}</span>
+          <em>{{ item.marketName }}</em>
+          <strong>৳ {{ item.pricePerUnit }}/{{ item.unit }}</strong>
+        </article>
+      </div>
+
+    </aside>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="isThankYouOpen" (click)="closeModal()"></div>
+
+  <section
+    class="thank-you-modal"
+    *ngIf="isThankYouOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="thank-you-title"
+  >
+    <div class="modal-mark">✓</div>
+    <span class="eyebrow">{{ 'prices.modal.eyebrow' | translate }}</span>
+    <h2 id="thank-you-title">{{ 'prices.modal.title' | translate }}</h2>
+    <p>
+      {{ 'prices.modal.descriptionPrefix' | translate }} {{ selectedMarketName }}.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="secondary" (click)="closeModal()">
+        {{ 'prices.modal.close' | translate }}
+      </button>
+      <button type="button" (click)="closeModal()">
+        {{ 'prices.modal.shareAnother' | translate }}
+      </button>
+    </div>
+  </section>
+</main>

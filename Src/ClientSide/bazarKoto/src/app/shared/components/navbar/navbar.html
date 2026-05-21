@@ -1,0 +1,22 @@
+<header class="site-header">
+  <div class="container nav-shell">
+    <a class="brand" routerLink="/home" aria-label="BazarKoto home" (click)="handleBrandClick($event)">
+      <img src="/images/bazar-koto-mark-v2.png" alt="BazarKoto logo mark" />
+      <span class="brand-wordmark">
+        <span class="brand-bazar">Bazar</span>
+        <span class="brand-koto">Koto</span>
+      </span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'nav.home' | translate }}
+      </a>
+      <a routerLink="/live-prices" routerLinkActive="active">
+        {{ 'nav.livePrices' | translate }}
+      </a>
+    </nav>
+
+    <app-language-switcher />
+  </div>
+</header>

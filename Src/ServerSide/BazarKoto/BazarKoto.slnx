@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="BazarKoto.Api/BazarKoto.Api.csproj" />
+  <Project Path="BazarKoto.Application/BazarKoto.Application.csproj" />
+  <Project Path="BazarKoto.Contracts/BazarKoto.Contracts.csproj" />
+  <Project Path="BazarKoto.Domain/BazarKoto.Domain.csproj" />
+  <Project Path="BazarKoto.Infrastructure/BazarKoto.Infrastructure.csproj" />
+  <Project Path="BazarKoto.Tests/BazarKoto.Tests.csproj" />
+</Solution>

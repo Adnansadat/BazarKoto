@@ -1,0 +1,112 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+}
+
+.nav-shell {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.brand img {
+  display: block;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.brand-bazar {
+  color: #063f34;
+}
+
+.brand-koto {
+  color: #f97316;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+nav a {
+  position: relative;
+  border-radius: 999px;
+  padding: 9px 12px;
+  color: #334155;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  right: 13px;
+  bottom: 5px;
+  left: 13px;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  background: #f97316;
+  transition: transform 180ms ease;
+}
+
+nav a:hover,
+nav a.active {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+nav a:hover::after,
+nav a.active::after {
+  transform: scaleX(1);
+}
+
+@media (max-width: 760px) {
+  .nav-shell {
+    min-height: auto;
+    flex-wrap: wrap;
+    padding: 16px 0;
+  }
+
+  nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 14px;
+    overflow-x: auto;
+  }
+
+  nav a {
+    white-space: nowrap;
+  }
+}

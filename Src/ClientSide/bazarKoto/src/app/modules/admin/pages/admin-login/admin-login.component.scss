@@ -1,0 +1,110 @@
+.admin-login-page {
+  min-height: calc(100vh - 78px);
+  display: grid;
+  place-items: center;
+  padding: 48px 20px;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(251, 146, 60, 0.18), transparent 30%),
+    radial-gradient(circle at 72% 74%, rgba(5, 150, 105, 0.16), transparent 34%),
+    linear-gradient(180deg, #fffaf4 0%, #f7fffb 100%);
+}
+
+.login-card {
+  width: min(440px, 100%);
+  border: 1px solid #dfe8e5;
+  border-radius: 8px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.brand-lockup img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.brand-lockup strong {
+  display: inline-flex;
+  font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.brand-lockup span {
+  color: #063f34;
+}
+
+.brand-lockup em {
+  color: #f97316;
+  font-style: normal;
+}
+
+.login-copy span {
+  color: #047857;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.login-copy h1 {
+  margin: 10px 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.12;
+}
+
+.login-copy p {
+  margin: 0 0 24px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+form,
+label {
+  display: grid;
+}
+
+form {
+  gap: 16px;
+}
+
+label {
+  gap: 8px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+input {
+  height: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: #0f172a;
+  font-size: 15px;
+}
+
+input:focus {
+  border-color: #059669;
+  outline: 3px solid rgba(5, 150, 105, 0.14);
+}
+
+button {
+  height: 50px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #047857, #f97316);
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}

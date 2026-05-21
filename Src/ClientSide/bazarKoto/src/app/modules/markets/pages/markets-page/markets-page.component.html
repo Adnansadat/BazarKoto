@@ -1,0 +1,298 @@
+<main class="markets-page" [attr.aria-label]="'markets.page.ariaLabel' | translate">
+  <section class="page-hero" aria-labelledby="markets-page-title">
+    <div class="container hero-shell">
+      <div>
+        <span class="eyebrow">{{ 'markets.hero.eyebrow' | translate }}</span>
+        <h1 id="markets-page-title">{{ 'markets.hero.title' | translate }}</h1>
+        <p>
+          {{ 'markets.hero.description' | translate }}
+        </p>
+      </div>
+
+      <div class="hero-metrics" [attr.aria-label]="'markets.metrics.ariaLabel' | translate">
+        <div><strong>{{ nearbyMarkets.length }}</strong><span>{{ 'markets.metrics.listed' | translate }}</span></div>
+        <div><strong>{{ districts.length }}</strong><span>{{ 'markets.metrics.districts' | translate }}</span></div>
+        <div><strong>0</strong><span>{{ 'markets.metrics.fresh' | translate }}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container content-grid" aria-labelledby="market-location-title">
+    <article class="workflow-panel">
+      <div class="panel-heading">
+        <span class="step">{{ 'markets.step.one' | translate }}</span>
+        <div>
+          <h2 id="market-location-title">{{ 'markets.location.title' | translate }}</h2>
+          <p id="market-location-helper">{{ 'markets.location.helper' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <label>
+          <span>{{ 'markets.form.division' | translate }}</span>
+          <input
+            type="search"
+            [(ngModel)]="divisionSearch"
+            (ngModelChange)="onDivisionInputChange()"
+            list="division-options"
+            placeholder="Search division"
+          />
+          <datalist id="division-options">
+            <option *ngFor="let division of divisions" [value]="getLocationName(division)"></option>
+          </datalist>
+          <small *ngIf="isLoadingDivisions">Loading divisions...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDivisionId">
+            Division is required.
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'markets.form.district' | translate }}</span>
+          <input
+            type="search"
+            [(ngModel)]="districtSearch"
+            (ngModelChange)="onDistrictInputChange()"
+            list="district-options"
+            placeholder="Search district"
+            [disabled]="!selectedDivisionId"
+          />
+          <datalist id="district-options">
+            <option *ngFor="let district of districts" [value]="getLocationName(district)"></option>
+          </datalist>
+          <small *ngIf="isLoadingDistricts">Loading districts...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDistrictId">
+            District is required.
+          </em>
+        </label>
+
+        <label>
+          <span>Upazila / City Corporation</span>
+          <input
+            type="search"
+            [(ngModel)]="upazilaSearch"
+            (ngModelChange)="onUpazilaInputChange()"
+            list="upazila-options"
+            placeholder="Search upazila"
+            [disabled]="!selectedDistrictId"
+          />
+          <datalist id="upazila-options">
+            <option *ngFor="let upazila of upazilas" [value]="getLocationName(upazila)"></option>
+          </datalist>
+          <small *ngIf="isLoadingUpazilas">Loading upazilas...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUpazilaId">
+            Upazila / City Corporation is required.
+          </em>
+        </label>
+
+        <label>
+          <span>Ward / Union</span>
+          <input
+            type="search"
+            [(ngModel)]="unionOrWardSearch"
+            (ngModelChange)="onUnionOrWardInputChange()"
+            list="union-or-ward-options"
+            [placeholder]="'markets.form.wardPlaceholder' | translate"
+            [disabled]="!selectedUpazilaId"
+          />
+          <datalist id="union-or-ward-options">
+            <option *ngFor="let unionOrWard of unionOrWards" [value]="getLocationName(unionOrWard)"></option>
+          </datalist>
+          <small *ngIf="isLoadingUnionOrWards">Loading unions/wards...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUnionOrWardId">
+            Ward / Union is required.
+          </em>
+        </label>
+
+        <label>
+          <span>Area / Village</span>
+          <input
+            type="text"
+            [(ngModel)]="selectedArea"
+            placeholder="Enter area or village"
+            [attr.aria-describedby]="'market-location-helper'"
+          />
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedArea.trim()">
+            Area / Village is required.
+          </em>
+        </label>
+
+        <label>
+          <span>Moholla</span>
+          <input
+            type="text"
+            [(ngModel)]="villageOrMoholla"
+            [placeholder]="'markets.form.villagePlaceholder' | translate"
+          />
+          <em class="field-error validation-slot"></em>
+        </label>
+
+        <label>
+          <span>{{ 'markets.form.market' | translate }}</span>
+          <input
+            #marketInput
+            type="text"
+            [(ngModel)]="selectedMarket"
+            [placeholder]="'markets.form.marketPlaceholder' | translate"
+            [attr.aria-describedby]="shouldShowDuplicateMarketError ? 'market-duplicate-error' : showMarketValidation ? 'market-name-error' : 'market-location-helper'"
+            [attr.aria-invalid]="showMarketValidation || shouldShowDuplicateMarketError"
+          />
+          <em class="field-error validation-slot" id="market-name-error" [class.visible]="showMarketValidation && !selectedMarket.trim()">
+            {{ 'markets.form.marketRequired' | translate }}
+          </em>
+          <em class="field-error validation-slot" id="market-duplicate-error" [class.visible]="shouldShowDuplicateMarketError">
+            {{ marketErrorMessage }}
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'markets.form.landmark' | translate }}</span>
+          <input
+            type="text"
+            [(ngModel)]="landmark"
+            [placeholder]="'markets.form.landmarkPlaceholder' | translate"
+          />
+          <em class="field-error validation-slot"></em>
+        </label>
+
+        <label>
+          <span>{{ 'markets.form.marketType' | translate }}</span>
+          <select [(ngModel)]="marketType">
+            <option *ngFor="let type of marketTypes" [value]="type.value">
+              {{ type.labelKey | translate }}
+            </option>
+          </select>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !marketType">
+            Market type is required.
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'markets.form.operatingSchedule' | translate }}</span>
+          <select [(ngModel)]="operatingDays">
+            <option *ngFor="let schedule of operatingSchedules" [value]="schedule.value">
+              {{ schedule.labelKey | translate }}
+            </option>
+          </select>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !operatingDays">
+            Operating schedule is required.
+          </em>
+        </label>
+
+        <label class="full-width">
+          <span>{{ 'markets.form.notes' | translate }}</span>
+          <textarea
+            [(ngModel)]="notes"
+            rows="4"
+            [placeholder]="'markets.form.notesPlaceholder' | translate"
+          ></textarea>
+        </label>
+      </div>
+
+      <div
+        class="selection-summary"
+        role="status"
+        aria-live="polite"
+        [attr.aria-label]="'markets.selection.ariaLabel' | translate"
+      >
+        <span class="selection-label">{{ 'markets.selection.label' | translate }}</span>
+        <div class="selection-path" *ngIf="selectedLocationSegments.length; else noSelectedLocation">
+          <span
+            class="selection-chip"
+            *ngFor="let segment of selectedLocationSegments; let last = last"
+            [class.market-chip]="last"
+          >
+            {{ segment }}
+          </span>
+        </div>
+        <ng-template #noSelectedLocation>
+          <strong class="selection-empty">No location selected yet.</strong>
+        </ng-template>
+      </div>
+
+      <div class="form-actions">
+        <span class="field-error" *ngIf="locationErrorMessage">{{ locationErrorMessage }}</span>
+        <span class="field-error" *ngIf="marketErrorMessage">{{ marketErrorMessage }}</span>
+        <span class="status-message" *ngIf="marketSuccessMessage">{{ marketSuccessMessage }}</span>
+        <button
+          type="button"
+          (click)="addMarket()"
+          [disabled]="isSubmittingMarket"
+          [attr.aria-label]="'markets.actions.addMarketAria' | translate"
+        >
+          {{ 'markets.actions.addMarket' | translate }}
+        </button>
+      </div>
+    </article>
+
+    <aside class="support-panel" aria-labelledby="why-market-location-title">
+      <span class="eyebrow">{{ 'markets.why.eyebrow' | translate }}</span>
+      <h2 id="why-market-location-title">{{ 'markets.why.title' | translate }}</h2>
+      <p>
+        {{ 'markets.why.description' | translate }}
+      </p>
+
+      <div class="quality-list">
+        <div><strong>{{ 'markets.why.precise.title' | translate }}</strong><span>{{ 'markets.why.precise.description' | translate }}</span></div>
+        <div><strong>{{ 'markets.why.reusable.title' | translate }}</strong><span>{{ 'markets.why.reusable.description' | translate }}</span></div>
+        <div><strong>{{ 'markets.why.verifiable.title' | translate }}</strong><span>{{ 'markets.why.verifiable.description' | translate }}</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="container contribution-strip" aria-labelledby="continue-product-submission-title">
+    <div>
+      <span class="eyebrow">{{ 'markets.next.eyebrow' | translate }}</span>
+      <h2 id="continue-product-submission-title">{{ 'markets.next.title' | translate }}</h2>
+      <p>
+        {{ 'markets.next.description' | translate }}
+      </p>
+    </div>
+    <button type="button" (click)="continueToProducts()" [attr.aria-label]="'markets.actions.continueProductsAria' | translate">
+      {{ 'markets.actions.continueProducts' | translate }}
+    </button>
+  </section>
+
+  <section class="container market-section" aria-labelledby="nearby-markets-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="nearby-markets-title">{{ 'markets.nearby.title' | translate }}</h2>
+      </div>
+      <button
+        type="button"
+        (click)="focusMarketInput()"
+        [attr.aria-label]="'markets.actions.addNewMarketAria' | translate"
+      >
+        {{ 'markets.actions.addNewMarket' | translate }}
+      </button>
+    </div>
+
+    <div class="market-list">
+      <p *ngIf="isLoadingMarkets">Loading markets...</p>
+      <p *ngIf="!isLoadingMarkets && marketErrorMessage">{{ marketErrorMessage }}</p>
+      <p *ngIf="!isLoadingMarkets && !marketErrorMessage && nearbyMarkets.length === 0">No markets found yet.</p>
+      <button
+        class="market-card"
+        *ngFor="let market of nearbyMarkets"
+        type="button"
+        [class.active]="selectedMarket === market.name"
+        [attr.aria-pressed]="selectedMarket === market.name"
+        [attr.aria-label]="
+          ('markets.nearby.selectAria' | translate) + ' ' +
+          market.name + ', ' +
+          market.area + ', ' +
+          market.district
+        "
+        (click)="selectNearbyMarket(market)"
+      >
+        <div>
+          <h3>{{ market.name }}</h3>
+          <p>{{ market.area }}, {{ market.district }}</p>
+        </div>
+        <div class="market-meta">
+          <span>{{ market.contributors }} {{ 'markets.nearby.contributors' | translate }}</span>
+          <strong>{{ 'markets.nearby.updated' | translate }} {{ market.updated }}</strong>
+        </div>
+      </button>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,135 @@
+.site-footer {
+  margin-top: 52px;
+  border-top: 1px solid #dfe8e5;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.footer-shell {
+  min-height: 108px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1.05fr) auto minmax(270px, 1fr);
+  align-items: center;
+  gap: 28px;
+}
+
+.footer-brand {
+  display: grid;
+  gap: 6px;
+}
+
+.footer-brand a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  text-decoration: none;
+}
+
+.footer-brand img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.footer-brand strong {
+  display: inline-flex;
+  font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  font-size: 26px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.footer-brand strong span {
+  color: #063f34;
+}
+
+.footer-brand strong em {
+  color: #f97316;
+  font-style: normal;
+}
+
+.footer-brand p,
+.footer-meta p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+nav a {
+  position: relative;
+  padding: 8px 9px;
+  color: #0f766e;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  right: 9px;
+  bottom: 4px;
+  left: 9px;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  background: #f97316;
+  transition: transform 180ms ease;
+}
+
+nav a:hover {
+  color: #063f34;
+}
+
+nav a:hover::after {
+  transform: scaleX(1);
+}
+
+.footer-meta {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  text-align: right;
+}
+
+.footer-meta strong {
+  color: #334155;
+  font-size: 14px;
+}
+
+.footer-meta a {
+  color: #f97316;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.footer-meta a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .footer-shell {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 0;
+  }
+
+  nav {
+    justify-content: flex-start;
+    gap: 4px 12px;
+  }
+
+  .footer-meta {
+    justify-items: start;
+    text-align: left;
+  }
+}

@@ -1,0 +1,17 @@
+<div class="language-switcher" role="group" aria-label="Language selector">
+  <button
+    type="button"
+    [class.active]="language.currentLanguage === 'en'"
+    (click)="switchTo('en')"
+  >
+    EN
+  </button>
+  <span aria-hidden="true">|</span>
+  <button
+    type="button"
+    [class.active]="language.currentLanguage === 'bn'"
+    (click)="switchTo('bn')"
+  >
+    বাংলা
+  </button>
+</div>

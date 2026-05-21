@@ -1,0 +1,266 @@
+<main class="homepage" [class.homepage--bn]="currentLanguage === 'bn'">
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-copy">
+        <span class="eyebrow">{{ 'home.hero.eyebrow' | translate }}</span>
+
+        <h1>
+          <span class="hero-title-line">{{ 'home.hero.title.part1' | translate }}</span>
+          <span class="hero-title-line hero-title-highlight">
+            {{ 'home.hero.title.highlight' | translate }}
+          </span>
+          <span class="hero-title-line">{{ 'home.hero.title.part2' | translate }}</span>
+        </h1>
+
+        <p>
+          {{ 'home.hero.description' | translate }}
+        </p>
+
+        <div class="hero-actions">
+          <a class="primary-action" href="#trending">
+            {{ 'home.hero.primaryAction' | translate }}
+          </a>
+
+          <a
+            class="secondary-action"
+            routerLink="/markets"
+            [queryParams]="{ focus: 'market' }"
+          >
+            {{ 'home.hero.secondaryAction' | translate }}
+          </a>
+        </div>
+
+        <div
+          class="hero-summary"
+          [attr.aria-label]="'home.summary.ariaLabel' | translate"
+        >
+          <div>
+            <strong>64</strong>
+            <span>{{ 'home.summary.districts' | translate }}</span>
+          </div>
+
+          <div>
+            <strong>2,140+</strong>
+            <span>{{ 'home.summary.pricesToday' | translate }}</span>
+          </div>
+
+          <div>
+            <strong>10k+</strong>
+            <span>{{ 'home.summary.contributors' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="hero-visual"
+        [attr.aria-label]="'home.phone.ariaLabel' | translate"
+      >
+        <div class="phone-panel">
+          <div class="phone-top">
+            <div>
+              <span>BazarKoto</span>
+              <strong>{{ 'home.phone.livePrices' | translate }}</strong>
+              <small>{{ 'home.phone.location' | translate }}</small>
+            </div>
+
+            <span class="status-dot"></span>
+          </div>
+
+          <label class="mini-search">
+            <span>{{ 'home.search.itemLabel' | translate }}</span>
+
+            <input
+              type="search"
+              [(ngModel)]="searchTerm"
+              [placeholder]="'home.search.miniPlaceholder' | translate"
+            />
+          </label>
+
+          <div class="mini-tabs">
+            <button
+              *ngFor="let category of miniCategories"
+              type="button"
+              [class.active]="selectedCategory === category.value"
+              (click)="selectedCategory = category.value"
+            >
+              {{ category.labelKey | translate }}
+            </button>
+          </div>
+
+          <div class="mini-list">
+            <p *ngIf="isLoadingPrices">Loading prices...</p>
+            <p *ngIf="priceErrorMessage">{{ priceErrorMessage }}</p>
+            <p *ngIf="!isLoadingPrices && !priceErrorMessage && filteredPrices.length === 0">No prices found yet.</p>
+            <article *ngFor="let price of filteredPrices">
+              <span class="product-dot"></span>
+
+              <div>
+                <strong>{{ price.name }}</strong>
+                <small>{{ price.market }}</small>
+              </div>
+
+              <p>
+                ৳ {{ price.average }}/{{ price.unit }}
+                <span
+                  [class.up]="price.change > 0"
+                  [class.down]="price.change < 0"
+                >
+                  {{ price.change > 0 ? '+' : '' }}{{ price.change }}%
+                </span>
+              </p>
+            </article>
+          </div>
+
+          <a routerLink="/live-prices">
+            {{ 'home.phone.viewAllPrices' | translate }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container answer-section">
+    <span class="eyebrow">{{ 'home.answer.eyebrow' | translate }}</span>
+
+    <h2>{{ 'home.answer.title' | translate }}</h2>
+
+    <p>
+      {{ 'home.answer.description' | translate }}
+    </p>
+  </section>
+
+  <section class="container price-explorer" id="trending">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">{{ 'home.prices.eyebrow' | translate }}</span>
+        <h2>{{ 'home.prices.title' | translate }}</h2>
+      </div>
+
+      <p>{{ 'home.prices.description' | translate }}</p>
+    </div>
+
+    <div class="filters">
+      <label class="search-field">
+        <span>{{ 'home.search.label' | translate }}</span>
+
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          [placeholder]="'home.search.fullPlaceholder' | translate"
+        />
+      </label>
+
+      <div
+        class="category-tabs"
+        role="tablist"
+        [attr.aria-label]="'home.categoryTabs.ariaLabel' | translate"
+      >
+        <button
+          *ngFor="let category of categories"
+          type="button"
+          [class.active]="selectedCategory === category.value"
+          (click)="selectedCategory = category.value"
+        >
+          {{ category.labelKey | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div class="price-grid">
+      <article class="price-card" *ngFor="let price of filteredPrices">
+        <span class="price-icon" aria-hidden="true">
+          {{ getProductInitial(price.name) }}
+        </span>
+
+        <div>
+          <h3>{{ price.name }}</h3>
+          <p>{{ price.market }}</p>
+        </div>
+
+        <div class="price-meta">
+          <strong>
+            ৳ {{ price.average }}/{{ price.unit }}
+          </strong>
+
+          <span
+            [class.up]="price.change > 0"
+            [class.down]="price.change < 0"
+          >
+            {{ price.change > 0 ? '+' : '' }}{{ price.change }}%
+          </span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="container contribution-band" id="share-price">
+    <img
+      src="/images/bazar-hero.png"
+      [alt]="'home.contribution.imageAlt' | translate"
+    />
+
+    <div>
+      <span class="eyebrow">
+        {{ 'home.contribution.eyebrow' | translate }}
+      </span>
+
+      <h2>{{ 'home.contribution.title' | translate }}</h2>
+
+      <p>{{ 'home.contribution.description' | translate }}</p>
+    </div>
+
+    <a routerLink="/markets" [queryParams]="{ focus: 'market' }">
+      {{ 'home.contribution.action' | translate }}
+    </a>
+  </section>
+
+  <section class="container category-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">{{ 'home.categories.eyebrow' | translate }}</span>
+        <h2>{{ 'home.categories.title' | translate }}</h2>
+      </div>
+
+      <p>{{ 'home.categories.description' | translate }}</p>
+    </div>
+
+    <div class="category-grid">
+      <article *ngFor="let category of categoryLinks">
+        <h3>{{ category.titleKey | translate }}</h3>
+        <p>{{ category.descriptionKey | translate }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="container helpful-section">
+    <div>
+      <span class="eyebrow">{{ 'home.why.eyebrow' | translate }}</span>
+      <h2>{{ 'home.why.title' | translate }}</h2>
+    </div>
+
+    <div class="benefit-grid">
+      <article *ngFor="let benefit of benefits">
+        <h3>{{ benefit.titleKey | translate }}</h3>
+        <p>{{ benefit.descriptionKey | translate }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="container faq-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">{{ 'home.faq.eyebrow' | translate }}</span>
+        <h2>{{ 'home.faq.title' | translate }}</h2>
+      </div>
+
+      <p>{{ 'home.faq.description' | translate }}</p>
+    </div>
+
+    <div class="faq-grid">
+      <article *ngFor="let faq of faqs">
+        <h3>{{ faq.questionKey | translate }}</h3>
+        <p>{{ faq.answerKey | translate }}</p>
+      </article>
+    </div>
+  </section>
+</main>

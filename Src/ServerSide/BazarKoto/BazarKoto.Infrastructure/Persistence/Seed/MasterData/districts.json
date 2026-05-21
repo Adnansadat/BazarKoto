@@ -1,0 +1,450 @@
+[
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Barguna",
+    "nameBn": "বরগুনা",
+    "slug": "barguna",
+    "bbsCode": "1004"
+  },
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Barishal",
+    "nameBn": "বরিশাল",
+    "slug": "barishal",
+    "bbsCode": "1006"
+  },
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Bhola",
+    "nameBn": "ভোলা",
+    "slug": "bhola",
+    "bbsCode": "1009"
+  },
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Jhalokathi",
+    "nameBn": "ঝালকাঠি",
+    "slug": "jhalokathi",
+    "bbsCode": "1042"
+  },
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Patuakhali",
+    "nameBn": "পটুয়াখালী",
+    "slug": "patuakhali",
+    "bbsCode": "1078"
+  },
+  {
+    "divisionSlug": "barishal",
+    "nameEn": "Pirojpur",
+    "nameBn": "পিরোজপুর",
+    "slug": "pirojpur",
+    "bbsCode": "1079"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Bandarban",
+    "nameBn": "বান্দরবান",
+    "slug": "bandarban",
+    "bbsCode": "2003"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Brahmanbaria",
+    "nameBn": "ব্রাহ্মণবাড়িয়া",
+    "slug": "brahmanbaria",
+    "bbsCode": "2012"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Chandpur",
+    "nameBn": "চাঁদপুর",
+    "slug": "chandpur",
+    "bbsCode": "2013"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Chattogram",
+    "nameBn": "চট্টগ্রাম",
+    "slug": "chattogram",
+    "bbsCode": "2015"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Cumilla",
+    "nameBn": "কুমিল্লা",
+    "slug": "cumilla",
+    "bbsCode": "2019"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Cox's Bazar",
+    "nameBn": "কক্সবাজার",
+    "slug": "cox-s-bazar",
+    "bbsCode": "2022"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Feni",
+    "nameBn": "ফেনী",
+    "slug": "feni",
+    "bbsCode": "2030"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Khagrachari",
+    "nameBn": "খাগড়াছড়ি",
+    "slug": "khagrachari",
+    "bbsCode": "2046"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Lakshmipur",
+    "nameBn": "লক্ষ্মীপুর",
+    "slug": "lakshmipur",
+    "bbsCode": "2051"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Noakhali",
+    "nameBn": "নোয়াখালী",
+    "slug": "noakhali",
+    "bbsCode": "2075"
+  },
+  {
+    "divisionSlug": "chattogram",
+    "nameEn": "Rangamati",
+    "nameBn": "রাঙ্গামাটি",
+    "slug": "rangamati",
+    "bbsCode": "2084"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Dhaka",
+    "nameBn": "ঢাকা",
+    "slug": "dhaka",
+    "bbsCode": "3026"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Faridpur",
+    "nameBn": "ফরিদপুর",
+    "slug": "faridpur",
+    "bbsCode": "3029"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Gazipur",
+    "nameBn": "গাজীপুর",
+    "slug": "gazipur",
+    "bbsCode": "3033"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Gopalganj",
+    "nameBn": "গোপালগঞ্জ",
+    "slug": "gopalganj",
+    "bbsCode": "3035"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Kishoreganj",
+    "nameBn": "কিশোরগঞ্জ",
+    "slug": "kishoreganj",
+    "bbsCode": "3048"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Madaripur",
+    "nameBn": "মাদারীপুর",
+    "slug": "madaripur",
+    "bbsCode": "3054"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Manikganj",
+    "nameBn": "মানিকগঞ্জ",
+    "slug": "manikganj",
+    "bbsCode": "3056"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Munshiganj",
+    "nameBn": "মুন্সিগঞ্জ",
+    "slug": "munshiganj",
+    "bbsCode": "3059"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Narayanganj",
+    "nameBn": "নারায়ণগঞ্জ",
+    "slug": "narayanganj",
+    "bbsCode": "3067"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Narsingdi",
+    "nameBn": "নরসিংদী",
+    "slug": "narsingdi",
+    "bbsCode": "3068"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Rajbari",
+    "nameBn": "রাজবাড়ী",
+    "slug": "rajbari",
+    "bbsCode": "3082"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Shariatpur",
+    "nameBn": "শরীয়তপুর",
+    "slug": "shariatpur",
+    "bbsCode": "3086"
+  },
+  {
+    "divisionSlug": "dhaka",
+    "nameEn": "Tangail",
+    "nameBn": "টাঙ্গাইল",
+    "slug": "tangail",
+    "bbsCode": "3093"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Bagerhat",
+    "nameBn": "বাগেরহাট",
+    "slug": "bagerhat",
+    "bbsCode": "4001"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Chuadanga",
+    "nameBn": "চুয়াডাঙ্গা",
+    "slug": "chuadanga",
+    "bbsCode": "4018"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Jashore",
+    "nameBn": "যশোর",
+    "slug": "jashore",
+    "bbsCode": "4041"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Jhenaidah",
+    "nameBn": "ঝিনাইদহ",
+    "slug": "jhenaidah",
+    "bbsCode": "4044"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Khulna",
+    "nameBn": "খুলনা",
+    "slug": "khulna",
+    "bbsCode": "4047"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Kushtia",
+    "nameBn": "কুষ্টিয়া",
+    "slug": "kushtia",
+    "bbsCode": "4050"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Magura",
+    "nameBn": "মাগুরা",
+    "slug": "magura",
+    "bbsCode": "4055"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Meherpur",
+    "nameBn": "মেহেরপুর",
+    "slug": "meherpur",
+    "bbsCode": "4057"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Narail",
+    "nameBn": "নড়াইল",
+    "slug": "narail",
+    "bbsCode": "4065"
+  },
+  {
+    "divisionSlug": "khulna",
+    "nameEn": "Satkhira",
+    "nameBn": "সাতক্ষীরা",
+    "slug": "satkhira",
+    "bbsCode": "4087"
+  },
+  {
+    "divisionSlug": "mymensingh",
+    "nameEn": "Jamalpur",
+    "nameBn": "জামালপুর",
+    "slug": "jamalpur",
+    "bbsCode": "4539"
+  },
+  {
+    "divisionSlug": "mymensingh",
+    "nameEn": "Mymensingh",
+    "nameBn": "ময়মনসিংহ",
+    "slug": "mymensingh",
+    "bbsCode": "4561"
+  },
+  {
+    "divisionSlug": "mymensingh",
+    "nameEn": "Netrakona",
+    "nameBn": "নেত্রকোনা",
+    "slug": "netrakona",
+    "bbsCode": "4572"
+  },
+  {
+    "divisionSlug": "mymensingh",
+    "nameEn": "Sherpur",
+    "nameBn": "শেরপুর",
+    "slug": "sherpur",
+    "bbsCode": "4589"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Bogura",
+    "nameBn": "বগুড়া",
+    "slug": "bogura",
+    "bbsCode": "5010"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Chapainawabganj",
+    "nameBn": "চাঁপাইনবাবগঞ্জ",
+    "slug": "chapainawabganj",
+    "bbsCode": "5070"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Joypurhat",
+    "nameBn": "জয়পুরহাট",
+    "slug": "joypurhat",
+    "bbsCode": "5038"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Naogaon",
+    "nameBn": "নওগাঁ",
+    "slug": "naogaon",
+    "bbsCode": "5064"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Natore",
+    "nameBn": "নাটোর",
+    "slug": "natore",
+    "bbsCode": "5069"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Pabna",
+    "nameBn": "পাবনা",
+    "slug": "pabna",
+    "bbsCode": "5076"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Rajshahi",
+    "nameBn": "রাজশাহী",
+    "slug": "rajshahi",
+    "bbsCode": "5081"
+  },
+  {
+    "divisionSlug": "rajshahi",
+    "nameEn": "Sirajganj",
+    "nameBn": "সিরাজগঞ্জ",
+    "slug": "sirajganj",
+    "bbsCode": "5088"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Dinajpur",
+    "nameBn": "দিনাজপুর",
+    "slug": "dinajpur",
+    "bbsCode": "5527"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Gaibandha",
+    "nameBn": "গাইবান্ধা",
+    "slug": "gaibandha",
+    "bbsCode": "5532"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Kurigram",
+    "nameBn": "কুড়িগ্রাম",
+    "slug": "kurigram",
+    "bbsCode": "5549"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Lalmonirhat",
+    "nameBn": "লালমনিরহাট",
+    "slug": "lalmonirhat",
+    "bbsCode": "5552"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Nilphamari",
+    "nameBn": "নীলফামারী",
+    "slug": "nilphamari",
+    "bbsCode": "5573"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Panchagarh",
+    "nameBn": "পঞ্চগড়",
+    "slug": "panchagarh",
+    "bbsCode": "5577"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Rangpur",
+    "nameBn": "রংপুর",
+    "slug": "rangpur",
+    "bbsCode": "5585"
+  },
+  {
+    "divisionSlug": "rangpur",
+    "nameEn": "Thakurgaon",
+    "nameBn": "ঠাকুরগাঁও",
+    "slug": "thakurgaon",
+    "bbsCode": "5594"
+  },
+  {
+    "divisionSlug": "sylhet",
+    "nameEn": "Habiganj",
+    "nameBn": "হবিগঞ্জ",
+    "slug": "habiganj",
+    "bbsCode": "6036"
+  },
+  {
+    "divisionSlug": "sylhet",
+    "nameEn": "Moulvibazar",
+    "nameBn": "মৌলভীবাজার",
+    "slug": "moulvibazar",
+    "bbsCode": "6058"
+  },
+  {
+    "divisionSlug": "sylhet",
+    "nameEn": "Sunamganj",
+    "nameBn": "সুনামগঞ্জ",
+    "slug": "sunamganj",
+    "bbsCode": "6090"
+  },
+  {
+    "divisionSlug": "sylhet",
+    "nameEn": "Sylhet",
+    "nameBn": "সিলেট",
+    "slug": "sylhet",
+    "bbsCode": "6091"
+  }
+]

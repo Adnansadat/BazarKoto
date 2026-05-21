@@ -1,0 +1,46 @@
+<main class="admin-login-page">
+  <section class="login-card" aria-labelledby="admin-login-title">
+    <div class="brand-lockup">
+      <img src="/images/bazar-koto-mark-v2.png" alt="BazarKoto logo mark" />
+      <strong><span>Bazar</span><em>Koto</em></strong>
+    </div>
+
+    <div class="login-copy">
+      <span>Admin access</span>
+      <h1 id="admin-login-title">Sign in to manage market data</h1>
+      <p>Secure area for reviewing submitted markets, products, and daily price updates.</p>
+    </div>
+
+    <form (ngSubmit)="login()">
+      <label>
+        Email address
+        <input
+          type="email"
+          name="email"
+          autocomplete="email"
+          placeholder="admin@bazarkoto.com"
+          [(ngModel)]="email"
+          required
+        />
+      </label>
+
+      <label>
+        Password
+        <input
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          placeholder="Enter password"
+          [(ngModel)]="password"
+          required
+        />
+      </label>
+
+      <p class="login-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Signing in...' : 'Continue' }}
+      </button>
+    </form>
+  </section>
+</main>

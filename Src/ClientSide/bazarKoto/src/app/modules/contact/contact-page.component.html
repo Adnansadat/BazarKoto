@@ -1,0 +1,49 @@
+<main class="contact-page">
+  <section class="page-hero">
+    <div class="container">
+      <span>{{ 'contact.hero.eyebrow' | translate }}</span>
+      <h1>{{ 'contact.hero.title' | translate }}</h1>
+      <p>{{ 'contact.hero.description' | translate }}</p>
+    </div>
+  </section>
+
+  <section class="container contact-grid">
+    <article class="contact-card">
+      <h2>{{ 'contact.details.title' | translate }}</h2>
+      <div>
+        <span>{{ 'contact.details.email.label' | translate }}</span>
+        <strong>{{ 'contact.details.email.value' | translate }}</strong>
+      </div>
+      <div>
+        <span>{{ 'contact.details.area.label' | translate }}</span>
+        <strong>{{ 'contact.details.area.value' | translate }}</strong>
+      </div>
+      <div>
+        <span>{{ 'contact.details.response.label' | translate }}</span>
+        <strong>{{ 'contact.details.response.value' | translate }}</strong>
+      </div>
+    </article>
+
+    <form class="contact-form" (ngSubmit)="submit()">
+      <label>
+        <span>{{ 'contact.form.name.label' | translate }}</span>
+        <input type="text" name="name" [(ngModel)]="name" [placeholder]="'contact.form.name.placeholder' | translate" required />
+      </label>
+      <label>
+        <span>{{ 'contact.form.email.label' | translate }}</span>
+        <input type="email" name="email" [(ngModel)]="email" [placeholder]="'contact.form.email.placeholder' | translate" required />
+      </label>
+      <label>
+        <span>{{ 'contact.form.subject.label' | translate }}</span>
+        <input type="text" name="subject" [(ngModel)]="subject" [placeholder]="'contact.form.subject.placeholder' | translate" required />
+      </label>
+      <label>
+        <span>{{ 'contact.form.message.label' | translate }}</span>
+        <textarea rows="5" name="message" [(ngModel)]="message" [placeholder]="'contact.form.message.placeholder' | translate" required></textarea>
+      </label>
+      <p class="status-message" *ngIf="successMessage">{{ successMessage }}</p>
+      <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <button type="submit" [disabled]="isSubmitting">{{ 'contact.form.submit' | translate }}</button>
+    </form>
+  </section>
+</main>

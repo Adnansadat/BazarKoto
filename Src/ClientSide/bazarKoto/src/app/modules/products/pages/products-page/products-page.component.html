@@ -1,0 +1,203 @@
+<main class="products-page" [attr.aria-label]="'products.page.ariaLabel' | translate">
+  <section class="product-hero" aria-labelledby="products-page-title">
+    <div class="container hero-shell">
+      <div>
+        <span class="eyebrow">{{ 'products.hero.eyebrow' | translate }}</span>
+        <h1 id="products-page-title">{{ 'products.hero.title' | translate }}</h1>
+        <p>
+          {{ 'products.hero.description' | translate }}
+        </p>
+      </div>
+
+      <div
+        class="hero-card"
+        role="status"
+        [attr.aria-label]="'products.marketContext.ariaLabel' | translate"
+      >
+        <span>{{ 'products.marketContext.label' | translate }}</span>
+        <strong>{{ 'products.marketContext.market' | translate }}</strong>
+        <small>{{ 'products.marketContext.location' | translate }}</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="container workspace" aria-labelledby="share-product-title">
+    <section class="share-panel" aria-labelledby="share-product-title">
+      <div class="panel-heading">
+        <span class="step">{{ 'products.step.two' | translate }}</span>
+        <div>
+          <h2 id="share-product-title">{{ 'products.share.title' | translate }}</h2>
+          <p id="share-product-helper">{{ 'products.share.helper' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>{{ 'products.form.category' | translate }}</span>
+          <input
+            type="text"
+            list="product-category-options"
+            [(ngModel)]="categorySearch"
+            (ngModelChange)="onCategoryInputChange()"
+            [placeholder]="'products.form.categoryPlaceholder' | translate"
+            [disabled]="isLoadingCategories"
+            [attr.aria-invalid]="categoryInvalid"
+          />
+          <datalist id="product-category-options">
+            <option *ngFor="let category of categories" [value]="getCategoryName(category)"></option>
+          </datalist>
+          <em
+            class="field-error validation-slot"
+            [class.is-visible]="categoryInvalid || categoryErrorMessage || isLoadingCategories"
+          >
+            <ng-container *ngIf="isLoadingCategories; else categoryFeedback">
+              Loading categories...
+            </ng-container>
+            <ng-template #categoryFeedback>
+              {{ categoryErrorMessage || ('products.form.categoryRequired' | translate) }}
+            </ng-template>
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'products.form.name' | translate }}</span>
+          <input
+            #productNameInput
+            type="text"
+            list="product-name-options"
+            [(ngModel)]="productName"
+            (ngModelChange)="onProductNameInputChange()"
+            [placeholder]="'products.form.namePlaceholder' | translate"
+            [disabled]="!selectedCategoryId"
+            [attr.aria-describedby]="productNameInvalid ? 'product-name-error' : 'share-product-helper'"
+            [attr.aria-invalid]="productNameInvalid"
+          />
+          <datalist id="product-name-options">
+            <ng-container *ngFor="let product of productSuggestions">
+              <option [value]="currentLanguage === 'bn' ? product.nameBn : product.nameEn"></option>
+              <option *ngIf="product.localName" [value]="product.localName"></option>
+            </ng-container>
+          </datalist>
+          <em class="field-error validation-slot" id="product-name-error" [class.is-visible]="productNameInvalid">
+            {{ productNameErrorKey | translate }}
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'products.form.localName' | translate }}</span>
+          <input
+            type="text"
+            [(ngModel)]="localName"
+            (ngModelChange)="onRequiredFieldChange()"
+            [placeholder]="'products.form.localNamePlaceholder' | translate"
+          />
+          <em class="field-error validation-slot"></em>
+        </label>
+
+        <label>
+          <span>{{ 'products.form.unit' | translate }}</span>
+          <select [(ngModel)]="selectedUnit" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="unitInvalid">
+            <option value="">{{ 'products.form.unit' | translate }}</option>
+            <option *ngFor="let unit of units" [value]="unit.value">{{ unit.labelKey | translate }}</option>
+          </select>
+          <em class="field-error validation-slot" [class.is-visible]="unitInvalid">
+            {{ 'products.form.unitRequired' | translate }}
+          </em>
+        </label>
+
+        <label>
+          <span>{{ 'products.form.state' | translate }}</span>
+          <select [(ngModel)]="selectedState" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="stateInvalid">
+            <option value="">{{ 'products.form.state' | translate }}</option>
+            <option *ngFor="let state of states" [value]="state.value">{{ state.labelKey | translate }}</option>
+          </select>
+          <em class="field-error validation-slot" [class.is-visible]="stateInvalid">
+            {{ 'products.form.stateRequired' | translate }}
+          </em>
+        </label>
+
+        <label class="notes-field">
+          <span>{{ 'products.form.notes' | translate }}</span>
+          <textarea
+            [(ngModel)]="notes"
+            rows="4"
+            [placeholder]="'products.form.notesPlaceholder' | translate"
+          ></textarea>
+          <em class="field-error validation-slot"></em>
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <span class="field-error" *ngIf="productErrorMessage">{{ productErrorMessage }}</span>
+        <span class="status-message" *ngIf="productSuccessMessage">{{ productSuccessMessage }}</span>
+        <button
+          type="button"
+          (click)="addProduct()"
+          [disabled]="isSubmittingProduct"
+          [attr.aria-label]="'products.actions.addProductAria' | translate"
+        >
+          {{ 'products.actions.addProduct' | translate }}
+        </button>
+      </div>
+    </section>
+  </section>
+
+  <section class="container next-step" aria-labelledby="product-price-submission-title">
+    <div>
+      <span class="eyebrow">{{ 'products.next.eyebrow' | translate }}</span>
+      <h2 id="product-price-submission-title">{{ 'products.next.title' | translate }}</h2>
+      <p>{{ 'products.next.description' | translate }}</p>
+    </div>
+    <div class="next-step-actions">
+      <a class="back-arrow" routerLink="/markets" aria-label="Back to markets">
+        <span aria-hidden="true">&larr;</span>
+      </a>
+
+      <a routerLink="/prices" [attr.aria-label]="'products.actions.continuePricesAria' | translate">
+        {{ 'products.actions.continuePrices' | translate }}
+      </a>
+    </div>
+  </section>
+
+  <section class="container library-section" aria-labelledby="existing-products-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="existing-products-title">{{ 'products.existing.title' | translate }}</h2>
+      </div>
+
+      <label class="search-field">
+        <span>{{ 'products.search.label' | translate }}</span>
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="loadProducts()"
+          [placeholder]="'products.search.placeholder' | translate"
+          [attr.aria-label]="'products.search.ariaLabel' | translate"
+        />
+      </label>
+    </div>
+
+    <p *ngIf="isLoadingProducts">Loading products...</p>
+    <p *ngIf="!isLoadingProducts && productErrorMessage">{{ productErrorMessage }}</p>
+    <p *ngIf="!isLoadingProducts && !productErrorMessage && visibleProducts.length === 0">No products found yet.</p>
+
+    <div class="product-grid">
+      <article
+        class="product-card"
+        *ngFor="let product of visibleProducts"
+        [attr.aria-label]="product.name + ', ' + product.category"
+      >
+        <div>
+          <h3>{{ product.name }}</h3>
+          <p>{{ product.category }}</p>
+        </div>
+
+        <div class="product-meta">
+          <span>{{ product.freshness }}</span>
+          <strong>{{ product.unit }}</strong>
+          <em>{{ product.submissions }} {{ 'products.existing.submissions' | translate }}</em>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>

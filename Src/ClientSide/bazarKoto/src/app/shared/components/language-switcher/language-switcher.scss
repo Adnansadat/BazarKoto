@@ -1,0 +1,21 @@
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.language-switcher button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.6;
+}
+
+.language-switcher button.active {
+  color: #0f766e;
+  opacity: 1;
+}
