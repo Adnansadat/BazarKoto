@@ -1,13 +1,17 @@
 .policy-page {
-  padding-bottom: 72px;
+  padding-bottom: 0;
+  background:
+    radial-gradient(circle at right top, rgba(15, 118, 110, 0.06), transparent 28%),
+    linear-gradient(180deg, #f8fafc, #ffffff 44%);
 }
 
 .page-hero {
-  background: linear-gradient(135deg, #f8fafc, #ecfeff 50%, #fff7ed);
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff 52%, #f0fdfa);
 }
 
 .page-hero .container {
-  min-height: 210px;
+  min-height: 190px;
   display: grid;
   align-content: center;
 }
@@ -20,34 +24,71 @@
 }
 
 .page-hero h1 {
-  margin: 12px 0 12px;
+  margin: 12px 0 0;
   font-size: clamp(32px, 4vw, 44px);
 }
 
-.page-hero p {
-  margin: 0;
-  color: #475569;
-}
-
 .policy-content {
-  margin-top: 24px;
-  display: grid;
-  gap: 16px;
+  margin-top: 30px;
+  padding-bottom: 32px;
 }
 
-.policy-content article {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 24px;
+.policy-doc {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: clamp(22px, 4vw, 36px);
   background: white;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.policy-content h2 {
-  margin-top: 0;
+.policy-doc p,
+.policy-doc li {
+  color: #334155;
+  font-size: 16px;
+  line-height: 1.75;
 }
 
-.policy-content p {
-  margin-bottom: 0;
-  color: #475569;
-  line-height: 1.7;
+.policy-doc p {
+  margin: 0 0 16px;
+}
+
+.policy-doc .policy-lead {
+  color: #0f172a;
+  font-size: clamp(18px, 2.3vw, 21px);
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.policy-doc ul {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+}
+
+.policy-doc li::marker {
+  color: #0f766e;
+}
+
+.policy-doc .policy-contact {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.policy-doc a {
+  color: #0f766e;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(15, 118, 110, 0.35);
+}
+
+.policy-doc a:hover {
+  color: #115e59;
+  border-bottom-color: #115e59;
 }

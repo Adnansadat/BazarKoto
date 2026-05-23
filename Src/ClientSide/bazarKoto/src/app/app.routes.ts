@@ -36,10 +36,16 @@ export const routes: Routes = [
   },
 
   {
-    path: 'live-prices',
+    path: 'product-prices',
     loadChildren: () =>
       import('./modules/live-prices/live-prices.routes')
         .then(m => m.LIVE_PRICES_ROUTES)
+  },
+
+  {
+    path: 'live-prices',
+    redirectTo: 'product-prices',
+    pathMatch: 'full'
   },
 
   {
