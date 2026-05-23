@@ -24,7 +24,6 @@
           <a
             class="secondary-action"
             routerLink="/markets"
-            [queryParams]="{ focus: 'market' }"
           >
             {{ 'home.hero.secondaryAction' | translate }}
           </a>
@@ -210,7 +209,7 @@
       <p>{{ 'home.contribution.description' | translate }}</p>
     </div>
 
-    <a routerLink="/markets" [queryParams]="{ focus: 'market' }">
+    <a routerLink="/markets">
       {{ 'home.contribution.action' | translate }}
     </a>
   </section>

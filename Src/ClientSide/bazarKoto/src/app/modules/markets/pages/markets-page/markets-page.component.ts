@@ -1,7 +1,7 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize, Subscription } from 'rxjs';
@@ -56,7 +56,8 @@ interface MarketResponse {
   templateUrl: './markets-page.component.html',
   styleUrl: './markets-page.component.scss',
 })
-export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, DoCheck {
+export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
+  @ViewChild('divisionSelect') private divisionSelect?: ElementRef<HTMLSelectElement>;
   @ViewChild('marketInput') private marketInput?: ElementRef<HTMLInputElement>;
 
   private readonly siteUrl = 'https://www.bazarkoto.com';
@@ -66,9 +67,12 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   private readonly jsonLdScriptId = 'markets-page-json-ld';
   private readonly requiredMarketFieldsMessage = 'Please complete all required market location fields.';
   private readonly duplicateMarketMessage = 'This market already exists for the selected location.';
+  private readonly maxDivisionFocusRetries = 8;
+  private readonly maxPostInitFocusChecks = 12;
   private lastDraftJson = '';
   private duplicateMarketFingerprint = '';
   private langChangeSubscription?: Subscription;
+  private initialDivisionFocusChecks = 0;
 
   selectedDivisionId = '';
   selectedDistrictId = '';
@@ -97,6 +101,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   upazilaSearch = '';
   unionOrWardSearch = '';
   marketSearch = '';
+  isDivisionInputActive = false;
   divisions: LocationResponse[] = [];
   districts: LocationResponse[] = [];
   upazilas: LocationResponse[] = [];
@@ -105,7 +110,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
     private readonly title: Title,
     private readonly meta: Meta,
     private readonly translate: TranslateService,
@@ -286,6 +290,18 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     this.marketInput?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  focusDivisionInput(): void {
+    this.focusDivisionInputWithRetry();
+  }
+
+  onDivisionInputFocus(): void {
+    this.isDivisionInputActive = true;
+  }
+
+  onDivisionInputBlur(): void {
+    this.isDivisionInputActive = false;
+  }
+
   selectNearbyMarket(market: Market): void {
     this.selectedDivisionId = market.divisionId;
     this.selectedDistrictId = market.districtId;
@@ -303,9 +319,28 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   }
 
   ngAfterViewInit(): void {
-    if (this.route.snapshot.queryParamMap.get('focus') === 'market') {
-      setTimeout(() => this.focusMarketInput());
+    setTimeout(() => this.focusDivisionInputWithRetry());
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.initialDivisionFocusChecks >= this.maxPostInitFocusChecks) {
+      return;
     }
+
+    this.initialDivisionFocusChecks += 1;
+
+    const divisionElement = this.divisionSelect?.nativeElement;
+    if (!divisionElement || this.isLoadingDivisions || divisionElement.disabled) {
+      return;
+    }
+
+    if (this.document.activeElement !== divisionElement) {
+      this.focusDivisionInputWithRetry();
+      return;
+    }
+
+    this.isDivisionInputActive = true;
+    this.initialDivisionFocusChecks = this.maxPostInitFocusChecks;
   }
 
   ngOnInit(): void {
@@ -458,6 +493,8 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       .subscribe({
         next: divisions => {
           this.divisions = divisions;
+          this.initialDivisionFocusChecks = 0;
+          this.focusDivisionInputWithRetry();
         },
         error: error => {
           this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load divisions.';
@@ -885,5 +922,23 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
         text: this.translate.instant(answerKey),
       },
     };
+  }
+
+  private focusDivisionInputWithRetry(attempt = 0): void {
+    const element = this.divisionSelect?.nativeElement;
+
+    if (!element) {
+      return;
+    }
+
+    if (this.isLoadingDivisions || element.disabled) {
+      if (attempt < this.maxDivisionFocusRetries) {
+        setTimeout(() => this.focusDivisionInputWithRetry(attempt + 1), 80);
+      }
+      return;
+    }
+
+    element.focus();
+    this.isDivisionInputActive = this.document.activeElement === element;
   }
 }

@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -78,12 +78,15 @@ interface SelectOption {
   templateUrl: './products-page.component.html',
   styleUrl: './products-page.component.scss',
 })
-export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, DoCheck {
+export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
+  @ViewChild('categoryInput') private categoryInput?: ElementRef<HTMLSelectElement>;
   @ViewChild('productNameInput') private productNameInput?: ElementRef<HTMLSelectElement>;
 
   private readonly draftStorageKey = 'bazarkoto.product.draft';
   private readonly requiredProductFieldsMessage = 'Please complete all required product fields.';
   private readonly duplicateProductMessage = 'This product already exists in the selected category.';
+  private readonly maxCategoryFocusRetries = 8;
+  private readonly maxPostInitFocusChecks = 12;
   private readonly siteUrl = 'https://www.bazarkoto.com';
   private readonly pageUrl = `${this.siteUrl}/products`;
   private readonly ogImageUrl = `${this.siteUrl}/images/bazar-hero.png`;
@@ -91,6 +94,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   private lastDraftJson = '';
   private duplicateProductFingerprint = '';
   private langChangeSubscription?: Subscription;
+  private initialCategoryFocusChecks = 0;
 
   selectedCategoryId = '';
   categorySearch = '';
@@ -105,6 +109,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   isLoadingProducts = true;
   isLoadingCategories = true;
   isSubmittingProduct = false;
+  isCategoryInputActive = false;
   categoryErrorMessage = '';
   productErrorMessage = '';
   productListErrorMessage = '';
@@ -210,7 +215,28 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.productNameInput?.nativeElement.focus());
+    setTimeout(() => this.focusCategoryInputWithRetry());
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.initialCategoryFocusChecks >= this.maxPostInitFocusChecks) {
+      return;
+    }
+
+    this.initialCategoryFocusChecks += 1;
+
+    const element = this.categoryInput?.nativeElement;
+    if (!element || this.isLoadingCategories || element.disabled) {
+      return;
+    }
+
+    if (this.document.activeElement !== element) {
+      this.focusCategoryInputWithRetry();
+      return;
+    }
+
+    this.isCategoryInputActive = true;
+    this.initialCategoryFocusChecks = this.maxPostInitFocusChecks;
   }
 
   ngOnDestroy(): void {
@@ -409,6 +435,8 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
           if (this.selectedCategoryId) {
             this.categorySearch = this.selectedCategoryName;
           }
+          this.initialCategoryFocusChecks = 0;
+          this.focusCategoryInputWithRetry();
           this.loadProducts();
           this.loadProductSuggestions();
         },
@@ -760,5 +788,31 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
         text: this.translate.instant(answerKey),
       },
     };
+  }
+
+  onCategoryInputFocus(): void {
+    this.isCategoryInputActive = true;
+  }
+
+  onCategoryInputBlur(): void {
+    this.isCategoryInputActive = false;
+  }
+
+  private focusCategoryInputWithRetry(attempt = 0): void {
+    const element = this.categoryInput?.nativeElement;
+
+    if (!element) {
+      return;
+    }
+
+    if (this.isLoadingCategories || element.disabled) {
+      if (attempt < this.maxCategoryFocusRetries) {
+        setTimeout(() => this.focusCategoryInputWithRetry(attempt + 1), 80);
+      }
+      return;
+    }
+
+    element.focus();
+    this.isCategoryInputActive = this.document.activeElement === element;
   }
 }

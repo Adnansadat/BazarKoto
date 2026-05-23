@@ -24,8 +24,19 @@
       <div class="field-grid">
         <label>
           <span>{{ 'markets.form.division' | translate }}</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedDivisionId">
-            <select [(ngModel)]="selectedDivisionId" (ngModelChange)="onDivisionChange()" [disabled]="isLoadingDivisions">
+          <div
+            class="clearable-field select-clearable"
+            [class.has-clear-value]="selectedDivisionId"
+            [class.input-active]="isDivisionInputActive"
+          >
+            <select
+              #divisionSelect
+              [(ngModel)]="selectedDivisionId"
+              (ngModelChange)="onDivisionChange()"
+              (focus)="onDivisionInputFocus()"
+              (blur)="onDivisionInputBlur()"
+              [disabled]="isLoadingDivisions"
+            >
               <option value="">Select division</option>
               <option *ngFor="let division of divisions" [value]="division.id">{{ getLocationName(division) }}</option>
             </select>

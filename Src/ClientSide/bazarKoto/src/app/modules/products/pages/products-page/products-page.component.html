@@ -34,10 +34,17 @@
       <div class="form-grid">
         <label>
           <span>{{ 'products.form.category' | translate }}</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedCategoryId">
+          <div
+            class="clearable-field select-clearable"
+            [class.has-clear-value]="selectedCategoryId"
+            [class.input-active]="isCategoryInputActive"
+          >
             <select
+              #categoryInput
               [(ngModel)]="selectedCategoryId"
               (ngModelChange)="onCategoryChange()"
+              (focus)="onCategoryInputFocus()"
+              (blur)="onCategoryInputBlur()"
               [disabled]="isLoadingCategories"
               [attr.aria-invalid]="categoryInvalid"
             >

@@ -32,9 +32,17 @@
       </div>
 
       <div class="form-grid">
-        <label>
+        <label [class.input-active]="isPricePerUnitInputActive">
           <span>{{ 'prices.form.pricePerUnit' | translate }}</span>
-          <input type="number" [(ngModel)]="price" min="0" [attr.aria-invalid]="priceInvalid" />
+          <input
+            #pricePerUnitInput
+            type="number"
+            [(ngModel)]="price"
+            min="0"
+            (focus)="onPricePerUnitInputFocus()"
+            (blur)="onPricePerUnitInputBlur()"
+            [attr.aria-invalid]="priceInvalid"
+          />
           <em class="field-error validation-slot" [class.is-visible]="priceInvalid">
             Price per unit must be greater than zero.
           </em>

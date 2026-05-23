@@ -312,10 +312,18 @@ textarea {
 }
 
 input:focus-visible,
+input:focus,
 select:focus-visible,
+select:focus,
 textarea:focus-visible,
+textarea:focus,
 button:focus-visible,
 a:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.32);
+  outline-offset: 2px;
+}
+
+.select-clearable.input-active select {
   outline: 3px solid rgba(15, 118, 110, 0.32);
   outline-offset: 2px;
 }

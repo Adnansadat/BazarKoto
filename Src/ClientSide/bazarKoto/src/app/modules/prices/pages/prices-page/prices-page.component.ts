@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
@@ -87,8 +87,9 @@ interface PriceSummaryResponse {
   templateUrl: './prices-page.component.html',
   styleUrl: './prices-page.component.scss',
 })
-export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, DoCheck {
+export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
   @ViewChild('marketInput') private marketInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('pricePerUnitInput') private pricePerUnitInput?: ElementRef<HTMLInputElement>;
 
   private readonly siteUrl = 'https://www.bazarkoto.com';
   private readonly marketDraftKey = 'bazarkoto.market.draft';
@@ -97,8 +98,10 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   private readonly pageUrl = `${this.siteUrl}/prices`;
   private readonly ogImageUrl = `${this.siteUrl}/images/bazar-hero.png`;
   private readonly jsonLdScriptId = 'prices-page-json-ld';
+  private readonly maxPostInitFocusChecks = 12;
   private lastDraftJson = '';
   private langChangeSubscription?: Subscription;
+  private initialPriceInputFocusChecks = 0;
 
   selectedDivisionId = '';
   selectedDistrictId = '';
@@ -118,6 +121,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   priceSource = 'Observed in market';
   quality = 'Standard';
   notes = '';
+  isPricePerUnitInputActive = false;
   isThankYouOpen = false;
   isUpdateSuccessOpen = false;
   showPriceValidation = false;
@@ -196,7 +200,28 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.marketInput?.nativeElement.focus());
+    setTimeout(() => this.resetScrollAndFocusPriceInput());
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.initialPriceInputFocusChecks >= this.maxPostInitFocusChecks) {
+      return;
+    }
+
+    this.initialPriceInputFocusChecks += 1;
+    const element = this.pricePerUnitInput?.nativeElement;
+
+    if (!element) {
+      return;
+    }
+
+    if (this.document.activeElement !== element) {
+      this.resetScrollAndFocusPriceInput();
+      return;
+    }
+
+    this.isPricePerUnitInputActive = true;
+    this.initialPriceInputFocusChecks = this.maxPostInitFocusChecks;
   }
 
   ngOnDestroy(): void {
@@ -306,8 +331,32 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   }
 
   focusSubmissionForm(): void {
-    this.marketInput?.nativeElement.focus();
-    this.marketInput?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    this.focusPricePerUnitInput();
+    this.pricePerUnitInput?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  onPricePerUnitInputFocus(): void {
+    this.isPricePerUnitInputActive = true;
+  }
+
+  onPricePerUnitInputBlur(): void {
+    this.isPricePerUnitInputActive = false;
+  }
+
+  private focusPricePerUnitInput(): void {
+    const element = this.pricePerUnitInput?.nativeElement;
+
+    if (!element) {
+      return;
+    }
+
+    element.scrollIntoView({ behavior: 'auto', block: 'center' });
+    element.focus();
+    this.isPricePerUnitInputActive = this.document.activeElement === element;
+  }
+
+  private resetScrollAndFocusPriceInput(): void {
+    this.focusPricePerUnitInput();
   }
 
   onDivisionChange(): void {
