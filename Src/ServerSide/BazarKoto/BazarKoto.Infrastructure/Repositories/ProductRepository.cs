@@ -39,6 +39,13 @@ public class ProductRepository : IProductRepository
         return BuildQuery(categoryId, search).CountAsync(cancellationToken);
     }
 
+    public Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.ProductCategories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && x.IsActive, cancellationToken);
+    }
+
     private IQueryable<Product> BuildQuery(Guid? categoryId, string? search)
     {
         var query = _dbContext.Products
@@ -70,12 +77,30 @@ public class ProductRepository : IProductRepository
         return _dbContext.Products.Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Product>> GetDuplicatesAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Product>> GetDuplicatesAsync(Guid categoryId, string slug, CancellationToken cancellationToken = default)
     {
+        var normalizedSlug = slug.Trim().ToLower();
+
         return await _dbContext.Products
             .AsNoTracking()
-            .Where(x => x.NameEn == name || x.NameBn == name || x.LocalName == name)
+            .Include(x => x.Category)
+            .Where(x =>
+                x.CategoryId == categoryId &&
+                x.Slug.ToLower() == normalizedSlug)
             .ToListAsync(cancellationToken);
+    }
+
+    public Task<bool> ExistsByCategoryAndSlugAsync(Guid categoryId, string slug, Guid? excludeProductId = null, CancellationToken cancellationToken = default)
+    {
+        var normalizedSlug = slug.Trim().ToLower();
+
+        return _dbContext.Products
+            .AsNoTracking()
+            .AnyAsync(x =>
+                x.CategoryId == categoryId &&
+                x.Slug.ToLower() == normalizedSlug &&
+                (!excludeProductId.HasValue || x.Id != excludeProductId.Value),
+                cancellationToken);
     }
 
     public async Task AddAsync(Product product, CancellationToken cancellationToken = default)

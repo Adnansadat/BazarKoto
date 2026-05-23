@@ -75,6 +75,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   selectedUpazilaId = '';
   selectedUnionOrWardId = '';
   selectedArea = '';
+  selectedMarketId = '';
   selectedMarket = '';
   villageOrMoholla = '';
   landmark = '';
@@ -178,12 +179,15 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   }
 
   onDivisionChange(): void {
+    this.divisionSearch = this.selectedDivisionName;
     this.districtSearch = '';
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
     this.selectedDistrictId = '';
     this.selectedUpazilaId = '';
     this.selectedUnionOrWardId = '';
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
     this.districts = [];
     this.upazilas = [];
     this.unionOrWards = [];
@@ -192,26 +196,88 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   }
 
   onDistrictChange(): void {
+    this.districtSearch = this.selectedDistrictName;
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
     this.selectedUpazilaId = '';
     this.selectedUnionOrWardId = '';
     this.upazilas = [];
     this.unionOrWards = [];
+    this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadUpazilas();
     this.loadMarkets();
   }
 
   onUpazilaChange(): void {
+    this.upazilaSearch = this.selectedUpazilaName;
     this.unionOrWardSearch = '';
     this.selectedUnionOrWardId = '';
     this.unionOrWards = [];
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
     this.loadUnionOrWards();
     this.loadMarkets();
   }
 
   onUnionOrWardChange(): void {
+    this.unionOrWardSearch = this.selectedUnionOrWardName;
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
+    this.loadMarkets();
+  }
+
+  onMarketNameChange(): void {
+    this.syncSelectedMarketIdFromNearbyMarkets(true);
+  }
+
+  clearDivisionSelection(): void {
+    this.selectedDivisionId = '';
+    this.divisionSearch = '';
+    this.selectedDistrictId = '';
+    this.selectedUpazilaId = '';
+    this.selectedUnionOrWardId = '';
+    this.districtSearch = '';
+    this.upazilaSearch = '';
+    this.unionOrWardSearch = '';
+    this.districts = [];
+    this.upazilas = [];
+    this.unionOrWards = [];
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
+    this.loadMarkets();
+  }
+
+  clearDistrictSelection(): void {
+    this.selectedDistrictId = '';
+    this.districtSearch = '';
+    this.selectedUpazilaId = '';
+    this.selectedUnionOrWardId = '';
+    this.upazilaSearch = '';
+    this.unionOrWardSearch = '';
+    this.upazilas = [];
+    this.unionOrWards = [];
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
+    this.loadMarkets();
+  }
+
+  clearUpazilaSelection(): void {
+    this.selectedUpazilaId = '';
+    this.upazilaSearch = '';
+    this.selectedUnionOrWardId = '';
+    this.unionOrWardSearch = '';
+    this.unionOrWards = [];
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
+    this.loadMarkets();
+  }
+
+  clearUnionOrWardSelection(): void {
+    this.selectedUnionOrWardId = '';
+    this.unionOrWardSearch = '';
+    this.selectedMarketId = '';
+    this.selectedMarket = '';
     this.loadMarkets();
   }
 
@@ -230,6 +296,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     this.upazilaSearch = this.selectedUpazilaName;
     this.unionOrWardSearch = this.selectedUnionOrWardName;
     this.selectedArea = market.area;
+    this.selectedMarketId = market.id;
     this.selectedMarket = market.name;
     this.showMarketValidation = false;
     this.focusMarketInput();
@@ -290,9 +357,13 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       return;
     }
 
-    if (this.hasDuplicateMarket()) {
+    const duplicateMarket = this.findSelectedNearbyMarket();
+
+    if (duplicateMarket) {
+      this.selectedMarketId = duplicateMarket.id;
       this.marketErrorMessage = this.duplicateMarketMessage;
       this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
+      this.persistDraftIfChanged(true);
       return;
     }
 
@@ -310,10 +381,11 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       marketType: this.mapMarketType(this.marketType),
       operatingSchedule: this.mapSchedule(this.operatingDays),
     }).pipe(finalize(() => this.isSubmittingMarket = false)).subscribe({
-      next: () => {
+      next: market => {
+        this.selectedMarketId = this.extractCreatedMarketId(market) || this.selectedMarketId;
+        this.persistDraftIfChanged(true);
         this.marketSuccessMessage = 'Market submitted successfully.';
         this.showMarketValidation = false;
-        this.loadMarkets();
         this.router.navigate(['/products']);
       },
       error: error => {
@@ -339,6 +411,24 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
 
     this.marketErrorMessage = '';
     this.duplicateMarketFingerprint = '';
+
+    const duplicateMarket = this.findSelectedNearbyMarket();
+
+    if (duplicateMarket) {
+      this.selectedMarketId = duplicateMarket.id;
+      this.persistDraftIfChanged(true);
+      this.router.navigate(['/products']);
+      return;
+    }
+
+    this.syncSelectedMarketIdFromNearbyMarkets(true);
+
+    if (!this.selectedMarketId) {
+      this.addMarket();
+      return;
+    }
+
+    this.persistDraftIfChanged(true);
     this.router.navigate(['/products']);
   }
 
@@ -346,7 +436,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     this.isLoadingDivisions = true;
     this.locationErrorMessage = '';
 
-    this.api.get<LocationResponse[]>('/locations/divisions', { search: this.divisionSearch })
+    this.api.get<LocationResponse[]>('/locations/divisions')
       .pipe(finalize(() => this.isLoadingDivisions = false))
       .subscribe({
         next: divisions => {
@@ -356,26 +446,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
           this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load divisions.';
         },
       });
-  }
-
-  onDivisionInputChange(): void {
-    this.loadDivisions();
-    const match = this.findLocationByName(this.divisions, this.divisionSearch);
-
-    if (!match) {
-      if (!this.isSelectedLocationSearchCurrent(this.divisions, this.selectedDivisionId, this.divisionSearch)) {
-        this.selectedDivisionId = '';
-        this.onDivisionChange();
-      }
-      return;
-    }
-
-    if (match.id === this.selectedDivisionId) {
-      return;
-    }
-
-    this.selectedDivisionId = match.id;
-    this.onDivisionChange();
   }
 
   loadDistricts(): void {
@@ -388,7 +458,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
 
     this.api.get<LocationResponse[]>('/locations/districts', {
       divisionId: this.selectedDivisionId,
-      search: this.districtSearch,
     }).pipe(finalize(() => this.isLoadingDistricts = false)).subscribe({
       next: districts => {
         this.districts = districts;
@@ -397,26 +466,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
         this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load districts.';
       },
     });
-  }
-
-  onDistrictInputChange(): void {
-    this.loadDistricts();
-    const match = this.findLocationByName(this.districts, this.districtSearch);
-
-    if (!match) {
-      if (!this.isSelectedLocationSearchCurrent(this.districts, this.selectedDistrictId, this.districtSearch)) {
-        this.selectedDistrictId = '';
-        this.onDistrictChange();
-      }
-      return;
-    }
-
-    if (match.id === this.selectedDistrictId) {
-      return;
-    }
-
-    this.selectedDistrictId = match.id;
-    this.onDistrictChange();
   }
 
   loadUpazilas(): void {
@@ -429,7 +478,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
 
     this.api.get<LocationResponse[]>('/locations/upazilas', {
       districtId: this.selectedDistrictId,
-      search: this.upazilaSearch,
     }).pipe(finalize(() => this.isLoadingUpazilas = false)).subscribe({
       next: upazilas => {
         this.upazilas = upazilas;
@@ -438,26 +486,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
         this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load upazilas.';
       },
     });
-  }
-
-  onUpazilaInputChange(): void {
-    this.loadUpazilas();
-    const match = this.findLocationByName(this.upazilas, this.upazilaSearch);
-
-    if (!match) {
-      if (!this.isSelectedLocationSearchCurrent(this.upazilas, this.selectedUpazilaId, this.upazilaSearch)) {
-        this.selectedUpazilaId = '';
-        this.onUpazilaChange();
-      }
-      return;
-    }
-
-    if (match.id === this.selectedUpazilaId) {
-      return;
-    }
-
-    this.selectedUpazilaId = match.id;
-    this.onUpazilaChange();
   }
 
   loadUnionOrWards(): void {
@@ -470,7 +498,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
 
     this.api.get<LocationResponse[]>('/locations/unions-or-wards', {
       upazilaId: this.selectedUpazilaId,
-      search: this.unionOrWardSearch,
     }).pipe(finalize(() => this.isLoadingUnionOrWards = false)).subscribe({
       next: unionOrWards => {
         this.unionOrWards = unionOrWards;
@@ -479,26 +506,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
         this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load unions or wards.';
       },
     });
-  }
-
-  onUnionOrWardInputChange(): void {
-    this.loadUnionOrWards();
-    const match = this.findLocationByName(this.unionOrWards, this.unionOrWardSearch);
-
-    if (!match) {
-      if (!this.isSelectedLocationSearchCurrent(this.unionOrWards, this.selectedUnionOrWardId, this.unionOrWardSearch)) {
-        this.selectedUnionOrWardId = '';
-        this.loadMarkets();
-      }
-      return;
-    }
-
-    if (match.id === this.selectedUnionOrWardId) {
-      return;
-    }
-
-    this.selectedUnionOrWardId = match.id;
-    this.onUnionOrWardChange();
   }
 
   private loadMarkets(): void {
@@ -526,6 +533,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
           contributors: 0,
           updated: market.updatedAt ? new Date(market.updatedAt).toLocaleDateString() : 'recently',
         }));
+        this.syncSelectedMarketIdFromNearbyMarkets(false);
         this.isLoadingMarkets = false;
       },
       error: error => {
@@ -543,37 +551,6 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     return this.currentLanguage === 'bn' ? location.nameBn : location.nameEn;
   }
 
-  private findLocationByName(locations: LocationResponse[], value: string): LocationResponse | undefined {
-    const normalizedValue = value.trim().toLowerCase();
-
-    if (!normalizedValue) {
-      return undefined;
-    }
-
-    return locations.find(location =>
-      location.nameEn.toLowerCase() === normalizedValue ||
-      location.nameBn.toLowerCase() === normalizedValue
-    );
-  }
-
-  private isSelectedLocationSearchCurrent(locations: LocationResponse[], selectedId: string, search: string): boolean {
-    const selectedLocation = locations.find(location => location.id === selectedId);
-
-    if (!selectedLocation) {
-      return Boolean(selectedId && search.trim());
-    }
-
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return Boolean(
-      normalizedSearch &&
-      (
-        selectedLocation.nameEn.toLowerCase() === normalizedSearch ||
-        selectedLocation.nameBn.toLowerCase() === normalizedSearch
-      )
-    );
-  }
-
   private mapMarketType(value: string): string {
     return value === 'Wet market' ? 'KitchenMarket' : value === 'Roadside' ? 'TemporaryMarket' : value === 'Weekly haat' ? 'TemporaryMarket' : value;
   }
@@ -589,6 +566,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       selectedUpazilaId: string;
       selectedUnionOrWardId: string;
       selectedArea: string;
+      selectedMarketId: string;
       selectedMarket: string;
       villageOrMoholla: string;
       landmark: string;
@@ -611,6 +589,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     this.selectedUpazilaId = draft.selectedUpazilaId ?? '';
     this.selectedUnionOrWardId = draft.selectedUnionOrWardId ?? '';
     this.selectedArea = draft.selectedArea ?? '';
+    this.selectedMarketId = draft.selectedMarketId ?? '';
     this.selectedMarket = draft.selectedMarket ?? '';
     this.villageOrMoholla = draft.villageOrMoholla ?? '';
     this.landmark = draft.landmark ?? '';
@@ -639,17 +618,41 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   }
 
   private hasDuplicateMarket(): boolean {
-    const normalizedMarketName = this.normalizeComparableText(this.selectedMarket);
-    const normalizedArea = this.normalizeComparableText(this.selectedArea);
+    return Boolean(this.findSelectedNearbyMarket());
+  }
 
-    return this.nearbyMarkets.some(market =>
+  private syncSelectedMarketIdFromNearbyMarkets(clearWhenMissing = false): void {
+    const selectedNearbyMarket = this.findSelectedNearbyMarket();
+
+    if (selectedNearbyMarket) {
+      this.selectedMarketId = selectedNearbyMarket.id;
+      return;
+    }
+
+    if (clearWhenMissing) {
+      this.selectedMarketId = '';
+    }
+  }
+
+  private findSelectedNearbyMarket(): Market | undefined {
+    const normalizedMarketName = this.normalizeComparableText(this.selectedMarket);
+
+    return this.nearbyMarkets.find(market =>
       market.divisionId === this.selectedDivisionId &&
       market.districtId === this.selectedDistrictId &&
       market.upazilaId === this.selectedUpazilaId &&
       (market.unionOrWardId ?? '') === this.selectedUnionOrWardId &&
-      this.normalizeComparableText(market.area) === normalizedArea &&
       this.areComparableTextsSimilar(this.normalizeComparableText(market.name), normalizedMarketName)
     );
+  }
+
+  private extractCreatedMarketId(response: unknown): string {
+    if (!response || typeof response !== 'object') {
+      return '';
+    }
+
+    const maybeMarket = response as Partial<MarketResponse> & { data?: Partial<MarketResponse> };
+    return maybeMarket.id ?? maybeMarket.data?.id ?? '';
   }
 
   private normalizeComparableText(value: string): string {
@@ -736,6 +739,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       selectedUpazilaId: this.selectedUpazilaId,
       selectedUnionOrWardId: this.selectedUnionOrWardId,
       selectedArea: this.selectedArea,
+      selectedMarketId: this.selectedMarketId,
       selectedMarket: this.selectedMarket,
       villageOrMoholla: this.villageOrMoholla,
       landmark: this.landmark,

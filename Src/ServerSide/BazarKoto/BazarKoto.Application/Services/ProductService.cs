@@ -32,35 +32,111 @@ public class ProductService : IProductService
 
     public async Task<ApiResponse<ProductResponse>> CreateProductAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
     {
+        var validationErrors = ValidateRequest(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return ApiResponse<ProductResponse>.Fail("Validation failed.", validationErrors);
+        }
+
+        var category = await _productRepository.GetCategoryByIdAsync(request.CategoryId, cancellationToken);
+
+        if (category is null)
+        {
+            return ApiResponse<ProductResponse>.Fail("Product category was not found.");
+        }
+
+        if (!TryParseEnum<ProductState>(request.ProductState, out var productState))
+        {
+            return ApiResponse<ProductResponse>.Fail("Product state is not valid.");
+        }
+
+        var slug = string.IsNullOrWhiteSpace(request.Slug) ? Slugify(request.NameEn) : Slugify(request.Slug);
+
+        if (await _productRepository.ExistsByCategoryAndSlugAsync(request.CategoryId, slug, null, cancellationToken))
+        {
+            return ApiResponse<ProductResponse>.Fail("This product already exists in the selected category.");
+        }
+
         var product = new Product
         {
             CategoryId = request.CategoryId,
-            NameEn = request.NameEn,
-            NameBn = request.NameBn,
-            LocalName = request.LocalName,
-            Slug = string.IsNullOrWhiteSpace(request.Slug) ? Slugify(request.NameEn) : Slugify(request.Slug),
-            PrimaryUnit = request.PrimaryUnit,
-            ProductState = ParseEnum(request.ProductState, ProductState.Fresh),
-            Notes = request.Notes,
+            NameEn = request.NameEn.Trim(),
+            NameBn = request.NameBn.Trim(),
+            LocalName = NormalizeOptional(request.LocalName),
+            Slug = slug,
+            PrimaryUnit = request.PrimaryUnit.Trim(),
+            ProductState = productState,
+            Notes = NormalizeOptional(request.Notes),
             Status = RecordStatus.Pending,
             IsActive = true
         };
 
         await _productRepository.AddAsync(product, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        product.Category = category;
 
         return ApiResponse<ProductResponse>.Ok(ToResponse(product), "Product submitted successfully.");
     }
 
     public async Task<PagedResponse<ProductResponse>> GetDuplicateProductsAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
     {
-        var products = await _productRepository.GetDuplicatesAsync(request.NameEn, cancellationToken);
+        var slug = string.IsNullOrWhiteSpace(request.Slug) ? Slugify(request.NameEn) : Slugify(request.Slug);
+        IReadOnlyList<Product> products = request.CategoryId == Guid.Empty || string.IsNullOrWhiteSpace(slug)
+            ? Array.Empty<Product>()
+            : await _productRepository.GetDuplicatesAsync(request.CategoryId, slug, cancellationToken);
         return Page(products.Select(ToResponse), new PaginationRequest());
     }
 
-    public Task<ApiResponse<ProductResponse>> UpdateProductAsync(Guid id, CreateProductRequest request, CancellationToken cancellationToken = default)
+    public async Task<ApiResponse<ProductResponse>> UpdateProductAsync(Guid id, CreateProductRequest request, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(ApiResponse<ProductResponse>.Fail("Product persistence is not configured yet."));
+        var product = await _productRepository.GetByIdAsync(id, cancellationToken);
+
+        if (product is null)
+        {
+            return ApiResponse<ProductResponse>.Fail("Product was not found.");
+        }
+
+        var validationErrors = ValidateRequest(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return ApiResponse<ProductResponse>.Fail("Validation failed.", validationErrors);
+        }
+
+        var category = await _productRepository.GetCategoryByIdAsync(request.CategoryId, cancellationToken);
+
+        if (category is null)
+        {
+            return ApiResponse<ProductResponse>.Fail("Product category was not found.");
+        }
+
+        if (!TryParseEnum<ProductState>(request.ProductState, out var productState))
+        {
+            return ApiResponse<ProductResponse>.Fail("Product state is not valid.");
+        }
+
+        var slug = string.IsNullOrWhiteSpace(request.Slug) ? Slugify(request.NameEn) : Slugify(request.Slug);
+
+        if (await _productRepository.ExistsByCategoryAndSlugAsync(request.CategoryId, slug, id, cancellationToken))
+        {
+            return ApiResponse<ProductResponse>.Fail("This product already exists in the selected category.");
+        }
+
+        product.CategoryId = request.CategoryId;
+        product.NameEn = request.NameEn.Trim();
+        product.NameBn = request.NameBn.Trim();
+        product.LocalName = NormalizeOptional(request.LocalName);
+        product.Slug = slug;
+        product.PrimaryUnit = request.PrimaryUnit.Trim();
+        product.ProductState = productState;
+        product.Notes = NormalizeOptional(request.Notes);
+
+        _productRepository.Update(product);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        product.Category = category;
+
+        return ApiResponse<ProductResponse>.Ok(ToResponse(product), "Product updated successfully.");
     }
 
     private static ProductResponse ToResponse(Product product)
@@ -115,10 +191,10 @@ public class ProductService : IProductService
         };
     }
 
-    private static TEnum ParseEnum<TEnum>(string value, TEnum fallback)
+    private static bool TryParseEnum<TEnum>(string value, out TEnum parsed)
         where TEnum : struct
     {
-        return Enum.TryParse<TEnum>(value, true, out var parsed) ? parsed : fallback;
+        return Enum.TryParse(value, true, out parsed);
     }
 
     private static string Slugify(string value)
@@ -126,5 +202,43 @@ public class ProductService : IProductService
         var normalized = value.Trim().ToLowerInvariant();
         var characters = normalized.Select(character => char.IsLetterOrDigit(character) ? character : '-').ToArray();
         return string.Join('-', new string(characters).Split('-', StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        var normalized = value?.Trim();
+        return string.IsNullOrWhiteSpace(normalized) ? null : normalized;
+    }
+
+    private static List<string> ValidateRequest(CreateProductRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.CategoryId == Guid.Empty)
+        {
+            errors.Add("Product Category is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.NameEn))
+        {
+            errors.Add("Product name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.NameBn))
+        {
+            errors.Add("Local or alternate name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.PrimaryUnit))
+        {
+            errors.Add("Primary unit is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProductState))
+        {
+            errors.Add("Product state is required.");
+        }
+
+        return errors;
     }
 }

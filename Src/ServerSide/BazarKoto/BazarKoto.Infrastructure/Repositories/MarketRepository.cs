@@ -33,21 +33,23 @@ public class MarketRepository : IMarketRepository
 
     public async Task<bool> ExistsAsync(Guid divisionId, Guid districtId, Guid upazilaId, Guid? unionOrWardId, string area, string marketName, CancellationToken cancellationToken = default)
     {
-        var normalizedArea = NormalizeComparableText(area);
+        return await FindDuplicateAsync(divisionId, districtId, upazilaId, unionOrWardId, area, marketName, cancellationToken) is not null;
+    }
+
+    public async Task<Market?> FindDuplicateAsync(Guid divisionId, Guid districtId, Guid upazilaId, Guid? unionOrWardId, string area, string marketName, CancellationToken cancellationToken = default)
+    {
         var normalizedMarketName = NormalizeComparableText(marketName);
 
-        var locationMarkets = await _dbContext.Markets.AsNoTracking()
+        var locationMarkets = await Query().AsNoTracking()
             .Where(x =>
-            x.DivisionId == divisionId &&
-            x.DistrictId == districtId &&
-            x.UpazilaId == upazilaId &&
-            x.UnionOrWardId == unionOrWardId)
-            .Select(x => new { x.Area, x.MarketName })
+                x.DivisionId == divisionId &&
+                x.DistrictId == districtId &&
+                x.UpazilaId == upazilaId &&
+                x.UnionOrWardId == unionOrWardId)
             .ToListAsync(cancellationToken);
 
-        return locationMarkets.Any(x =>
-            NormalizeComparableText(x.Area) == normalizedArea &&
-            AreComparableTextsSimilar(NormalizeComparableText(x.MarketName), normalizedMarketName));
+        return locationMarkets.FirstOrDefault(existingMarket =>
+            AreComparableTextsSimilar(NormalizeComparableText(existingMarket.MarketName), normalizedMarketName));
     }
 
     public async Task<IReadOnlyList<Market>> GetPendingAsync(CancellationToken cancellationToken = default)

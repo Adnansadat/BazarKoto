@@ -43,17 +43,31 @@ interface ProductResponse {
   categoryNameBn: string;
   nameEn: string;
   nameBn: string;
+  localName?: string | null;
   primaryUnit: string;
   productState: string;
+  notes?: string | null;
+  status?: string;
+  isActive?: boolean;
 }
 
 interface PriceSubmissionResponse {
   id: string;
+  marketId: string;
+  productId: string;
+  categoryId: string;
   productNameEn: string;
   productNameBn: string;
   marketName: string;
   pricePerUnit: number;
+  quantityChecked?: number | null;
   unit: string;
+  priceDate: string;
+  priceTime?: string | null;
+  sellerType: string;
+  priceSource: string;
+  qualityGrade: string;
+  notes?: string | null;
 }
 
 interface PriceSummaryResponse {
@@ -93,6 +107,8 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   selectedMarketId = '';
   selectedProductId = '';
   selectedCategoryId = '';
+  existingPriceId = '';
+  loadedExistingPricePerUnit: number | null = null;
   selectedUnit = 'kg';
   price = 0;
   quantity = 1;
@@ -103,6 +119,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   quality = 'Standard';
   notes = '';
   isThankYouOpen = false;
+  showPriceValidation = false;
   isLoadingPrices = true;
   isLoadingDivisions = false;
   isLoadingDistricts = false;
@@ -112,6 +129,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   isLoadingCategories = false;
   isLoadingProducts = false;
   isLoadingSummary = false;
+  isLoadingExistingPrice = false;
   isSubmittingPrice = false;
   priceErrorMessage = '';
   priceSuccessMessage = '';
@@ -168,6 +186,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   ngOnInit(): void {
     this.updateSeo();
     this.restoreDraft();
+    this.restoreMarketDraftContext();
     this.loadPageData();
     this.langChangeSubscription = this.translate.onLangChange.subscribe(() => this.updateSeo());
   }
@@ -198,17 +217,88 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   }
 
   get selectedMarketName(): string {
-    return this.markets.find(market => market.id === this.selectedMarketId)?.marketName ?? '';
+    return this.markets.find(market => market.id === this.selectedMarketId)?.marketName
+      ?? this.getStoredSelectedMarketName()
+      ?? '';
   }
 
   get selectedProductName(): string {
     const product = this.products.find(item => item.id === this.selectedProductId);
-    return product ? this.getProductName(product) : '';
+    return product ? this.getProductName(product) : this.getStoredSelectedProductName();
   }
 
   get selectedCategoryName(): string {
     const category = this.categories.find(item => item.id === this.selectedCategoryId);
     return category ? this.getCategoryName(category) : '';
+  }
+
+  get reviewSegments(): string[] {
+    const segments = [
+      this.selectedMarketName,
+      this.selectedProductName,
+      this.price > 0 ? `৳ ${this.price}/${this.selectedUnit}` : '',
+      this.quantity ? `${this.quantity} ${this.selectedUnit}` : '',
+      this.totalPrice > 0 ? `৳ ${this.totalPrice}` : '',
+    ];
+
+    if (this.priceSummary) {
+      segments.push(
+        `Avg ৳ ${this.priceSummary.averagePrice}/${this.priceSummary.unit || this.selectedUnit}`,
+        `Min ৳ ${this.priceSummary.minimumPrice}`,
+        `Max ৳ ${this.priceSummary.maximumPrice}`,
+        `${this.priceSummary.submissionCount} submissions`,
+      );
+    }
+
+    return segments.filter(Boolean);
+  }
+
+  get isUpdateMode(): boolean {
+    return Boolean(this.existingPriceId);
+  }
+
+  get hasLoadedExistingPrice(): boolean {
+    return this.loadedExistingPricePerUnit !== null;
+  }
+
+  get hasPriceChanged(): boolean {
+    return this.hasLoadedExistingPrice && Number(this.price) !== Number(this.loadedExistingPricePerUnit);
+  }
+
+  get marketContextInvalid(): boolean {
+    return this.showPriceValidation && !this.hasSelectedMarketContext;
+  }
+
+  get productContextInvalid(): boolean {
+    return this.showPriceValidation && !this.hasSelectedProductContext;
+  }
+
+  get priceInvalid(): boolean {
+    return Number(this.price) <= 0;
+  }
+
+  get quantityInvalid(): boolean {
+    return this.showPriceValidation && this.quantity <= 0;
+  }
+
+  get sellerTypeInvalid(): boolean {
+    return this.showPriceValidation && !this.sellerType;
+  }
+
+  get priceSourceInvalid(): boolean {
+    return this.showPriceValidation && !this.priceSource;
+  }
+
+  get qualityInvalid(): boolean {
+    return this.showPriceValidation && !this.quality;
+  }
+
+  get canAttemptSubmitPrice(): boolean {
+    return !this.isSubmittingPrice && !this.isLoadingExistingPrice && (!this.hasLoadedExistingPrice || this.hasPriceChanged);
+  }
+
+  get canSubmitPrice(): boolean {
+    return this.canAttemptSubmitPrice && this.isPriceFormValid();
   }
 
   focusSubmissionForm(): void {
@@ -263,12 +353,15 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   }
 
   onMarketChange(): void {
+    this.clearLoadedExistingPrice();
     this.loadTodayPrices();
     this.loadPriceSummary();
+    this.loadExistingPriceIfReady();
   }
 
   onCategoryChange(): void {
     this.selectedProductId = '';
+    this.clearLoadedExistingPrice();
     this.products = [];
     this.loadProducts();
     this.loadTodayPrices();
@@ -277,16 +370,43 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   onProductChange(): void {
     const product = this.products.find(item => item.id === this.selectedProductId);
     this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
+    this.clearLoadedExistingPrice();
     this.loadTodayPrices();
     this.loadPriceSummary();
+    this.loadExistingPriceIfReady();
   }
 
-  submitPrice(): void {
+  submitPrice(allowMarketResolveRetry = true): void {
+    this.showPriceValidation = true;
     this.priceErrorMessage = '';
     this.priceSuccessMessage = '';
+    this.applyCurrentSubmissionTime();
+    this.resolveSelectedMarketIdFromLoadedMarkets();
+
+    if (!this.hasSelectedMarketContext || !this.hasSelectedProductContext) {
+      this.priceErrorMessage = 'Complete market and product selection before submitting a price.';
+      return;
+    }
 
     if (!this.selectedMarketId || !this.selectedProductId) {
-      this.priceErrorMessage = 'Select an existing market and product before submitting a price.';
+      this.priceErrorMessage = 'Market and product are selected, but their database records could not be loaded. Please start the backend and reload this page before submitting.';
+      return;
+    }
+
+    if (!this.isPriceFormValid()) {
+      this.priceErrorMessage = 'Please complete all required price fields.';
+      return;
+    }
+
+    if (!this.canAttemptSubmitPrice) {
+      if (this.hasLoadedExistingPrice && !this.hasPriceChanged) {
+        this.priceErrorMessage = 'Change the price per unit before submitting an update.';
+      }
+      return;
+    }
+
+    if (this.existingPriceId) {
+      this.updateExistingPrice();
       return;
     }
 
@@ -306,7 +426,9 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
     }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
       next: () => {
         this.priceSuccessMessage = 'Price submitted successfully.';
+        this.showPriceValidation = false;
         this.isThankYouOpen = true;
+        this.loadExistingPriceIfReady();
         this.drafts.clearDraft(this.marketDraftKey);
         this.drafts.clearDraft(this.productDraftKey);
         this.drafts.clearDraft(this.priceDraftKey);
@@ -314,8 +436,151 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       },
       error: error => {
         this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to submit price.';
+
+        if (this.isExistingPriceError(this.priceErrorMessage)) {
+          this.loadExistingPriceIfReady();
+          return;
+        }
+
+        if (allowMarketResolveRetry && this.isMissingMarketError(this.priceErrorMessage) && this.resolveSelectedMarketIdFromLoadedMarkets()) {
+          this.submitPrice(false);
+        }
       },
     });
+  }
+
+  loadExistingPrice(): void {
+    this.priceErrorMessage = '';
+    this.priceSuccessMessage = '';
+
+    if (!this.selectedMarketId || !this.selectedProductId) {
+      this.priceErrorMessage = 'Select an existing market and product before loading a price.';
+      return;
+    }
+
+    this.isLoadingExistingPrice = true;
+    this.api.get<PriceSubmissionResponse>('/Prices/latest', {
+      marketId: this.selectedMarketId,
+      productId: this.selectedProductId,
+    }).pipe(finalize(() => this.isLoadingExistingPrice = false)).subscribe({
+      next: existingPrice => {
+        this.existingPriceId = existingPrice.id;
+        this.selectedUnit = existingPrice.unit || this.selectedUnit;
+        this.price = existingPrice.pricePerUnit;
+        this.quantity = existingPrice.quantityChecked ?? this.quantity;
+        this.priceDate = existingPrice.priceDate || this.priceDate;
+        this.priceTime = existingPrice.priceTime ? existingPrice.priceTime.slice(0, 5) : this.priceTime;
+        this.sellerType = this.toDisplaySellerType(existingPrice.sellerType);
+        this.priceSource = this.toDisplayPriceSource(existingPrice.priceSource);
+        this.quality = this.toDisplayQuality(existingPrice.qualityGrade);
+        this.notes = existingPrice.notes ?? '';
+        this.loadedExistingPricePerUnit = existingPrice.pricePerUnit;
+        this.priceSuccessMessage = 'Existing price loaded. Only the price per unit will be updated.';
+      },
+      error: () => {
+        this.clearLoadedExistingPrice();
+        this.price = 0;
+        this.priceSuccessMessage = '';
+      },
+    });
+  }
+
+  private updateExistingPrice(): void {
+    if (!this.existingPriceId) {
+      this.priceErrorMessage = 'Load the existing market product price before saving an update.';
+      return;
+    }
+
+    if (this.price <= 0) {
+      this.priceErrorMessage = 'Price per unit must be greater than zero.';
+      return;
+    }
+
+    this.isSubmittingPrice = true;
+    this.api.put(`/Prices/${this.existingPriceId}`, {
+      marketId: this.selectedMarketId,
+      productId: this.selectedProductId,
+      unit: this.selectedUnit,
+      pricePerUnit: this.price,
+      quantityChecked: this.quantity,
+      priceDate: this.priceDate,
+      priceTime: this.priceTime ? `${this.priceTime}:00` : null,
+      sellerType: this.sellerType === 'Street vendor' ? 'StreetVendor' : this.sellerType,
+      priceSource: this.priceSource === 'Observed in market' ? 'ObservedInMarket' : this.priceSource === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
+      qualityGrade: this.quality === 'Low grade' ? 'Low' : this.quality,
+      notes: this.notes || null,
+    }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
+      next: () => {
+        this.priceSuccessMessage = 'Existing product price updated successfully.';
+        this.priceErrorMessage = '';
+        this.showPriceValidation = false;
+        this.loadedExistingPricePerUnit = this.price;
+        this.loadTodayPrices();
+        this.loadPriceSummary();
+      },
+      error: error => {
+        this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to update existing price.';
+      },
+    });
+  }
+
+  private loadExistingPriceIfReady(): void {
+    if (this.selectedMarketId && this.selectedProductId) {
+      this.loadExistingPrice();
+    }
+  }
+
+  private clearLoadedExistingPrice(): void {
+    this.existingPriceId = '';
+    this.loadedExistingPricePerUnit = null;
+  }
+
+  private isPriceFormValid(): boolean {
+    return Boolean(
+      this.hasSelectedMarketContext &&
+      this.hasSelectedProductContext &&
+      this.price > 0 &&
+      this.quantity > 0 &&
+      this.sellerType &&
+      this.priceSource &&
+      this.quality
+    );
+  }
+
+  private get hasSelectedMarketContext(): boolean {
+    return Boolean(this.selectedMarketId || this.selectedMarketName.trim());
+  }
+
+  private get hasSelectedProductContext(): boolean {
+    return Boolean(this.selectedProductId || this.selectedProductName.trim());
+  }
+
+  private toDisplaySellerType(value: string): string {
+    return value === 'StreetVendor' ? 'Street vendor' : value || 'Retail';
+  }
+
+  private isExistingPriceError(message: string): boolean {
+    return message.toLowerCase().includes('price already exists');
+  }
+
+  private isMissingMarketError(message: string): boolean {
+    return message.toLowerCase().includes('selected market was not found');
+  }
+
+  private toDisplayPriceSource(value: string): string {
+    if (value === 'ObservedInMarket') {
+      return 'Observed in market';
+    }
+
+    if (value === 'SellerProvided') {
+      return 'Seller quoted';
+    }
+
+    return 'Purchased personally';
+  }
+
+  private toDisplayQuality(value: string): string {
+    return value === 'Low' ? 'Low grade' : value || 'Standard';
   }
 
   closeModal(): void {
@@ -420,6 +685,30 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
     this.lastDraftJson = JSON.stringify(this.getDraftData());
   }
 
+  private restoreMarketDraftContext(): void {
+    const marketDraft = this.drafts.getDraft<Partial<{
+      selectedDivisionId: string;
+      selectedDistrictId: string;
+      selectedUpazilaId: string;
+      selectedUnionOrWardId: string;
+      selectedMarketId: string;
+      selectedMarket: string;
+    }>>(this.marketDraftKey);
+
+    if (!marketDraft) {
+      return;
+    }
+
+    this.selectedDivisionId = marketDraft.selectedDivisionId ?? '';
+    this.selectedDistrictId = marketDraft.selectedDistrictId ?? '';
+    this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? '';
+    this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? '';
+    this.selectedMarketId = marketDraft.selectedMarketId ?? '';
+    this.marketSearch = marketDraft.selectedMarket ?? '';
+    this.clearLoadedExistingPrice();
+    this.persistDraftIfChanged(true);
+  }
+
   private persistDraftIfChanged(force = false): void {
     const draft = this.getDraftData();
     const nextDraftJson = JSON.stringify(draft);
@@ -518,9 +807,74 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       pageNumber: 1,
       pageSize: 20,
     }).pipe(finalize(() => this.isLoadingMarkets = false)).subscribe({
-      next: markets => this.markets = markets,
+      next: markets => {
+        this.markets = markets;
+        this.applyStoredMarketSelection();
+      },
       error: error => this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to load markets.',
     });
+  }
+
+  private applyStoredMarketSelection(): void {
+    if (this.markets.length === 0) {
+      return;
+    }
+
+    const marketDraft = this.drafts.getDraft<Partial<{
+      selectedDivisionId: string;
+      selectedDistrictId: string;
+      selectedUpazilaId: string;
+      selectedUnionOrWardId: string;
+      selectedMarketId: string;
+      selectedMarket: string;
+    }>>(this.marketDraftKey);
+
+    if (this.resolveSelectedMarketIdFromLoadedMarkets()) {
+      this.selectedDivisionId = marketDraft?.selectedDivisionId ?? this.selectedDivisionId;
+      this.selectedDistrictId = marketDraft?.selectedDistrictId ?? this.selectedDistrictId;
+      this.selectedUpazilaId = marketDraft?.selectedUpazilaId ?? this.selectedUpazilaId;
+      this.selectedUnionOrWardId = marketDraft?.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+      this.loadTodayPrices();
+      this.loadPriceSummary();
+      this.loadExistingPriceIfReady();
+      return;
+    }
+
+    if (this.selectedMarketId && this.markets.some(market => market.id === this.selectedMarketId)) {
+      return;
+    }
+
+    if (marketDraft?.selectedMarketId && !this.selectedMarketId) {
+      this.selectedMarketId = marketDraft.selectedMarketId;
+      this.selectedDivisionId = marketDraft.selectedDivisionId ?? this.selectedDivisionId;
+      this.selectedDistrictId = marketDraft.selectedDistrictId ?? this.selectedDistrictId;
+      this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? this.selectedUpazilaId;
+      this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+      this.loadTodayPrices();
+      this.loadPriceSummary();
+      this.loadExistingPriceIfReady();
+      return;
+    }
+
+    if (!marketDraft?.selectedMarket) {
+      return;
+    }
+
+    const normalizedStoredMarket = this.normalizeComparableText(marketDraft.selectedMarket);
+    const storedMarket = this.markets.find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
+
+    if (!storedMarket) {
+      return;
+    }
+
+    this.selectedMarketId = storedMarket.id;
+    this.selectedDivisionId = marketDraft.selectedDivisionId ?? this.selectedDivisionId;
+    this.selectedDistrictId = marketDraft.selectedDistrictId ?? this.selectedDistrictId;
+    this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? this.selectedUpazilaId;
+    this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+    this.loadTodayPrices();
+    this.loadPriceSummary();
+    this.loadExistingPriceIfReady();
   }
 
   loadCategories(): void {
@@ -530,6 +884,11 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       .subscribe({
         next: categories => {
           this.categories = categories;
+          const storedProduct = this.getStoredSelectedProduct();
+          if (storedProduct?.categoryId) {
+            this.selectedCategoryId = storedProduct.categoryId;
+            this.selectedProductId = storedProduct.id;
+          }
           if (!this.selectedCategoryId) {
             this.selectedCategoryId = categories[0]?.id ?? '';
           }
@@ -548,17 +907,95 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       pageSize: 20,
     }).pipe(finalize(() => this.isLoadingProducts = false)).subscribe({
       next: products => {
-        this.products = products;
+        const storedProduct = this.getStoredSelectedProduct();
+        this.products = storedProduct && storedProduct.categoryId === this.selectedCategoryId && !products.some(product => product.id === storedProduct.id)
+          ? [storedProduct, ...products]
+          : products;
         const selectedProduct = products.find(product => product.id === this.selectedProductId);
-        if (!selectedProduct) {
-          this.selectedProductId = products[0]?.id ?? '';
+        if (!selectedProduct && storedProduct?.categoryId === this.selectedCategoryId) {
+          this.selectedProductId = storedProduct.id;
+        } else if (!selectedProduct) {
+          this.selectedProductId = this.products[0]?.id ?? '';
         }
         const product = this.products.find(item => item.id === this.selectedProductId);
         this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
         this.loadPriceSummary();
+        this.loadExistingPriceIfReady();
       },
       error: error => this.productErrorMessage = error instanceof Error ? error.message : 'Unable to load products.',
     });
+  }
+
+  private getStoredSelectedProduct(): ProductResponse | null {
+    const storedProductJson = localStorage.getItem('bazarKoto.selectedProduct');
+
+    if (!storedProductJson) {
+      return null;
+    }
+
+    try {
+      const storedProduct = JSON.parse(storedProductJson) as Partial<ProductResponse>;
+
+      if (!storedProduct.id || !storedProduct.categoryId || !storedProduct.nameEn || !storedProduct.nameBn) {
+        return null;
+      }
+
+      return {
+        id: storedProduct.id,
+        categoryId: storedProduct.categoryId,
+        categoryNameEn: storedProduct.categoryNameEn ?? '',
+        categoryNameBn: storedProduct.categoryNameBn ?? '',
+        nameEn: storedProduct.nameEn,
+        nameBn: storedProduct.nameBn,
+        localName: storedProduct.localName,
+        primaryUnit: storedProduct.primaryUnit ?? this.selectedUnit,
+        productState: storedProduct.productState ?? 'Fresh',
+        notes: storedProduct.notes,
+        status: storedProduct.status,
+        isActive: storedProduct.isActive,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  private getStoredSelectedMarketName(): string {
+    return this.drafts.getDraft<Partial<{ selectedMarket: string }>>(this.marketDraftKey)?.selectedMarket?.trim() ?? '';
+  }
+
+  private resolveSelectedMarketIdFromLoadedMarkets(): boolean {
+    const storedMarketName = this.getStoredSelectedMarketName();
+
+    if (!storedMarketName || this.markets.length === 0) {
+      return false;
+    }
+
+    const normalizedStoredMarket = this.normalizeComparableText(storedMarketName);
+    const matchingMarket = this.markets.find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
+
+    if (!matchingMarket || matchingMarket.id === this.selectedMarketId) {
+      return false;
+    }
+
+    this.selectedMarketId = matchingMarket.id;
+    this.selectedDivisionId = matchingMarket.divisionId || this.selectedDivisionId;
+    this.selectedDistrictId = matchingMarket.districtId || this.selectedDistrictId;
+    this.selectedUpazilaId = matchingMarket.upazilaId || this.selectedUpazilaId;
+    this.selectedUnionOrWardId = matchingMarket.unionOrWardId || this.selectedUnionOrWardId;
+    this.clearLoadedExistingPrice();
+    this.persistDraftIfChanged(true);
+
+    return true;
+  }
+
+  private getStoredSelectedProductName(): string {
+    const storedProduct = this.getStoredSelectedProduct();
+
+    if (!storedProduct) {
+      return '';
+    }
+
+    return this.currentLanguage === 'bn' ? storedProduct.nameBn : storedProduct.nameEn;
   }
 
   private loadTodayPrices(): void {
@@ -615,6 +1052,31 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
 
   getProductName(product: ProductResponse): string {
     return this.currentLanguage === 'bn' ? product.nameBn : product.nameEn;
+  }
+
+  private applyCurrentSubmissionTime(): void {
+    const now = new Date();
+    this.priceDate = this.formatDateInput(now);
+    this.priceTime = this.formatTimeInput(now);
+  }
+
+  private formatDateInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private formatTimeInput(date: Date): string {
+    const hours = `${date.getHours()}`.padStart(2, '0');
+    const minutes = `${date.getMinutes()}`.padStart(2, '0');
+
+    return `${hours}:${minutes}`;
+  }
+
+  private normalizeComparableText(value: string): string {
+    return value.trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
   private setCanonicalUrl(): void {

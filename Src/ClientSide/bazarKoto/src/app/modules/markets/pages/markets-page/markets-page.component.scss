@@ -35,7 +35,6 @@
 
 .hero-shell p,
 .panel-heading p,
-.support-panel p,
 .contribution-strip p {
   max-width: 640px;
   margin: 0;
@@ -71,13 +70,10 @@
 
 .content-grid {
   margin-top: 40px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
-  gap: 20px;
+  display: block;
 }
 
 .workflow-panel,
-.support-panel,
 .market-card,
 .contribution-strip {
   border: 1px solid #e2e8f0;
@@ -85,8 +81,7 @@
   background: white;
 }
 
-.workflow-panel,
-.support-panel {
+.workflow-panel {
   padding: 24px;
 }
 
@@ -97,7 +92,6 @@
 }
 
 .panel-heading h2,
-.support-panel h2,
 .section-heading h2,
 .contribution-strip h2 {
   margin: 6px 0 8px;
@@ -113,6 +107,7 @@
 label {
   display: grid;
   gap: 8px;
+  align-content: start;
 }
 
 label span {
@@ -160,8 +155,66 @@ a:focus-visible {
 
 select,
 input {
+  height: 48px;
   min-height: 48px;
   padding: 0 14px;
+}
+
+.clearable-field {
+  position: relative;
+  min-width: 0;
+}
+
+.select-clearable select {
+  appearance: none;
+  background-image: none;
+  padding-right: 52px;
+}
+
+.select-clearable::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #0f172a;
+  border-bottom: 1.5px solid #0f172a;
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.select-clearable.has-clear-value::after {
+  opacity: 0;
+}
+
+.clear-field-button {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  background: transparent;
+  color: #0f766e;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.select-clearable .clear-field-button {
+  right: 10px;
+}
+
+.clear-field-button:hover,
+.clear-field-button:focus-visible {
+  background: #f0fdfa;
+  color: #0f766e;
 }
 
 textarea {
@@ -262,18 +315,6 @@ textarea {
   color: #334155;
 }
 
-.quality-list {
-  margin-top: 24px;
-  display: grid;
-  gap: 14px;
-}
-
-.quality-list div {
-  display: grid;
-  gap: 4px;
-}
-
-.quality-list span,
 .market-card p,
 .market-meta span {
   color: #64748b;

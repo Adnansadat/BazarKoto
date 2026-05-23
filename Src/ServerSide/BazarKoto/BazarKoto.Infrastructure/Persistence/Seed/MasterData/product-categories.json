@@ -1,10 +1,146 @@
 [
   {
+    "nameEn": "Rice & Grains",
+    "nameBn": "চাল ও শস্য",
+    "slug": "rice-grains",
+    "descriptionEn": "Rice and common grains",
+    "descriptionBn": "চাল ও সাধারণ শস্যজাত পণ্য",
+    "sortOrder": 1
+  },
+  {
+    "nameEn": "Lentils & Pulses",
+    "nameBn": "ডাল ও ডালজাতীয়",
+    "slug": "lentils-pulses",
+    "descriptionEn": "Common lentils and pulses",
+    "descriptionBn": "সাধারণ ডাল ও ডালজাতীয় পণ্য",
+    "sortOrder": 2
+  },
+  {
     "nameEn": "Vegetables",
     "nameBn": "সবজি",
     "slug": "vegetables",
-    "descriptionEn": "Fresh vegetables",
-    "descriptionBn": "তাজা সবজি",
-    "sortOrder": 1
+    "descriptionEn": "Fresh daily vegetables",
+    "descriptionBn": "প্রতিদিনের তাজা সবজি",
+    "sortOrder": 3
+  },
+  {
+    "nameEn": "Leafy Vegetables",
+    "nameBn": "শাক",
+    "slug": "leafy-vegetables",
+    "descriptionEn": "Common leafy vegetables",
+    "descriptionBn": "সাধারণ শাকজাতীয় সবজি",
+    "sortOrder": 4
+  },
+  {
+    "nameEn": "Fruits",
+    "nameBn": "ফল",
+    "slug": "fruits",
+    "descriptionEn": "Fresh local and imported fruits",
+    "descriptionBn": "তাজা দেশি ও আমদানি করা ফল",
+    "sortOrder": 5
+  },
+  {
+    "nameEn": "Fish",
+    "nameBn": "মাছ",
+    "slug": "fish",
+    "descriptionEn": "Fresh river and sea fish",
+    "descriptionBn": "তাজা নদী ও সামুদ্রিক মাছ",
+    "sortOrder": 6
+  },
+  {
+    "nameEn": "Meat & Poultry",
+    "nameBn": "মাংস ও পোল্ট্রি",
+    "slug": "meat-poultry",
+    "descriptionEn": "Beef, mutton, chicken and poultry items",
+    "descriptionBn": "গরু, খাসি, মুরগি ও পোল্ট্রি পণ্য",
+    "sortOrder": 7
+  },
+  {
+    "nameEn": "Eggs & Dairy",
+    "nameBn": "ডিম ও দুগ্ধজাত",
+    "slug": "eggs-dairy",
+    "descriptionEn": "Eggs, milk and dairy products",
+    "descriptionBn": "ডিম, দুধ ও দুগ্ধজাত পণ্য",
+    "sortOrder": 8
+  },
+  {
+    "nameEn": "Cooking Oil & Ghee",
+    "nameBn": "তেল ও ঘি",
+    "slug": "cooking-oil-ghee",
+    "descriptionEn": "Cooking oil, mustard oil and ghee",
+    "descriptionBn": "সয়াবিন তেল, সরিষার তেল ও ঘি",
+    "sortOrder": 9
+  },
+  {
+    "nameEn": "Spices",
+    "nameBn": "মসলা",
+    "slug": "spices",
+    "descriptionEn": "Whole and powdered spices",
+    "descriptionBn": "গোটা ও গুঁড়া মসলা",
+    "sortOrder": 10
+  },
+  {
+    "nameEn": "Onion, Garlic & Ginger",
+    "nameBn": "পেঁয়াজ, রসুন ও আদা",
+    "slug": "onion-garlic-ginger",
+    "descriptionEn": "Essential cooking aromatics",
+    "descriptionBn": "রান্নার প্রয়োজনীয় পেঁয়াজ, রসুন ও আদা",
+    "sortOrder": 11
+  },
+  {
+    "nameEn": "Salt, Sugar & Sweeteners",
+    "nameBn": "লবণ, চিনি ও মিষ্টিকারক",
+    "slug": "salt-sugar-sweeteners",
+    "descriptionEn": "Salt, sugar, molasses and sweeteners",
+    "descriptionBn": "লবণ, চিনি, গুড় ও মিষ্টিকারক পণ্য",
+    "sortOrder": 12
+  },
+  {
+    "nameEn": "Flour & Baking Staples",
+    "nameBn": "আটা, ময়দা ও বেকিং উপকরণ",
+    "slug": "flour-baking-staples",
+    "descriptionEn": "Flour, semolina and basic baking items",
+    "descriptionBn": "আটা, ময়দা, সুজি ও বেকিংয়ের মৌলিক উপকরণ",
+    "sortOrder": 13
+  },
+  {
+    "nameEn": "Tea & Beverages",
+    "nameBn": "চা ও পানীয়",
+    "slug": "tea-beverages",
+    "descriptionEn": "Tea, coffee and common beverages",
+    "descriptionBn": "চা, কফি ও সাধারণ পানীয়",
+    "sortOrder": 14
+  },
+  {
+    "nameEn": "Packaged Foods",
+    "nameBn": "প্যাকেটজাত খাবার",
+    "slug": "packaged-foods",
+    "descriptionEn": "Common packaged and ready-to-use foods",
+    "descriptionBn": "সাধারণ প্যাকেটজাত ও প্রস্তুত খাবার",
+    "sortOrder": 15
+  },
+  {
+    "nameEn": "Dry Foods & Nuts",
+    "nameBn": "শুকনা খাবার ও বাদাম",
+    "slug": "dry-foods-nuts",
+    "descriptionEn": "Dry foods, nuts and raisins",
+    "descriptionBn": "শুকনা খাবার, বাদাম ও কিশমিশ",
+    "sortOrder": 16
+  },
+  {
+    "nameEn": "Baby Food",
+    "nameBn": "শিশুখাদ্য",
+    "slug": "baby-food",
+    "descriptionEn": "Common baby food products",
+    "descriptionBn": "সাধারণ শিশুখাদ্য পণ্য",
+    "sortOrder": 17
+  },
+  {
+    "nameEn": "Household Essentials",
+    "nameBn": "গৃহস্থালি প্রয়োজনীয় পণ্য",
+    "slug": "household-essentials",
+    "descriptionEn": "Basic household cleaning and daily essentials",
+    "descriptionBn": "গৃহস্থালির পরিষ্কার ও দৈনন্দিন প্রয়োজনীয় পণ্য",
+    "sortOrder": 18
   }
 ]

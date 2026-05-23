@@ -33,7 +33,7 @@ public class MarketService : IMarketService
 
     public async Task<ApiResponse<MarketResponse>> CreateMarketAsync(CreateMarketRequest request, CancellationToken cancellationToken = default)
     {
-        var exists = await _marketRepository.ExistsAsync(
+        var duplicateMarket = await _marketRepository.FindDuplicateAsync(
             request.DivisionId,
             request.DistrictId,
             request.UpazilaId,
@@ -42,9 +42,9 @@ public class MarketService : IMarketService
             request.MarketName,
             cancellationToken);
 
-        if (exists)
+        if (duplicateMarket is not null)
         {
-            return ApiResponse<MarketResponse>.Fail("This market already exists for the selected location.");
+            return ApiResponse<MarketResponse>.Ok(ToResponse(duplicateMarket), "This market already exists for the selected location.");
         }
 
         var market = new Market

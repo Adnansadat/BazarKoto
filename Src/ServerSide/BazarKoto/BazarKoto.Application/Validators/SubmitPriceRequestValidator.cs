@@ -11,6 +11,9 @@ public class SubmitPriceRequestValidator : AbstractValidator<SubmitPriceRequest>
         RuleFor(x => x.ProductId).NotEmpty();
         RuleFor(x => x.Unit).NotEmpty();
         RuleFor(x => x.PricePerUnit).GreaterThan(0);
+        RuleFor(x => x.QuantityChecked)
+            .GreaterThan(0)
+            .When(x => x.QuantityChecked.HasValue);
         RuleFor(x => x.PriceDate).NotEmpty();
         RuleFor(x => x.SellerType).NotEmpty();
         RuleFor(x => x.PriceSource).NotEmpty();

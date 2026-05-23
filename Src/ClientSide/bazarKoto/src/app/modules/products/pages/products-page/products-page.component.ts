@@ -45,16 +45,6 @@ interface ProductResponse {
   isActive: boolean;
 }
 
-interface CreateProductRequest {
-  categoryId: string;
-  nameEn: string;
-  nameBn: string;
-  localName: string | null;
-  primaryUnit: string;
-  productState: string;
-  notes: string | null;
-}
-
 interface ProductCategoryResponse {
   id: string;
   nameEn: string;
@@ -64,6 +54,16 @@ interface ProductCategoryResponse {
   descriptionBn?: string | null;
   sortOrder: number;
   isActive: boolean;
+}
+
+interface CreateProductRequest {
+  categoryId: string;
+  nameEn: string;
+  nameBn: string;
+  localName: string | null;
+  primaryUnit: string;
+  productState: string;
+  notes: string | null;
 }
 
 interface SelectOption {
@@ -79,14 +79,17 @@ interface SelectOption {
   styleUrl: './products-page.component.scss',
 })
 export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, DoCheck {
-  @ViewChild('productNameInput') private productNameInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('productNameInput') private productNameInput?: ElementRef<HTMLSelectElement>;
 
   private readonly draftStorageKey = 'bazarkoto.product.draft';
+  private readonly requiredProductFieldsMessage = 'Please complete all required product fields.';
+  private readonly duplicateProductMessage = 'This product already exists in the selected category.';
   private readonly siteUrl = 'https://www.bazarkoto.com';
   private readonly pageUrl = `${this.siteUrl}/products`;
   private readonly ogImageUrl = `${this.siteUrl}/images/bazar-hero.png`;
   private readonly jsonLdScriptId = 'products-page-json-ld';
   private lastDraftJson = '';
+  private duplicateProductFingerprint = '';
   private langChangeSubscription?: Subscription;
 
   selectedCategoryId = '';
@@ -104,6 +107,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   isSubmittingProduct = false;
   categoryErrorMessage = '';
   productErrorMessage = '';
+  productListErrorMessage = '';
   productSuccessMessage = '';
   products: Product[] = [];
   productSuggestions: ProductResponse[] = [];
@@ -127,6 +131,8 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     { value: 'dozen', labelKey: 'products.unit.dozen' },
     { value: 'litre', labelKey: 'products.unit.litre' },
     { value: 'packet', labelKey: 'products.unit.packet' },
+    { value: 'bundle', labelKey: 'products.unit.bundle' },
+    { value: 'hali', labelKey: 'products.unit.hali' },
   ];
 
   readonly states: SelectOption[] = [
@@ -134,6 +140,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     { value: 'Dry', labelKey: 'products.state.dry' },
     { value: 'Frozen', labelKey: 'products.state.frozen' },
     { value: 'Processed', labelKey: 'products.state.processed' },
+    { value: 'Packaged', labelKey: 'products.state.packaged' },
   ];
 
   get visibleProducts(): Product[] {
@@ -148,16 +155,29 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     return this.getCategoryName(this.categories.find(category => category.id === this.selectedCategoryId));
   }
 
+  get selectedProductSegments(): string[] {
+    return [
+      this.selectedCategoryName,
+      this.productName.trim(),
+      this.selectedUnit,
+      this.selectedState,
+    ].filter(Boolean);
+  }
+
   get categoryInvalid(): boolean {
     return this.showProductValidation && !this.selectedCategoryId;
   }
 
   get productNameInvalid(): boolean {
-    return this.showProductValidation && (!this.productName.trim() || !this.getSelectedProduct());
+    return this.showProductValidation && !this.productName.trim();
   }
 
   get productNameErrorKey(): string {
-    return this.productName.trim() ? 'products.form.nameSelectionRequired' : 'products.form.nameRequired';
+    return 'products.form.nameRequired';
+  }
+
+  get localNameInvalid(): boolean {
+    return this.showProductValidation && !this.localName.trim();
   }
 
   get unitInvalid(): boolean {
@@ -166,6 +186,17 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
 
   get stateInvalid(): boolean {
     return this.showProductValidation && !this.selectedState;
+  }
+
+  get hasDuplicateSelection(): boolean {
+    return Boolean(this.getDuplicateProduct());
+  }
+
+  getProductOptionLabel(product: ProductResponse): string {
+    const mainName = this.getProductName(product);
+    const alternateName = this.currentLanguage === 'bn' ? product.nameEn : product.nameBn;
+
+    return alternateName && alternateName !== mainName ? `${mainName} (${alternateName})` : mainName;
   }
 
   ngOnInit(): void {
@@ -188,6 +219,20 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   }
 
   ngDoCheck(): void {
+    if (this.productErrorMessage === this.requiredProductFieldsMessage && this.isProductFormValid()) {
+      this.productErrorMessage = '';
+    }
+
+    if (
+      this.productErrorMessage === this.duplicateProductMessage &&
+      this.duplicateProductFingerprint &&
+      this.getDuplicateProductFingerprint() !== this.duplicateProductFingerprint &&
+      !this.hasDuplicateProduct()
+    ) {
+      this.productErrorMessage = '';
+      this.duplicateProductFingerprint = '';
+    }
+
     this.persistDraftIfChanged();
   }
 
@@ -200,32 +245,49 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     this.showProductValidation = true;
     this.productErrorMessage = '';
     this.productSuccessMessage = '';
-    this.syncSelectedCategoryFromSearch();
-    this.syncSelectedProductFromSearch();
+    this.duplicateProductFingerprint = '';
 
-    const selectedProduct = this.getSelectedProduct();
+    const duplicateProduct = this.getDuplicateProduct();
 
-    if (!this.selectedCategoryId || !selectedProduct || !this.selectedUnit || !this.selectedState) {
-      this.productErrorMessage = 'Please complete all required product fields.';
+    if (duplicateProduct) {
+      this.productErrorMessage = this.duplicateProductMessage;
+      this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
+      this.selectedProductId = duplicateProduct.id;
       this.productNameInput?.nativeElement.focus();
       return;
     }
 
-    localStorage.setItem('bazarKoto.selectedProduct', JSON.stringify({
-      id: selectedProduct.id,
-      categoryId: selectedProduct.categoryId,
-      nameEn: selectedProduct.nameEn,
-      nameBn: selectedProduct.nameBn,
-      localName: selectedProduct.localName,
-      primaryUnit: selectedProduct.primaryUnit,
-      productState: selectedProduct.productState,
-    }));
-    this.productSuccessMessage = 'Product selected successfully.';
-    this.router.navigate(['/prices']);
+    if (!this.isProductFormValid()) {
+      this.productErrorMessage = this.requiredProductFieldsMessage;
+      this.productNameInput?.nativeElement.focus();
+      return;
+    }
+
+    this.isSubmittingProduct = true;
+
+    this.api.post<ProductResponse>('/Products', this.getCreateProductPayload())
+      .pipe(finalize(() => this.isSubmittingProduct = false))
+      .subscribe({
+        next: product => {
+          this.storeSelectedProduct(product);
+          this.productSuccessMessage = 'Product submitted successfully.';
+          this.showProductValidation = false;
+          this.clearDraft(false);
+          this.loadProducts();
+          this.router.navigate(['/prices']);
+        },
+        error: error => {
+          this.productErrorMessage = error instanceof Error ? error.message : 'Unable to submit product.';
+
+          if (this.productErrorMessage === this.duplicateProductMessage) {
+            this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
+          }
+        },
+      });
   }
 
   onCategoryChange(): void {
-    this.syncSelectedCategoryFromSearch();
+    this.categorySearch = this.selectedCategoryName;
     this.selectedProductId = '';
     this.productName = '';
     this.localName = '';
@@ -236,14 +298,23 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   }
 
   onCategoryInputChange(): void {
-    this.syncSelectedCategoryFromSearch();
     this.onCategoryChange();
   }
 
-  onProductNameInputChange(): void {
-    this.selectedProductId = '';
-    this.loadProductSuggestions();
-    this.syncSelectedProductFromSearch();
+  onProductSelectionChange(): void {
+    const selectedProduct = this.getSelectedProduct();
+
+    if (selectedProduct) {
+      this.productName = selectedProduct.nameEn;
+      this.localName = selectedProduct.localName || selectedProduct.nameBn || '';
+      this.selectedUnit = selectedProduct.primaryUnit;
+      this.selectedState = selectedProduct.productState;
+      this.notes = selectedProduct.notes || this.notes;
+    } else {
+      this.productName = '';
+    }
+
+    this.productSuccessMessage = '';
     this.clearProductValidationIfReady();
   }
 
@@ -251,19 +322,41 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     this.clearProductValidationIfReady();
   }
 
-  private applySelectedProduct(existingProduct: ProductResponse | undefined): void {
-    if (!existingProduct) {
+  continueToPrices(): void {
+    this.showProductValidation = true;
+    this.productSuccessMessage = '';
+
+    const duplicateProduct = this.getDuplicateProduct();
+
+    if (duplicateProduct) {
+      this.productErrorMessage = this.duplicateProductMessage;
+      this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
+      this.selectedProductId = duplicateProduct.id;
+      this.storeSelectedProduct(duplicateProduct);
+      this.router.navigate(['/prices']);
       return;
     }
 
-    this.selectedProductId = existingProduct.id;
-    this.localName = existingProduct.localName || this.localName;
-    this.selectedUnit = existingProduct.primaryUnit || this.selectedUnit;
-    this.selectedState = existingProduct.productState || this.selectedState;
+    this.addProduct();
+  }
+
+  clearCategorySelection(): void {
+    this.selectedCategoryId = '';
+    this.categorySearch = '';
+    this.productSuggestions = [];
+    this.clearProductSelection();
+    this.loadProducts();
+    this.clearProductValidationIfReady();
+  }
+
+  clearProductSelection(): void {
+    this.selectedProductId = '';
+    this.productName = '';
+    this.productSuccessMessage = '';
+    this.clearProductValidationIfReady();
   }
 
   saveDraft(): void {
-    this.syncSelectedCategoryFromSearch();
     this.persistDraftIfChanged(true);
     this.productErrorMessage = '';
   }
@@ -278,6 +371,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
 
   loadProducts(): void {
     this.isLoadingProducts = true;
+    this.productListErrorMessage = '';
 
     this.api.get<ProductResponse[]>('/Products', {
       categoryId: this.selectedCategoryId,
@@ -289,7 +383,7 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
         this.products = this.mapProducts(products);
       },
       error: error => {
-        this.productErrorMessage = error instanceof Error ? error.message : 'Unable to load products.';
+        this.productListErrorMessage = error instanceof Error ? error.message : 'Unable to load products.';
       },
     });
   }
@@ -334,15 +428,24 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
   }
 
   private loadProductSuggestions(): void {
+    if (!this.selectedCategoryId) {
+      this.productSuggestions = [];
+      return;
+    }
+
     this.api.get<ProductResponse[]>('/Products', {
       categoryId: this.selectedCategoryId,
-      search: this.productName,
       pageNumber: 1,
-      pageSize: 20,
+      pageSize: 100,
     }).subscribe({
       next: products => {
         this.productSuggestions = products;
-        this.syncSelectedProductFromSearch();
+        this.selectedProductId = this.selectedProductId || (this.findProductByName(products, this.productName)?.id ?? '');
+
+        if (this.selectedProductId) {
+          this.onProductSelectionChange();
+        }
+
         this.clearProductValidationIfReady();
       },
       error: () => {
@@ -403,16 +506,6 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
     };
   }
 
-  private syncSelectedCategoryFromSearch(): void {
-    const match = this.findCategoryByName(this.categorySearch);
-    this.selectedCategoryId = match?.id ?? '';
-  }
-
-  private syncSelectedProductFromSearch(): void {
-    const match = this.findProductByName(this.productSuggestions, this.productName);
-    this.applySelectedProduct(match);
-  }
-
   private getSelectedProduct(): ProductResponse | undefined {
     return this.productSuggestions.find(product => product.id === this.selectedProductId)
       ?? this.findProductByName(this.productSuggestions, this.productName);
@@ -423,26 +516,10 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
       return;
     }
 
-    this.syncSelectedCategoryFromSearch();
-    this.syncSelectedProductFromSearch();
-
-    if (this.selectedCategoryId && this.getSelectedProduct() && this.selectedUnit && this.selectedState) {
+    if (this.isProductFormValid() && !this.hasDuplicateProduct()) {
       this.showProductValidation = false;
       this.productErrorMessage = '';
     }
-  }
-
-  private findCategoryByName(value: string): ProductCategory | undefined {
-    const normalizedValue = value.trim().toLowerCase();
-
-    if (!normalizedValue) {
-      return undefined;
-    }
-
-    return this.categories.find(category =>
-      category.nameEn.toLowerCase() === normalizedValue ||
-      category.nameBn.toLowerCase() === normalizedValue
-    );
   }
 
   private findProductByName(products: ProductResponse[], value: string): ProductResponse | undefined {
@@ -468,6 +545,80 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
       unit: product.primaryUnit,
       freshness: product.productState,
       submissions: 0,
+    }));
+  }
+
+  private getProductName(product: ProductResponse): string {
+    return this.currentLanguage === 'bn' ? product.nameBn : product.nameEn;
+  }
+
+  private isProductFormValid(): boolean {
+    return Boolean(
+      this.selectedCategoryId &&
+      this.productName.trim() &&
+      this.localName.trim() &&
+      this.selectedUnit &&
+      this.selectedState
+    );
+  }
+
+  private getCreateProductPayload(): CreateProductRequest {
+    const localOrAlternateName = this.localName.trim();
+
+    return {
+      categoryId: this.selectedCategoryId,
+      nameEn: this.productName.trim(),
+      nameBn: localOrAlternateName,
+      localName: localOrAlternateName,
+      primaryUnit: this.selectedUnit,
+      productState: this.selectedState,
+      notes: this.notes.trim() || null,
+    };
+  }
+
+  private hasDuplicateProduct(): boolean {
+    return Boolean(this.getDuplicateProduct());
+  }
+
+  private getDuplicateProduct(): ProductResponse | undefined {
+    const slug = this.slugify(this.productName);
+
+    if (!slug) {
+      return undefined;
+    }
+
+    return this.productSuggestions.find(product =>
+      product.categoryId === this.selectedCategoryId &&
+      this.slugify(product.nameEn || product.slug) === slug
+    );
+  }
+
+  private getDuplicateProductFingerprint(): string {
+    return `${this.selectedCategoryId}|${this.slugify(this.productName)}`;
+  }
+
+  private slugify(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private storeSelectedProduct(product: ProductResponse): void {
+    localStorage.setItem('bazarKoto.selectedProduct', JSON.stringify({
+      id: product.id,
+      categoryId: product.categoryId,
+      categoryNameEn: product.categoryNameEn,
+      categoryNameBn: product.categoryNameBn,
+      nameEn: product.nameEn,
+      nameBn: product.nameBn,
+      localName: product.localName,
+      primaryUnit: product.primaryUnit,
+      productState: product.productState,
+      notes: product.notes,
+      status: product.status,
+      isActive: product.isActive,
     }));
   }
 

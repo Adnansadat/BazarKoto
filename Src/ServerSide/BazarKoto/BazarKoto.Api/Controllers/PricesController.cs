@@ -21,10 +21,22 @@ public class PricesController : ControllerBase
         return Ok(await _priceService.GetPricesAsync(request, cancellationToken));
     }
 
+    [HttpGet("latest")]
+    public async Task<IActionResult> GetLatestPrice([FromQuery] PriceSearchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _priceService.GetLatestPriceAsync(request, cancellationToken));
+    }
+
     [HttpPost]
     public async Task<IActionResult> SubmitPrice(SubmitPriceRequest request, CancellationToken cancellationToken)
     {
         return Ok(await _priceService.SubmitPriceAsync(request, cancellationToken));
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdatePrice(Guid id, UpdatePriceRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _priceService.UpdatePriceAsync(id, request, cancellationToken));
     }
 
     [HttpGet("today")]

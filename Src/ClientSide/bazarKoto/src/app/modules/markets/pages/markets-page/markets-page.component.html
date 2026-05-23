@@ -30,16 +30,21 @@
       <div class="field-grid">
         <label>
           <span>{{ 'markets.form.division' | translate }}</span>
-          <input
-            type="search"
-            [(ngModel)]="divisionSearch"
-            (ngModelChange)="onDivisionInputChange()"
-            list="division-options"
-            placeholder="Search division"
-          />
-          <datalist id="division-options">
-            <option *ngFor="let division of divisions" [value]="getLocationName(division)"></option>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedDivisionId">
+            <select [(ngModel)]="selectedDivisionId" (ngModelChange)="onDivisionChange()" [disabled]="isLoadingDivisions">
+              <option value="">Select division</option>
+              <option *ngFor="let division of divisions" [value]="division.id">{{ getLocationName(division) }}</option>
+            </select>
+            <button
+              *ngIf="selectedDivisionId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearDivisionSelection()"
+              aria-label="Clear selected division"
+            >
+              &times;
+            </button>
+          </div>
           <small *ngIf="isLoadingDivisions">Loading divisions...</small>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDivisionId">
             Division is required.
@@ -48,17 +53,25 @@
 
         <label>
           <span>{{ 'markets.form.district' | translate }}</span>
-          <input
-            type="search"
-            [(ngModel)]="districtSearch"
-            (ngModelChange)="onDistrictInputChange()"
-            list="district-options"
-            placeholder="Search district"
-            [disabled]="!selectedDivisionId"
-          />
-          <datalist id="district-options">
-            <option *ngFor="let district of districts" [value]="getLocationName(district)"></option>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedDistrictId">
+            <select
+              [(ngModel)]="selectedDistrictId"
+              (ngModelChange)="onDistrictChange()"
+              [disabled]="!selectedDivisionId || isLoadingDistricts"
+            >
+              <option value="">Select district</option>
+              <option *ngFor="let district of districts" [value]="district.id">{{ getLocationName(district) }}</option>
+            </select>
+            <button
+              *ngIf="selectedDistrictId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearDistrictSelection()"
+              aria-label="Clear selected district"
+            >
+              &times;
+            </button>
+          </div>
           <small *ngIf="isLoadingDistricts">Loading districts...</small>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDistrictId">
             District is required.
@@ -67,17 +80,25 @@
 
         <label>
           <span>Upazila / City Corporation</span>
-          <input
-            type="search"
-            [(ngModel)]="upazilaSearch"
-            (ngModelChange)="onUpazilaInputChange()"
-            list="upazila-options"
-            placeholder="Search upazila"
-            [disabled]="!selectedDistrictId"
-          />
-          <datalist id="upazila-options">
-            <option *ngFor="let upazila of upazilas" [value]="getLocationName(upazila)"></option>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUpazilaId">
+            <select
+              [(ngModel)]="selectedUpazilaId"
+              (ngModelChange)="onUpazilaChange()"
+              [disabled]="!selectedDistrictId || isLoadingUpazilas"
+            >
+              <option value="">Select upazila</option>
+              <option *ngFor="let upazila of upazilas" [value]="upazila.id">{{ getLocationName(upazila) }}</option>
+            </select>
+            <button
+              *ngIf="selectedUpazilaId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearUpazilaSelection()"
+              aria-label="Clear selected upazila"
+            >
+              &times;
+            </button>
+          </div>
           <small *ngIf="isLoadingUpazilas">Loading upazilas...</small>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUpazilaId">
             Upazila / City Corporation is required.
@@ -86,17 +107,25 @@
 
         <label>
           <span>Ward / Union</span>
-          <input
-            type="search"
-            [(ngModel)]="unionOrWardSearch"
-            (ngModelChange)="onUnionOrWardInputChange()"
-            list="union-or-ward-options"
-            [placeholder]="'markets.form.wardPlaceholder' | translate"
-            [disabled]="!selectedUpazilaId"
-          />
-          <datalist id="union-or-ward-options">
-            <option *ngFor="let unionOrWard of unionOrWards" [value]="getLocationName(unionOrWard)"></option>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUnionOrWardId">
+            <select
+              [(ngModel)]="selectedUnionOrWardId"
+              (ngModelChange)="onUnionOrWardChange()"
+              [disabled]="!selectedUpazilaId || isLoadingUnionOrWards"
+            >
+              <option value="">Select ward / union</option>
+              <option *ngFor="let unionOrWard of unionOrWards" [value]="unionOrWard.id">{{ getLocationName(unionOrWard) }}</option>
+            </select>
+            <button
+              *ngIf="selectedUnionOrWardId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearUnionOrWardSelection()"
+              aria-label="Clear selected ward or union"
+            >
+              &times;
+            </button>
+          </div>
           <small *ngIf="isLoadingUnionOrWards">Loading unions/wards...</small>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUnionOrWardId">
             Ward / Union is required.
@@ -109,6 +138,7 @@
             type="text"
             [(ngModel)]="selectedArea"
             placeholder="Enter area or village"
+            spellcheck="false"
             [attr.aria-describedby]="'market-location-helper'"
           />
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedArea.trim()">
@@ -121,6 +151,7 @@
           <input
             type="text"
             [(ngModel)]="villageOrMoholla"
+            spellcheck="false"
             [placeholder]="'markets.form.villagePlaceholder' | translate"
           />
           <em class="field-error validation-slot"></em>
@@ -132,6 +163,8 @@
             #marketInput
             type="text"
             [(ngModel)]="selectedMarket"
+            (ngModelChange)="onMarketNameChange()"
+            spellcheck="false"
             [placeholder]="'markets.form.marketPlaceholder' | translate"
             [attr.aria-describedby]="shouldShowDuplicateMarketError ? 'market-duplicate-error' : showMarketValidation ? 'market-name-error' : 'market-location-helper'"
             [attr.aria-invalid]="showMarketValidation || shouldShowDuplicateMarketError"
@@ -149,6 +182,7 @@
           <input
             type="text"
             [(ngModel)]="landmark"
+            spellcheck="false"
             [placeholder]="'markets.form.landmarkPlaceholder' | translate"
           />
           <em class="field-error validation-slot"></em>
@@ -156,11 +190,13 @@
 
         <label>
           <span>{{ 'markets.form.marketType' | translate }}</span>
-          <select [(ngModel)]="marketType">
-            <option *ngFor="let type of marketTypes" [value]="type.value">
-              {{ type.labelKey | translate }}
-            </option>
-          </select>
+          <div class="clearable-field select-clearable">
+            <select [(ngModel)]="marketType">
+              <option *ngFor="let type of marketTypes" [value]="type.value">
+                {{ type.labelKey | translate }}
+              </option>
+            </select>
+          </div>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !marketType">
             Market type is required.
           </em>
@@ -168,11 +204,13 @@
 
         <label>
           <span>{{ 'markets.form.operatingSchedule' | translate }}</span>
-          <select [(ngModel)]="operatingDays">
-            <option *ngFor="let schedule of operatingSchedules" [value]="schedule.value">
-              {{ schedule.labelKey | translate }}
-            </option>
-          </select>
+          <div class="clearable-field select-clearable">
+            <select [(ngModel)]="operatingDays">
+              <option *ngFor="let schedule of operatingSchedules" [value]="schedule.value">
+                {{ schedule.labelKey | translate }}
+              </option>
+            </select>
+          </div>
           <em class="field-error validation-slot" [class.visible]="showMarketValidation && !operatingDays">
             Operating schedule is required.
           </em>
@@ -183,6 +221,7 @@
           <textarea
             [(ngModel)]="notes"
             rows="4"
+            spellcheck="false"
             [placeholder]="'markets.form.notesPlaceholder' | translate"
           ></textarea>
         </label>
@@ -223,20 +262,6 @@
         </button>
       </div>
     </article>
-
-    <aside class="support-panel" aria-labelledby="why-market-location-title">
-      <span class="eyebrow">{{ 'markets.why.eyebrow' | translate }}</span>
-      <h2 id="why-market-location-title">{{ 'markets.why.title' | translate }}</h2>
-      <p>
-        {{ 'markets.why.description' | translate }}
-      </p>
-
-      <div class="quality-list">
-        <div><strong>{{ 'markets.why.precise.title' | translate }}</strong><span>{{ 'markets.why.precise.description' | translate }}</span></div>
-        <div><strong>{{ 'markets.why.reusable.title' | translate }}</strong><span>{{ 'markets.why.reusable.description' | translate }}</span></div>
-        <div><strong>{{ 'markets.why.verifiable.title' | translate }}</strong><span>{{ 'markets.why.verifiable.description' | translate }}</span></div>
-      </div>
-    </aside>
   </section>
 
   <section class="container contribution-strip" aria-labelledby="continue-product-submission-title">

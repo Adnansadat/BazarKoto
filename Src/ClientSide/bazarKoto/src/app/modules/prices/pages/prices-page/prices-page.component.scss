@@ -63,20 +63,16 @@
 
 .submission-grid {
   margin-top: 40px;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
-  gap: 20px;
+  display: block;
 }
 
-.submission-panel,
-.summary-panel {
+.submission-panel {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: white;
 }
 
-.submission-panel,
-.summary-panel {
+.submission-panel {
   padding: 24px;
 }
 
@@ -84,6 +80,39 @@
   display: grid;
   gap: 8px;
   margin-bottom: 22px;
+}
+
+.price-mode-toggle {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.price-mode-toggle button {
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 18px;
+  background: white;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.price-mode-toggle .share-mode.active {
+  border-color: #fb923c;
+  background: #fb923c;
+  color: #431407;
+  box-shadow: 0 12px 24px rgba(251, 146, 60, 0.22);
+}
+
+.price-mode-toggle .update-mode.active {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: white;
+  box-shadow: 0 12px 24px rgba(15, 118, 110, 0.22);
 }
 
 .panel-heading h2,
@@ -98,9 +127,21 @@
   gap: 18px;
 }
 
+.context-validation-list {
+  margin-top: 4px;
+  display: grid;
+  gap: 6px;
+}
+
+.context-validation-list p {
+  margin: 0;
+}
+
 label {
   display: grid;
   gap: 8px;
+  grid-template-rows: auto minmax(48px, auto) 18px;
+  align-content: start;
 }
 
 label span {
@@ -135,14 +176,71 @@ select {
   padding: 0 14px;
 }
 
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
 textarea {
   min-height: 120px;
   padding: 14px;
   resize: vertical;
 }
 
+.field-error {
+  color: #dc2626;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.status-message,
+.loading-message {
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.loading-message {
+  color: #475569;
+}
+
+.validation-slot {
+  display: block;
+  min-height: 18px;
+  line-height: 18px;
+  visibility: hidden;
+}
+
+.validation-slot.is-visible {
+  visibility: visible;
+}
+
 .notes-field {
   grid-column: 1 / -1;
+  grid-template-rows: auto minmax(120px, auto) 18px;
+}
+
+.context-validation {
+  min-height: 0;
+}
+
+.context-validation:not(.is-visible) {
+  display: none;
+}
+
+.form-status {
+  min-width: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+  text-align: right;
 }
 
 .form-actions,
@@ -194,6 +292,70 @@ textarea {
 
 .back-arrow:hover {
   background: #ea580c;
+}
+
+.selection-summary {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 14px;
+  background: linear-gradient(135deg, #ecfdf5, #f8fafc);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.selection-label {
+  min-height: 30px;
+  border-right: 1px solid #bae6fd;
+  padding: 4px 14px 4px 2px;
+  display: inline-flex;
+  align-items: center;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.selection-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.selection-chip {
+  min-height: 30px;
+  border: 1px solid #d1fae5;
+  border-radius: 999px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.86);
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.market-chip {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: white;
+}
+
+.selection-empty {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .summary-panel dl {
@@ -346,8 +508,21 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .summary-panel {
+  .price-mode-toggle,
+  .price-mode-toggle button {
     width: 100%;
+  }
+
+  .selection-summary {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+  }
+
+  .selection-label {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid #bae6fd;
+    padding: 0 0 10px;
   }
 
 }

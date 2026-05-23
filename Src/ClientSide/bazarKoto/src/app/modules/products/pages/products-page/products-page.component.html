@@ -34,18 +34,26 @@
       <div class="form-grid">
         <label>
           <span>{{ 'products.form.category' | translate }}</span>
-          <input
-            type="text"
-            list="product-category-options"
-            [(ngModel)]="categorySearch"
-            (ngModelChange)="onCategoryInputChange()"
-            [placeholder]="'products.form.categoryPlaceholder' | translate"
-            [disabled]="isLoadingCategories"
-            [attr.aria-invalid]="categoryInvalid"
-          />
-          <datalist id="product-category-options">
-            <option *ngFor="let category of categories" [value]="getCategoryName(category)"></option>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedCategoryId">
+            <select
+              [(ngModel)]="selectedCategoryId"
+              (ngModelChange)="onCategoryChange()"
+              [disabled]="isLoadingCategories"
+              [attr.aria-invalid]="categoryInvalid"
+            >
+              <option value="">{{ 'products.form.categoryPlaceholder' | translate }}</option>
+              <option *ngFor="let category of categories" [value]="category.id">{{ getCategoryName(category) }}</option>
+            </select>
+            <button
+              *ngIf="selectedCategoryId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearCategorySelection()"
+              aria-label="Clear selected category"
+            >
+              &times;
+            </button>
+          </div>
           <em
             class="field-error validation-slot"
             [class.is-visible]="categoryInvalid || categoryErrorMessage || isLoadingCategories"
@@ -61,23 +69,30 @@
 
         <label>
           <span>{{ 'products.form.name' | translate }}</span>
-          <input
-            #productNameInput
-            type="text"
-            list="product-name-options"
-            [(ngModel)]="productName"
-            (ngModelChange)="onProductNameInputChange()"
-            [placeholder]="'products.form.namePlaceholder' | translate"
-            [disabled]="!selectedCategoryId"
-            [attr.aria-describedby]="productNameInvalid ? 'product-name-error' : 'share-product-helper'"
-            [attr.aria-invalid]="productNameInvalid"
-          />
-          <datalist id="product-name-options">
-            <ng-container *ngFor="let product of productSuggestions">
-              <option [value]="currentLanguage === 'bn' ? product.nameBn : product.nameEn"></option>
-              <option *ngIf="product.localName" [value]="product.localName"></option>
-            </ng-container>
-          </datalist>
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedProductId">
+            <select
+              #productNameInput
+              [(ngModel)]="selectedProductId"
+              (ngModelChange)="onProductSelectionChange()"
+              [disabled]="!selectedCategoryId"
+              [attr.aria-describedby]="productNameInvalid ? 'product-name-error' : 'share-product-helper'"
+              [attr.aria-invalid]="productNameInvalid"
+            >
+              <option value="" disabled hidden>{{ 'products.form.namePlaceholder' | translate }}</option>
+              <option *ngFor="let product of productSuggestions" [value]="product.id">
+                {{ getProductOptionLabel(product) }}
+              </option>
+            </select>
+            <button
+              *ngIf="selectedProductId"
+              type="button"
+              class="clear-field-button"
+              (click)="clearProductSelection()"
+              aria-label="Clear selected product"
+            >
+              &times;
+            </button>
+          </div>
           <em class="field-error validation-slot" id="product-name-error" [class.is-visible]="productNameInvalid">
             {{ productNameErrorKey | translate }}
           </em>
@@ -90,16 +105,21 @@
             [(ngModel)]="localName"
             (ngModelChange)="onRequiredFieldChange()"
             [placeholder]="'products.form.localNamePlaceholder' | translate"
+            spellcheck="false"
           />
-          <em class="field-error validation-slot"></em>
+          <em class="field-error validation-slot" [class.is-visible]="localNameInvalid">
+            {{ 'products.form.localNameRequired' | translate }}
+          </em>
         </label>
 
         <label>
           <span>{{ 'products.form.unit' | translate }}</span>
-          <select [(ngModel)]="selectedUnit" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="unitInvalid">
-            <option value="">{{ 'products.form.unit' | translate }}</option>
-            <option *ngFor="let unit of units" [value]="unit.value">{{ unit.labelKey | translate }}</option>
-          </select>
+          <div class="clearable-field select-field">
+            <select [(ngModel)]="selectedUnit" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="unitInvalid">
+              <option value="">{{ 'products.form.unit' | translate }}</option>
+              <option *ngFor="let unit of units" [value]="unit.value">{{ unit.labelKey | translate }}</option>
+            </select>
+          </div>
           <em class="field-error validation-slot" [class.is-visible]="unitInvalid">
             {{ 'products.form.unitRequired' | translate }}
           </em>
@@ -107,10 +127,12 @@
 
         <label>
           <span>{{ 'products.form.state' | translate }}</span>
-          <select [(ngModel)]="selectedState" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="stateInvalid">
-            <option value="">{{ 'products.form.state' | translate }}</option>
-            <option *ngFor="let state of states" [value]="state.value">{{ state.labelKey | translate }}</option>
-          </select>
+          <div class="clearable-field select-field">
+            <select [(ngModel)]="selectedState" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="stateInvalid">
+              <option value="">{{ 'products.form.state' | translate }}</option>
+              <option *ngFor="let state of states" [value]="state.value">{{ state.labelKey | translate }}</option>
+            </select>
+          </div>
           <em class="field-error validation-slot" [class.is-visible]="stateInvalid">
             {{ 'products.form.stateRequired' | translate }}
           </em>
@@ -127,9 +149,39 @@
         </label>
       </div>
 
+      <div
+        class="selection-summary"
+        role="status"
+        aria-live="polite"
+        [attr.aria-label]="'products.selection.ariaLabel' | translate"
+      >
+        <span class="selection-label">{{ 'products.selection.label' | translate }}</span>
+        <div class="selection-path" *ngIf="selectedProductSegments.length; else noSelectedProduct">
+          <span
+            class="selection-chip"
+            *ngFor="let segment of selectedProductSegments; let last = last"
+            [class.market-chip]="last"
+          >
+            {{ segment }}
+          </span>
+        </div>
+        <ng-template #noSelectedProduct>
+          <strong class="selection-empty">{{ 'products.selection.empty' | translate }}</strong>
+        </ng-template>
+      </div>
+
       <div class="form-actions">
         <span class="field-error" *ngIf="productErrorMessage">{{ productErrorMessage }}</span>
         <span class="status-message" *ngIf="productSuccessMessage">{{ productSuccessMessage }}</span>
+        <button
+          *ngIf="hasDuplicateSelection"
+          type="button"
+          class="secondary"
+          (click)="continueToPrices()"
+          [attr.aria-label]="'products.actions.continuePricesAria' | translate"
+        >
+          {{ 'products.actions.continuePrices' | translate }}
+        </button>
         <button
           type="button"
           (click)="addProduct()"
@@ -153,9 +205,9 @@
         <span aria-hidden="true">&larr;</span>
       </a>
 
-      <a routerLink="/prices" [attr.aria-label]="'products.actions.continuePricesAria' | translate">
+      <button type="button" (click)="continueToPrices()" [attr.aria-label]="'products.actions.continuePricesAria' | translate">
         {{ 'products.actions.continuePrices' | translate }}
-      </a>
+      </button>
     </div>
   </section>
 
@@ -178,8 +230,8 @@
     </div>
 
     <p *ngIf="isLoadingProducts">Loading products...</p>
-    <p *ngIf="!isLoadingProducts && productErrorMessage">{{ productErrorMessage }}</p>
-    <p *ngIf="!isLoadingProducts && !productErrorMessage && visibleProducts.length === 0">No products found yet.</p>
+    <p *ngIf="!isLoadingProducts && productListErrorMessage">{{ productListErrorMessage }}</p>
+    <p *ngIf="!isLoadingProducts && !productListErrorMessage && visibleProducts.length === 0">No products found yet.</p>
 
     <div class="product-grid">
       <article

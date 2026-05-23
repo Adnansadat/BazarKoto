@@ -9,12 +9,21 @@ namespace BazarKoto.Application.Services;
 public class PriceService : IPriceService
 {
     private readonly IPriceRepository _priceRepository;
+    private readonly IMarketRepository _marketRepository;
+    private readonly IProductRepository _productRepository;
     private readonly IPriceSummaryService _priceSummaryService;
     private readonly IUnitOfWork _unitOfWork;
 
-    public PriceService(IPriceRepository priceRepository, IPriceSummaryService priceSummaryService, IUnitOfWork unitOfWork)
+    public PriceService(
+        IPriceRepository priceRepository,
+        IMarketRepository marketRepository,
+        IProductRepository productRepository,
+        IPriceSummaryService priceSummaryService,
+        IUnitOfWork unitOfWork)
     {
         _priceRepository = priceRepository;
+        _marketRepository = marketRepository;
+        _productRepository = productRepository;
         _priceSummaryService = priceSummaryService;
         _unitOfWork = unitOfWork;
     }
@@ -24,13 +33,52 @@ public class PriceService : IPriceService
         return await _priceSummaryService.GetPriceSummariesAsync(request, cancellationToken);
     }
 
+    public async Task<ApiResponse<PriceSubmissionResponse>> GetLatestPriceAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!request.MarketId.HasValue || !request.ProductId.HasValue)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("Select an existing market and product to load price data.");
+        }
+
+        var prices = await _priceRepository.GetAsync(
+            marketId: request.MarketId,
+            productId: request.ProductId,
+            cancellationToken: cancellationToken);
+
+        var latestPrice = prices.FirstOrDefault();
+
+        if (latestPrice is null)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("No existing price found for this market and product.");
+        }
+
+        return ApiResponse<PriceSubmissionResponse>.Ok(ToResponse(latestPrice), "Latest price loaded successfully.");
+    }
+
     public async Task<ApiResponse<PriceSubmissionResponse>> SubmitPriceAsync(SubmitPriceRequest request, CancellationToken cancellationToken = default)
     {
+        var selectionValidation = await ValidateMarketProductSelectionAsync(request.MarketId, request.ProductId, cancellationToken);
+
+        if (!selectionValidation.Success)
+        {
+            return selectionValidation;
+        }
+
+        var existingPrices = await _priceRepository.GetAsync(
+            marketId: request.MarketId,
+            productId: request.ProductId,
+            cancellationToken: cancellationToken);
+
+        if (existingPrices.Any())
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("A price already exists for this market and product. Change the price per unit to update the existing record.");
+        }
+
         var priceSubmission = new PriceSubmission
         {
             MarketId = request.MarketId,
             ProductId = request.ProductId,
-            Unit = request.Unit,
+            Unit = request.Unit.Trim(),
             PricePerUnit = request.PricePerUnit,
             QuantityChecked = request.QuantityChecked,
             PriceDate = request.PriceDate,
@@ -38,7 +86,7 @@ public class PriceService : IPriceService
             SellerType = ParseEnum(request.SellerType, SellerType.Retail),
             PriceSource = ParseEnum(request.PriceSource, PriceSource.UserReported),
             QualityGrade = ParseEnum(request.QualityGrade, QualityGrade.Standard),
-            Notes = request.Notes,
+            Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
             Status = SubmissionStatus.Pending
         };
 
@@ -46,6 +94,59 @@ public class PriceService : IPriceService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ApiResponse<PriceSubmissionResponse>.Ok(ToResponse(priceSubmission), "Price submitted successfully.");
+    }
+
+    public async Task<ApiResponse<PriceSubmissionResponse>> UpdatePriceAsync(Guid id, UpdatePriceRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request.PricePerUnit <= 0)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("Price per unit must be greater than zero.");
+        }
+
+        var selectionValidation = await ValidateMarketProductSelectionAsync(request.MarketId, request.ProductId, cancellationToken);
+
+        if (!selectionValidation.Success)
+        {
+            return selectionValidation;
+        }
+
+        var priceSubmission = await _priceRepository.GetByIdAsync(id, cancellationToken);
+
+        if (priceSubmission is null)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("Price submission was not found.");
+        }
+
+        if (priceSubmission.MarketId != request.MarketId || priceSubmission.ProductId != request.ProductId)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("The selected price does not match this market and product.");
+        }
+
+        priceSubmission.PricePerUnit = request.PricePerUnit;
+
+        _priceRepository.Update(priceSubmission);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return ApiResponse<PriceSubmissionResponse>.Ok(ToResponse(priceSubmission), "Price updated successfully.");
+    }
+
+    private async Task<ApiResponse<PriceSubmissionResponse>> ValidateMarketProductSelectionAsync(Guid marketId, Guid productId, CancellationToken cancellationToken)
+    {
+        var market = await _marketRepository.GetByIdAsync(marketId, cancellationToken);
+
+        if (market is null)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("Selected market was not found. Please go back to Markets and select an existing market.");
+        }
+
+        var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
+
+        if (product is null)
+        {
+            return ApiResponse<PriceSubmissionResponse>.Fail("Selected product was not found. Please go back to Products and select an existing product.");
+        }
+
+        return ApiResponse<PriceSubmissionResponse>.Ok(new PriceSubmissionResponse());
     }
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetTodayPricesAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
