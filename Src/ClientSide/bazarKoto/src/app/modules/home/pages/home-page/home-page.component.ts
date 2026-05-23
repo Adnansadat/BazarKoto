@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Api } from '../../../../core/services/api';
@@ -18,13 +17,17 @@ interface AveragePrice {
 }
 
 interface PriceSubmissionResponse {
-  marketName: string;
-  productName: string;
-  category: string;
+  marketName?: string;
+  productName?: string;
+  productNameEn?: string;
+  productNameBn?: string;
+  category?: string;
+  categoryNameEn?: string;
+  categoryNameBn?: string;
   unit: string;
   pricePerUnit: number;
   priceDate: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 interface CategoryLink {
@@ -46,12 +49,11 @@ interface FaqItem {
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TranslateModule],
+  imports: [CommonModule, RouterLink, TranslateModule],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.scss']
 })
 export class HomePageComponent implements OnInit {
-  searchTerm = '';
   selectedCategory: PriceCategory = 'all';
   isLoadingPrices = true;
   priceErrorMessage = '';
@@ -77,10 +79,68 @@ export class HomePageComponent implements OnInit {
     { labelKey: 'home.category.protein', value: 'protein' }
   ];
 
-  readonly miniCategories: Array<{ labelKey: string; value: Exclude<PriceCategory, 'all'> }> = [
+  readonly miniCategories: Array<{ labelKey: string; value: PriceCategory }> = [
+    { labelKey: 'home.category.all', value: 'all' },
     { labelKey: 'home.category.vegetables', value: 'vegetables' },
     { labelKey: 'home.category.staples', value: 'staples' },
     { labelKey: 'home.category.protein', value: 'protein' }
+  ];
+
+  readonly phonePrices: AveragePrice[] = [
+    {
+      name: 'Onion',
+      market: 'Dhaka, Bangladesh',
+      category: 'vegetables',
+      unit: 'kg',
+      average: 60,
+      change: 0,
+      searchable: 'Onion Dhaka Bangladesh vegetables',
+    },
+    {
+      name: 'Potato',
+      market: 'Dhaka, Bangladesh',
+      category: 'vegetables',
+      unit: 'kg',
+      average: 45,
+      change: 0,
+      searchable: 'Potato Dhaka Bangladesh vegetables',
+    },
+    {
+      name: 'Rice Miniket',
+      market: 'Dhaka, Bangladesh',
+      category: 'staples',
+      unit: 'kg',
+      average: 85,
+      change: 0,
+      searchable: 'Rice Miniket Dhaka Bangladesh staples',
+    },
+    {
+      name: 'Soybean Oil',
+      market: 'Dhaka, Bangladesh',
+      category: 'staples',
+      unit: 'litre',
+      average: 195,
+      change: 0,
+      searchable: 'Soybean Oil Dhaka Bangladesh staples',
+    },
+    {
+      name: 'Egg',
+      market: 'Dhaka, Bangladesh',
+      category: 'protein',
+      unit: 'dozen',
+      average: 150,
+      change: 0,
+      searchable: 'Egg Dhaka Bangladesh protein',
+    },
+    {
+      name: 'Rui Fish',
+      market: 'Dhaka, Bangladesh',
+      category: 'protein',
+      unit: 'kg',
+      average: 360,
+      change: 0,
+      searchable: 'Rui Fish Dhaka Bangladesh protein',
+    },
   ];
 
   readonly categoryLinks: CategoryLink[] = [
@@ -149,19 +209,18 @@ export class HomePageComponent implements OnInit {
   ];
 
   get filteredPrices(): AveragePrice[] {
-    const normalizedSearch = this.searchTerm.trim().toLowerCase();
-
     return this.averagePrices.filter((price) => {
-      const matchesCategory =
-        this.selectedCategory === 'all' || price.category === this.selectedCategory;
+      return this.selectedCategory === 'all' || price.category === this.selectedCategory;
+    });
+  }
 
-      const matchesSearch =
-        !normalizedSearch ||
-        price.searchable.toLowerCase().includes(normalizedSearch) ||
-        price.name.toLowerCase().includes(normalizedSearch) ||
-        price.market.toLowerCase().includes(normalizedSearch);
+  get productPrices(): AveragePrice[] {
+    return this.filteredPrices.slice(0, 10);
+  }
 
-      return matchesCategory && matchesSearch;
+  get phoneFilteredPrices(): AveragePrice[] {
+    return this.phonePrices.filter((price) => {
+      return this.selectedCategory === 'all' || price.category === this.selectedCategory;
     });
   }
 
@@ -173,7 +232,7 @@ export class HomePageComponent implements OnInit {
     this.isLoadingPrices = true;
     this.priceErrorMessage = '';
 
-    this.api.get<PriceSubmissionResponse[]>('/Prices').subscribe({
+    this.api.get<PriceSubmissionResponse[]>('/Prices', { pageSize: 100 }).subscribe({
       next: prices => {
         this.averagePrices = this.toAveragePrices(prices);
         this.isLoadingPrices = false;
@@ -189,7 +248,13 @@ export class HomePageComponent implements OnInit {
     const groupedPrices = new Map<string, PriceSubmissionResponse[]>();
 
     for (const price of prices) {
-      const key = `${price.productName}|${price.marketName}|${price.unit}`;
+      const productName = this.getProductName(price);
+
+      if (!productName || price.pricePerUnit <= 0) {
+        continue;
+      }
+
+      const key = `${productName}|${price.marketName ?? ''}|${price.unit}`;
       groupedPrices.set(key, [...(groupedPrices.get(key) ?? []), price]);
     }
 
@@ -197,15 +262,17 @@ export class HomePageComponent implements OnInit {
       const ordered = [...group].sort((first, second) => this.getPriceTime(second) - this.getPriceTime(first));
       const latest = ordered[0];
       const previous = ordered[1];
+      const productName = this.getProductName(latest);
+      const categoryName = latest.categoryNameEn || latest.category || latest.categoryNameBn || '';
 
       return {
-        name: latest.productName,
-        market: latest.marketName,
-        category: this.mapCategory(latest.category),
+        name: productName,
+        market: latest.marketName ?? 'Bangladesh',
+        category: this.mapCategory(categoryName),
         unit: latest.unit,
         average: latest.pricePerUnit,
         change: this.calculateChange(latest, previous),
-        searchable: `${latest.productName} ${latest.marketName} ${latest.category}`,
+        searchable: `${productName} ${latest.marketName ?? ''} ${categoryName} ${latest.categoryNameBn ?? ''}`,
       };
     });
   }
@@ -222,14 +289,35 @@ export class HomePageComponent implements OnInit {
     return Math.round(((latest.pricePerUnit - previous.pricePerUnit) / previous.pricePerUnit) * 100);
   }
 
+  private getProductName(price: PriceSubmissionResponse): string {
+    if (this.currentLanguage === 'bn' && price.productNameBn) {
+      return price.productNameBn;
+    }
+
+    return price.productNameEn || price.productName || '';
+  }
+
   private mapCategory(category: string): Exclude<PriceCategory, 'all'> {
     const normalized = category.toLowerCase();
 
-    if (normalized.includes('rice') || normalized.includes('staple') || normalized.includes('grocery')) {
+    if (
+      normalized.includes('rice') ||
+      normalized.includes('grain') ||
+      normalized.includes('staple') ||
+      normalized.includes('grocery') ||
+      normalized.includes('flour') ||
+      normalized.includes('oil')
+    ) {
       return 'staples';
     }
 
-    if (normalized.includes('fish') || normalized.includes('meat') || normalized.includes('protein')) {
+    if (
+      normalized.includes('fish') ||
+      normalized.includes('meat') ||
+      normalized.includes('poultry') ||
+      normalized.includes('egg') ||
+      normalized.includes('protein')
+    ) {
       return 'protein';
     }
 

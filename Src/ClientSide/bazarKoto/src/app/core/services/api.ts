@@ -40,6 +40,12 @@ export class Api {
       );
   }
 
+  postResponse<T>(path: string, body: unknown): Observable<ApiResponse<T>> {
+    return this.http
+      .post<ApiResponse<T>>(this.buildUrl(path), body, { headers: this.buildHeaders() })
+      .pipe(catchError(error => this.handleError(error)));
+  }
+
   put<T>(path: string, body: unknown): Observable<T> {
     return this.http
       .put<ApiResponse<T>>(this.buildUrl(path), body, { headers: this.buildHeaders() })

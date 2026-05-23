@@ -17,7 +17,7 @@
         </p>
 
         <div class="hero-actions">
-          <a class="primary-action" href="#trending">
+          <a class="primary-action" routerLink="/live-prices">
             {{ 'home.hero.primaryAction' | translate }}
           </a>
 
@@ -40,12 +40,12 @@
           </div>
 
           <div>
-            <strong>2,140+</strong>
+            <strong>495</strong>
             <span>{{ 'home.summary.pricesToday' | translate }}</span>
           </div>
 
           <div>
-            <strong>10k+</strong>
+            <strong>4,573</strong>
             <span>{{ 'home.summary.contributors' | translate }}</span>
           </div>
         </div>
@@ -56,6 +56,18 @@
         [attr.aria-label]="'home.phone.ariaLabel' | translate"
       >
         <div class="phone-panel">
+          <span class="phone-gloss" aria-hidden="true"></span>
+          <span class="dynamic-island" aria-hidden="true"></span>
+
+          <div class="phone-status" aria-hidden="true">
+            <span>9:41</span>
+            <div>
+              <span class="signal-bars"></span>
+              <span class="wifi-icon"></span>
+              <span class="battery-icon"></span>
+            </div>
+          </div>
+
           <div class="phone-top">
             <div>
               <span>BazarKoto</span>
@@ -65,16 +77,6 @@
 
             <span class="status-dot"></span>
           </div>
-
-          <label class="mini-search">
-            <span>{{ 'home.search.itemLabel' | translate }}</span>
-
-            <input
-              type="search"
-              [(ngModel)]="searchTerm"
-              [placeholder]="'home.search.miniPlaceholder' | translate"
-            />
-          </label>
 
           <div class="mini-tabs">
             <button
@@ -90,8 +92,8 @@
           <div class="mini-list">
             <p *ngIf="isLoadingPrices">Loading prices...</p>
             <p *ngIf="priceErrorMessage">{{ priceErrorMessage }}</p>
-            <p *ngIf="!isLoadingPrices && !priceErrorMessage && filteredPrices.length === 0">No prices found yet.</p>
-            <article *ngFor="let price of filteredPrices">
+            <p *ngIf="!isLoadingPrices && !priceErrorMessage && phoneFilteredPrices.length === 0">No prices found yet.</p>
+            <article *ngFor="let price of phoneFilteredPrices">
               <span class="product-dot"></span>
 
               <div>
@@ -114,6 +116,8 @@
           <a routerLink="/live-prices">
             {{ 'home.phone.viewAllPrices' | translate }}
           </a>
+
+          <span class="phone-home-indicator" aria-hidden="true"></span>
         </div>
       </div>
     </div>
@@ -135,21 +139,9 @@
         <span class="eyebrow">{{ 'home.prices.eyebrow' | translate }}</span>
         <h2>{{ 'home.prices.title' | translate }}</h2>
       </div>
-
-      <p>{{ 'home.prices.description' | translate }}</p>
     </div>
 
     <div class="filters">
-      <label class="search-field">
-        <span>{{ 'home.search.label' | translate }}</span>
-
-        <input
-          type="search"
-          [(ngModel)]="searchTerm"
-          [placeholder]="'home.search.fullPlaceholder' | translate"
-        />
-      </label>
-
       <div
         class="category-tabs"
         role="tablist"
@@ -167,7 +159,16 @@
     </div>
 
     <div class="price-grid">
-      <article class="price-card" *ngFor="let price of filteredPrices">
+      <p class="price-status" *ngIf="isLoadingPrices">Loading product prices...</p>
+      <p class="price-status error" *ngIf="priceErrorMessage">{{ priceErrorMessage }}</p>
+      <p
+        class="price-status"
+        *ngIf="!isLoadingPrices && !priceErrorMessage && productPrices.length === 0"
+      >
+        No product prices found yet.
+      </p>
+
+      <article class="price-card" *ngFor="let price of productPrices">
         <span class="price-icon" aria-hidden="true">
           {{ getProductInitial(price.name) }}
         </span>
@@ -257,7 +258,7 @@
     </div>
 
     <div class="faq-grid">
-      <article *ngFor="let faq of faqs">
+      <article *ngFor="let faq of faqs" style="background: #dcfce7;">
         <h3>{{ faq.questionKey | translate }}</h3>
         <p>{{ faq.answerKey | translate }}</p>
       </article>

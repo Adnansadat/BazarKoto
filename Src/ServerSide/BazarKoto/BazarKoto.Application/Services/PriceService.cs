@@ -30,7 +30,19 @@ public class PriceService : IPriceService
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetPricesAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
     {
-        return await _priceSummaryService.GetPriceSummariesAsync(request, cancellationToken);
+        var prices = await _priceRepository.GetAsync(
+            divisionId: request.DivisionId,
+            districtId: request.DistrictId,
+            upazilaId: request.UpazilaId,
+            unionOrWardId: request.UnionOrWardId,
+            marketId: request.MarketId,
+            categoryId: request.CategoryId,
+            productId: request.ProductId,
+            date: request.Date,
+            status: ParseSubmissionStatus(request.Status),
+            cancellationToken: cancellationToken);
+
+        return Page(prices.Select(ToResponse), request);
     }
 
     public async Task<ApiResponse<PriceSubmissionResponse>> GetLatestPriceAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
@@ -221,5 +233,10 @@ public class PriceService : IPriceService
         where TEnum : struct
     {
         return Enum.TryParse<TEnum>(value, true, out var parsed) ? parsed : fallback;
+    }
+
+    private static SubmissionStatus? ParseSubmissionStatus(string? value)
+    {
+        return Enum.TryParse<SubmissionStatus>(value, true, out var parsed) ? parsed : null;
     }
 }

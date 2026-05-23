@@ -456,6 +456,13 @@ textarea {
   backdrop-filter: blur(6px);
 }
 
+.update-backdrop {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(20, 184, 166, 0.24), transparent 34%),
+    rgba(15, 23, 42, 0.56);
+  backdrop-filter: blur(10px) saturate(130%);
+}
+
 .thank-you-modal {
   position: fixed;
   top: 50%;
@@ -468,6 +475,22 @@ textarea {
   padding: 28px;
   background: white;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+}
+
+.update-success-modal {
+  width: min(500px, calc(100% - 32px));
+  border-color: rgba(20, 184, 166, 0.34);
+  padding: 32px;
+  display: grid;
+  justify-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.98)),
+    radial-gradient(circle at right top, rgba(20, 184, 166, 0.18), transparent 36%);
+  box-shadow:
+    0 28px 90px rgba(15, 23, 42, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  text-align: center;
 }
 
 .modal-mark {
@@ -483,13 +506,53 @@ textarea {
   font-weight: 900;
 }
 
+.update-mark {
+  width: 56px;
+  height: 56px;
+  margin: 38px 0;
+  border: 2px solid #0f766e;
+  background: white;
+  color: #0f766e;
+  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.16);
+}
+
 .thank-you-modal h2 {
   margin: 10px 0 12px;
   font-size: 28px;
 }
 
+.update-success-modal h2 {
+  margin: 0;
+}
+
+.update-success-modal p {
+  max-width: 390px;
+}
+
+.update-success-modal p strong {
+  color: #0f172a;
+  font-weight: 900;
+}
+
 .modal-actions {
   margin-top: 22px;
+}
+
+.update-modal-actions {
+  justify-content: flex-end;
+}
+
+.update-modal-actions button {
+  min-width: 118px;
+  border: 2px solid #0f766e;
+  background: white;
+  color: #0f766e;
+  box-shadow: 0 14px 30px rgba(15, 118, 110, 0.16);
+}
+
+.update-modal-actions button:hover {
+  background: #ecfdf5;
+  color: #0f766e;
 }
 
 @media (max-width: 900px) {

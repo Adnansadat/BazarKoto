@@ -3,27 +3,27 @@
   "nav.markets": "Markets",
   "nav.products": "Products",
   "nav.prices": "Today's Prices",
-  "nav.livePrices": "Live Prices",
+  "nav.livePrices": "Product Prices",
   "nav.trending": "Trending",
   "nav.share": "Share Price",
 
   "home.title": "Know Today's Market Price",
 
-  "home.hero.eyebrow": "Bangladesh live market tracker",
+  "home.hero.eyebrow": "Bangladesh product price tracker",
   "home.hero.title.part1": "Compare Prices",
   "home.hero.title.highlight": "Shop Smarter",
   "home.hero.title.part2": "Save More",
   "home.hero.description": "BazarKoto helps Bangladeshi shoppers compare grocery prices, check daily bazar rates, and find affordable essentials online before they buy.",
-  "home.hero.primaryAction": "Explore Live Prices",
+  "home.hero.primaryAction": "Explore Product Prices",
   "home.hero.secondaryAction": "Share a Price",
 
   "home.summary.ariaLabel": "BazarKoto platform summary",
   "home.summary.districts": "Districts",
-  "home.summary.pricesToday": "Prices today",
-  "home.summary.contributors": "Contributors",
+  "home.summary.pricesToday": "Upazilas",
+  "home.summary.contributors": "Union Parishads",
 
   "home.phone.ariaLabel": "Live price preview",
-  "home.phone.livePrices": "Live Prices",
+  "home.phone.livePrices": "Product Prices",
   "home.phone.location": "Dhaka, Bangladesh",
   "home.phone.viewAllPrices": "View All Prices",
 
@@ -61,7 +61,7 @@
   "home.answer.description": "BazarKoto helps customers across Bangladesh compare grocery prices, bazar rates, and daily market costs before buying. Everyone can check current prices for essential items, find affordable options, and share local market data so nearby customers can make better decisions.",
 
   "home.prices.eyebrow": "Explore prices",
-  "home.prices.title": "Average prices near you",
+  "home.prices.title": "Product Prices",
   "home.prices.description": "Search by item or market, then narrow the list by category.",
 
   "home.contribution.imageAlt": "Local Bangladesh market for grocery price contribution",
@@ -72,7 +72,7 @@
 
   "home.categories.eyebrow": "Browse",
   "home.categories.title": "Popular grocery categories",
-  "home.categories.description": "Move from price comparison into the products and markets people search most.",
+  "home.categories.description": "Browse everyday grocery categories and compare the latest market prices before you shop.",
 
   "home.categoryLink.vegetables.title": "Vegetables",
   "home.categoryLink.vegetables.description": "Compare daily vegetable prices",

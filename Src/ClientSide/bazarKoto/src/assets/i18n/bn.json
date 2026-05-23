@@ -3,27 +3,27 @@
   "nav.markets": "বাজার",
   "nav.products": "পণ্য",
   "nav.prices": "আজকের বাজার দর",
-  "nav.livePrices": "লাইভ বাজার দর",
+  "nav.livePrices": "পণ্যের দাম",
   "nav.trending": "ট্রেন্ডিং",
   "nav.share": "দাম শেয়ার করুন",
 
   "home.title": "আজকের বাজার দর জানুন",
 
-  "home.hero.eyebrow": "বাংলাদেশের লাইভ বাজার দর ট্র্যাকার",
+  "home.hero.eyebrow": "বাংলাদেশের পণ্যের দাম ট্র্যাকার",
   "home.hero.title.part1": "পণ্যের মূল্য তুলনা করুন",
   "home.hero.title.highlight": "স্মার্টভাবে বাজার করুন",
   "home.hero.title.part2": "আরও সাশ্রয় করুন",
   "home.hero.description": "BazarKoto বাংলাদেশের ক্রেতাদের মুদি পণ্যের দাম তুলনা করতে, প্রতিদিনের বাজার দর জানতে এবং কেনার আগে সাশ্রয়ী প্রয়োজনীয় পণ্য খুঁজে পেতে সাহায্য করে",
-  "home.hero.primaryAction": "লাইভ দাম দেখুন",
+  "home.hero.primaryAction": "পণ্যের দাম দেখুন",
   "home.hero.secondaryAction": "দাম শেয়ার করুন",
 
   "home.summary.ariaLabel": "BazarKoto প্ল্যাটফর্মের সারাংশ",
   "home.summary.districts": "জেলা",
-  "home.summary.pricesToday": "আজকের দাম",
-  "home.summary.contributors": "অবদানকারী",
+  "home.summary.pricesToday": "উপজেলা",
+  "home.summary.contributors": "ইউনিয়ন পরিষদ",
 
   "home.phone.ariaLabel": "লাইভ দামের প্রিভিউ",
-  "home.phone.livePrices": "লাইভ দাম",
+  "home.phone.livePrices": "পণ্যের দাম",
   "home.phone.location": "ঢাকা, বাংলাদেশ",
   "home.phone.viewAllPrices": "সব দাম দেখুন",
 
@@ -61,7 +61,7 @@
   "home.answer.description": "BazarKoto বাংলাদেশের ক্রেতাদের মুদি পণ্যের দাম, বাজার দর এবং প্রতিদিনের বাজার খরচ কেনার আগে তুলনা করতে সাহায্য করে সবাই প্রয়োজনীয় পণ্যের বর্তমান দাম দেখতে, সাশ্রয়ী অপশন খুঁজতে এবং স্থানীয় বাজারের তথ্য শেয়ার করতে পারে, যাতে আশেপাশের ক্রেতারা ভালো সিদ্ধান্ত নিতে পারেন",
 
   "home.prices.eyebrow": "দাম দেখুন",
-  "home.prices.title": "আপনার কাছাকাছি গড় দাম",
+  "home.prices.title": "পণ্যের দাম",
   "home.prices.description": "পণ্য বা বাজারের নাম দিয়ে সার্চ করুন, তারপর ক্যাটাগরি দিয়ে তালিকা ছোট করুন",
 
   "home.contribution.imageAlt": "মুদি পণ্যের দাম শেয়ারের জন্য স্থানীয় বাংলাদেশের বাজার",
@@ -72,7 +72,7 @@
 
   "home.categories.eyebrow": "ব্রাউজ করুন",
   "home.categories.title": "জনপ্রিয় মুদি পণ্যের ক্যাটাগরি",
-  "home.categories.description": "দাম তুলনা থেকে শুরু করে মানুষ সবচেয়ে বেশি যে পণ্য ও বাজার খোঁজে সেগুলো দেখুন",
+  "home.categories.description": "প্রতিদিনের মুদি পণ্যের ক্যাটাগরি ব্রাউজ করুন এবং বাজার করার আগে সর্বশেষ বাজারদর তুলনা করুন",
 
   "home.categoryLink.vegetables.title": "সবজি",
   "home.categoryLink.vegetables.description": "প্রতিদিনের সবজির দাম তুলনা করুন",

@@ -452,16 +452,22 @@ textarea {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .product-card {
-  min-height: 128px;
+  min-height: 96px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   padding: 20px;
+  text-align: left;
+}
+
+.product-card:hover {
+  border-color: #0f766e;
+  background: #f0fdfa;
 }
 
 .product-card h3 {

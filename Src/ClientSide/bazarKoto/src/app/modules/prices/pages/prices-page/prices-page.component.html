@@ -153,27 +153,44 @@
     </article>
   </section>
 
-  <div class="modal-backdrop" *ngIf="isThankYouOpen" (click)="closeModal()"></div>
+  <div class="modal-backdrop update-backdrop" *ngIf="isThankYouOpen"></div>
 
   <section
-    class="thank-you-modal"
+    class="thank-you-modal update-success-modal"
     *ngIf="isThankYouOpen"
     role="dialog"
     aria-modal="true"
     aria-labelledby="thank-you-title"
   >
-    <div class="modal-mark">✓</div>
-    <span class="eyebrow">{{ 'prices.modal.eyebrow' | translate }}</span>
-    <h2 id="thank-you-title">{{ 'prices.modal.title' | translate }}</h2>
+    <h2 id="thank-you-title">Price Submitted</h2>
+    <div class="modal-mark update-mark">✓</div>
     <p>
-      {{ 'prices.modal.descriptionPrefix' | translate }} {{ selectedMarketName }}.
+      Your latest price for <strong>{{ modalProductName }}</strong> at <strong>{{ modalMarketName }}</strong> has been submitted successfully.
     </p>
-    <div class="modal-actions">
-      <button type="button" class="secondary" (click)="closeModal()">
-        {{ 'prices.modal.close' | translate }}
-      </button>
+    <div class="modal-actions update-modal-actions">
       <button type="button" (click)="closeModal()">
-        {{ 'prices.modal.shareAnother' | translate }}
+        OK
+      </button>
+    </div>
+  </section>
+
+  <div class="modal-backdrop update-backdrop" *ngIf="isUpdateSuccessOpen"></div>
+
+  <section
+    class="thank-you-modal update-success-modal"
+    *ngIf="isUpdateSuccessOpen"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="price-update-success-title"
+  >
+    <h2 id="price-update-success-title">Price Updated</h2>
+    <div class="modal-mark update-mark">✓</div>
+    <p>
+      Your latest price for <strong>{{ modalProductName }}</strong> at <strong>{{ modalMarketName }}</strong> has been updated successfully.
+    </p>
+    <div class="modal-actions update-modal-actions">
+      <button type="button" (click)="closeUpdateSuccessModal()">
+        OK
       </button>
     </div>
   </section>

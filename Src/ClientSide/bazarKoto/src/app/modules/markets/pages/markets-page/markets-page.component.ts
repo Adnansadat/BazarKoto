@@ -347,6 +347,10 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
   }
 
   addMarket(): void {
+    this.submitMarket(false);
+  }
+
+  private submitMarket(navigateWhenExisting: boolean): void {
     this.showMarketValidation = true;
     this.marketSuccessMessage = '';
     this.marketErrorMessage = '';
@@ -368,7 +372,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     }
 
     this.isSubmittingMarket = true;
-    this.api.post('/Markets', {
+    this.api.postResponse<MarketResponse>('/Markets', {
       divisionId: this.selectedDivisionId,
       districtId: this.selectedDistrictId,
       upazilaId: this.selectedUpazilaId,
@@ -381,9 +385,22 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       marketType: this.mapMarketType(this.marketType),
       operatingSchedule: this.mapSchedule(this.operatingDays),
     }).pipe(finalize(() => this.isSubmittingMarket = false)).subscribe({
-      next: market => {
-        this.selectedMarketId = this.extractCreatedMarketId(market) || this.selectedMarketId;
+      next: response => {
+        if (!response.success || !response.data) {
+          this.marketErrorMessage = response.errors?.join(', ') || response.message || 'Unable to submit market.';
+          return;
+        }
+
+        const isExistingMarket = response.message === this.duplicateMarketMessage;
+        this.selectedMarketId = this.extractCreatedMarketId(response.data) || this.selectedMarketId;
         this.persistDraftIfChanged(true);
+
+        if (isExistingMarket && !navigateWhenExisting) {
+          this.marketErrorMessage = this.duplicateMarketMessage;
+          this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
+          return;
+        }
+
         this.marketSuccessMessage = 'Market submitted successfully.';
         this.showMarketValidation = false;
         this.router.navigate(['/products']);
@@ -424,7 +441,7 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
     this.syncSelectedMarketIdFromNearbyMarkets(true);
 
     if (!this.selectedMarketId) {
-      this.addMarket();
+      this.submitMarket(true);
       return;
     }
 
@@ -518,10 +535,10 @@ export class MarketsPageComponent implements AfterViewInit, OnInit, OnDestroy, D
       unionOrWardId: this.selectedUnionOrWardId,
       search: this.marketSearch,
       pageNumber: 1,
-      pageSize: 20,
+      pageSize: 10,
     }).subscribe({
       next: markets => {
-        this.nearbyMarkets = markets.map(market => ({
+        this.nearbyMarkets = markets.slice(0, 10).map(market => ({
           id: market.id,
           name: market.marketName,
           area: market.area,

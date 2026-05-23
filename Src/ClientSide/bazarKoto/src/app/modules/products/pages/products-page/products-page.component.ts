@@ -377,10 +377,10 @@ export class ProductsPageComponent implements AfterViewInit, OnInit, OnDestroy, 
       categoryId: this.selectedCategoryId,
       search: this.searchTerm,
       pageNumber: 1,
-      pageSize: 20,
+      pageSize: 18,
     }).pipe(finalize(() => this.isLoadingProducts = false)).subscribe({
       next: products => {
-        this.products = this.mapProducts(products);
+        this.products = this.mapProducts(products.slice(0, 18));
       },
       error: error => {
         this.productListErrorMessage = error instanceof Error ? error.message : 'Unable to load products.';

@@ -8,12 +8,6 @@
           {{ 'markets.hero.description' | translate }}
         </p>
       </div>
-
-      <div class="hero-metrics" [attr.aria-label]="'markets.metrics.ariaLabel' | translate">
-        <div><strong>{{ nearbyMarkets.length }}</strong><span>{{ 'markets.metrics.listed' | translate }}</span></div>
-        <div><strong>{{ districts.length }}</strong><span>{{ 'markets.metrics.districts' | translate }}</span></div>
-        <div><strong>0</strong><span>{{ 'markets.metrics.fresh' | translate }}</span></div>
-      </div>
     </div>
   </section>
 
@@ -282,13 +276,6 @@
       <div>
         <h2 id="nearby-markets-title">{{ 'markets.nearby.title' | translate }}</h2>
       </div>
-      <button
-        type="button"
-        (click)="focusMarketInput()"
-        [attr.aria-label]="'markets.actions.addNewMarketAria' | translate"
-      >
-        {{ 'markets.actions.addNewMarket' | translate }}
-      </button>
     </div>
 
     <div class="market-list">

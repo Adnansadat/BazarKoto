@@ -2,7 +2,7 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize, Subscription } from 'rxjs';
 import { Api } from '../../../../core/services/api';
@@ -119,6 +119,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   quality = 'Standard';
   notes = '';
   isThankYouOpen = false;
+  isUpdateSuccessOpen = false;
   showPriceValidation = false;
   isLoadingPrices = true;
   isLoadingDivisions = false;
@@ -135,6 +136,8 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   priceSuccessMessage = '';
   locationErrorMessage = '';
   productErrorMessage = '';
+  modalProductName = '';
+  modalMarketName = '';
   marketSearch = '';
   productSearch = '';
   divisions: LocationResponse[] = [];
@@ -151,6 +154,7 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
     private readonly title: Title,
     private readonly meta: Meta,
     private readonly translate: TranslateService,
+    private readonly router: Router,
     private readonly api: Api,
     private readonly drafts: DraftService,
     @Inject(DOCUMENT) private readonly document: Document,
@@ -427,11 +431,10 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       next: () => {
         this.priceSuccessMessage = 'Price submitted successfully.';
         this.showPriceValidation = false;
+        this.captureSuccessModalContext();
         this.isThankYouOpen = true;
         this.loadExistingPriceIfReady();
-        this.drafts.clearDraft(this.marketDraftKey);
-        this.drafts.clearDraft(this.productDraftKey);
-        this.drafts.clearDraft(this.priceDraftKey);
+        this.clearSubmissionDrafts();
         this.loadTodayPrices();
       },
       error: error => {
@@ -511,10 +514,12 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
       notes: this.notes || null,
     }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
       next: () => {
-        this.priceSuccessMessage = 'Existing product price updated successfully.';
+        this.priceSuccessMessage = '';
         this.priceErrorMessage = '';
         this.showPriceValidation = false;
         this.loadedExistingPricePerUnit = this.price;
+        this.captureSuccessModalContext();
+        this.isUpdateSuccessOpen = true;
         this.loadTodayPrices();
         this.loadPriceSummary();
       },
@@ -533,6 +538,11 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
   private clearLoadedExistingPrice(): void {
     this.existingPriceId = '';
     this.loadedExistingPricePerUnit = null;
+  }
+
+  private captureSuccessModalContext(): void {
+    this.modalProductName = this.selectedProductName;
+    this.modalMarketName = this.selectedMarketName;
   }
 
   private isPriceFormValid(): boolean {
@@ -585,6 +595,19 @@ export class PricesPageComponent implements AfterViewInit, OnInit, OnDestroy, Do
 
   closeModal(): void {
     this.isThankYouOpen = false;
+    this.router.navigate(['/home']);
+  }
+
+  closeUpdateSuccessModal(): void {
+    this.isUpdateSuccessOpen = false;
+    this.clearSubmissionDrafts();
+    this.router.navigate(['/home']);
+  }
+
+  private clearSubmissionDrafts(): void {
+    this.drafts.clearDraft(this.marketDraftKey);
+    this.drafts.clearDraft(this.productDraftKey);
+    this.drafts.clearDraft(this.priceDraftKey);
   }
 
   saveDraft(): void {
