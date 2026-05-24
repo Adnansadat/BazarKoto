@@ -352,6 +352,13 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     this.showProductValidation = true;
     this.productSuccessMessage = '';
 
+    if (!this.isProductFormValid()) {
+      this.productErrorMessage = this.requiredProductFieldsMessage;
+      this.duplicateProductFingerprint = '';
+      this.focusCategoryInputWithRetry();
+      return;
+    }
+
     const duplicateProduct = this.getDuplicateProduct();
 
     if (duplicateProduct) {
@@ -812,6 +819,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       return;
     }
 
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     element.focus();
     this.isCategoryInputActive = this.document.activeElement === element;
   }

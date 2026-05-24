@@ -457,7 +457,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     if (!this.isMarketFormValid()) {
       this.marketErrorMessage = this.requiredMarketFieldsMessage;
       this.duplicateMarketFingerprint = '';
-      this.focusMarketInput();
+      this.focusDivisionInput();
       return;
     }
 
