@@ -72,7 +72,6 @@
 
   "home.categories.eyebrow": "Browse",
   "home.categories.title": "Popular grocery categories",
-  "home.categories.description": "Browse everyday grocery categories and compare the latest market prices before you shop.",
 
   "home.categoryLink.vegetables.title": "Vegetables",
   "home.categoryLink.vegetables.description": "Compare daily vegetable prices",
@@ -80,18 +79,24 @@
   "home.categoryLink.staples.description": "Check rice, lentil, and oil rates",
   "home.categoryLink.protein.title": "Fish & Meat",
   "home.categoryLink.protein.description": "Review fresh protein prices",
-  "home.categoryLink.markets.title": "Markets",
-  "home.categoryLink.markets.description": "Browse local bazar locations",
+  "home.categoryLink.markets.title": "Eggs & Dairy",
+  "home.categoryLink.markets.description": "Track daily egg and dairy prices",
 
   "home.why.eyebrow": "Why BazarKoto",
   "home.why.title": "Shop daily essentials with better price awareness",
 
   "home.benefit.compare.title": "Compare before buying",
   "home.benefit.compare.description": "Review grocery price and market rate information before you spend.",
+  "home.benefit.compare.point1": "Check multiple items in one view.",
+  "home.benefit.compare.point2": "Spot better-value markets quickly.",
   "home.benefit.track.title": "Track local changes",
   "home.benefit.track.description": "See how daily bazar prices move across common household items.",
+  "home.benefit.track.point1": "Monitor day-to-day price movement.",
+  "home.benefit.track.point2": "Plan purchases around local trends.",
   "home.benefit.contribute.title": "Contribute real data",
   "home.benefit.contribute.description": "Share prices from your own market and improve averages for others nearby.",
+  "home.benefit.contribute.point1": "Submit verified local price updates.",
+  "home.benefit.contribute.point2": "Improve pricing accuracy for nearby shoppers.",
 
   "home.faq.eyebrow": "FAQ",
   "home.faq.title": "Frequently asked questions",

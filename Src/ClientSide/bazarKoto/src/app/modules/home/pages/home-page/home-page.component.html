@@ -220,8 +220,6 @@
         <span class="eyebrow">{{ 'home.categories.eyebrow' | translate }}</span>
         <h2>{{ 'home.categories.title' | translate }}</h2>
       </div>
-
-      <p>{{ 'home.categories.description' | translate }}</p>
     </div>
 
     <div class="category-grid">
@@ -239,9 +237,21 @@
     </div>
 
     <div class="benefit-grid">
-      <article *ngFor="let benefit of benefits">
-        <h3>{{ benefit.titleKey | translate }}</h3>
-        <p>{{ benefit.descriptionKey | translate }}</p>
+      <article class="benefits-card">
+        <div class="benefit-item" *ngFor="let benefit of benefits; let i = index">
+          <h3>{{ benefit.titleKey | translate }}</h3>
+          <p>{{ benefit.descriptionKey | translate }}</p>
+          <ul>
+            <li *ngIf="i === 0">{{ 'home.benefit.compare.point1' | translate }}</li>
+            <li *ngIf="i === 0">{{ 'home.benefit.compare.point2' | translate }}</li>
+
+            <li *ngIf="i === 1">{{ 'home.benefit.track.point1' | translate }}</li>
+            <li *ngIf="i === 1">{{ 'home.benefit.track.point2' | translate }}</li>
+
+            <li *ngIf="i === 2">{{ 'home.benefit.contribute.point1' | translate }}</li>
+            <li *ngIf="i === 2">{{ 'home.benefit.contribute.point2' | translate }}</li>
+          </ul>
+        </div>
       </article>
     </div>
   </section>

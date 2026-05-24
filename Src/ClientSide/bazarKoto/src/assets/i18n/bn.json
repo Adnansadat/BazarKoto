@@ -72,7 +72,6 @@
 
   "home.categories.eyebrow": "ব্রাউজ করুন",
   "home.categories.title": "জনপ্রিয় মুদি পণ্যের ক্যাটাগরি",
-  "home.categories.description": "প্রতিদিনের মুদি পণ্যের ক্যাটাগরি ব্রাউজ করুন এবং বাজার করার আগে সর্বশেষ বাজারদর তুলনা করুন",
 
   "home.categoryLink.vegetables.title": "সবজি",
   "home.categoryLink.vegetables.description": "প্রতিদিনের সবজির দাম তুলনা করুন",
@@ -80,18 +79,24 @@
   "home.categoryLink.staples.description": "চাল, ডাল এবং তেলের দাম দেখুন",
   "home.categoryLink.protein.title": "মাছ ও মাংস",
   "home.categoryLink.protein.description": "তাজা প্রোটিন পণ্যের দাম দেখুন",
-  "home.categoryLink.markets.title": "বাজার",
-  "home.categoryLink.markets.description": "স্থানীয় বাজারের লোকেশন ব্রাউজ করুন",
+  "home.categoryLink.markets.title": "ডিম ও দুগ্ধজাত পণ্য",
+  "home.categoryLink.markets.description": "ডিম ও দুগ্ধজাত পণ্যের দৈনিক দাম দেখুন",
 
   "home.why.eyebrow": "কেন BazarKoto",
   "home.why.title": "দামের ভালো ধারণা নিয়ে প্রতিদিনের প্রয়োজনীয় বাজার করুন",
 
   "home.benefit.compare.title": "কেনার আগে তুলনা করুন",
   "home.benefit.compare.description": "খরচ করার আগে মুদি পণ্যের দাম এবং বাজার দর দেখে নিন",
+  "home.benefit.compare.point1": "একসাথে একাধিক পণ্যের দাম তুলনা করুন।",
+  "home.benefit.compare.point2": "সহজে ভালো দামের বাজার চিহ্নিত করুন।",
   "home.benefit.track.title": "স্থানীয় দামের পরিবর্তন দেখুন",
   "home.benefit.track.description": "প্রতিদিনের বাজার দর কীভাবে সাধারণ ঘরোয়া পণ্যে পরিবর্তন হচ্ছে তা দেখুন",
+  "home.benefit.track.point1": "প্রতিদিনের দামের ওঠানামা পর্যবেক্ষণ করুন।",
+  "home.benefit.track.point2": "স্থানীয় ট্রেন্ড দেখে বাজার পরিকল্পনা করুন।",
   "home.benefit.contribute.title": "বাস্তব তথ্য শেয়ার করুন",
   "home.benefit.contribute.description": "নিজের বাজারের দাম শেয়ার করুন এবং কাছাকাছি অন্যদের জন্য গড় দাম আরও নির্ভুল করুন",
+  "home.benefit.contribute.point1": "যাচাইকৃত স্থানীয় দামের তথ্য জমা দিন।",
+  "home.benefit.contribute.point2": "আশেপাশের ক্রেতাদের জন্য দামের নির্ভুলতা বাড়ান।",
 
   "home.faq.eyebrow": "প্রশ্নোত্তর",
   "home.faq.title": "সাধারণ প্রশ্ন",
