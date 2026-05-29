@@ -7,9 +7,10 @@
 }
 
 .page-hero .container {
-  min-height: 260px;
+  min-height: auto;
   display: grid;
   align-content: center;
+  padding: 46px 0 38px;
 }
 
 .page-hero span {
@@ -30,7 +31,7 @@
 }
 
 .contact-grid {
-  margin-top: 40px;
+  margin-top: 28px;
   display: grid;
   grid-template-columns: minmax(280px, 0.65fr) minmax(0, 1.35fr);
   gap: 20px;
@@ -114,7 +115,12 @@ button {
 }
 
 @media (max-width: 900px) {
+  .page-hero .container {
+    padding: 34px 0 30px;
+  }
+
   .contact-grid {
+    margin-top: 24px;
     grid-template-columns: 1fr;
   }
 }

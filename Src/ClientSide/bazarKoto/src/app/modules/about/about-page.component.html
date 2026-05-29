@@ -30,15 +30,39 @@
     </article>
   </section>
 
-  <section class="container values-band">
-    <div>
-      <span>{{ 'about.focus.eyebrow' | translate }}</span>
-      <h2>{{ 'about.focus.title' | translate }}</h2>
+  <section class="container trust-section">
+    <div class="trust-copy">
+      <span>{{ 'about.trust.eyebrow' | translate }}</span>
+      <h2>{{ 'about.trust.title' | translate }}</h2>
+      <p>{{ 'about.trust.description' | translate }}</p>
     </div>
-    <ul>
-      <li>{{ 'about.focus.point.compare' | translate }}</li>
-      <li>{{ 'about.focus.point.location' | translate }}</li>
-      <li>{{ 'about.focus.point.tools' | translate }}</li>
-    </ul>
+
+    <div class="trust-grid">
+      <article>
+        <span class="trust-icon" aria-hidden="true">৳</span>
+        <h3>{{ 'about.trust.local.title' | translate }}</h3>
+        <p>{{ 'about.trust.local.description' | translate }}</p>
+      </article>
+
+      <article>
+        <span class="trust-icon" aria-hidden="true">✓</span>
+        <h3>{{ 'about.trust.reliability.title' | translate }}</h3>
+        <p>{{ 'about.trust.reliability.description' | translate }}</p>
+      </article>
+
+      <article>
+        <span class="trust-icon" aria-hidden="true">🛡</span>
+        <h3>{{ 'about.trust.privacy.title' | translate }}</h3>
+        <p>{{ 'about.trust.privacy.description' | translate }}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="container confidence-band">
+    <div>
+      <span>{{ 'about.confidence.eyebrow' | translate }}</span>
+      <h2>{{ 'about.confidence.title' | translate }}</h2>
+    </div>
+    <p>{{ 'about.confidence.description' | translate }}</p>
   </section>
 </main>

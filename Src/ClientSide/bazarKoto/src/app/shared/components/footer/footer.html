@@ -16,9 +16,15 @@
     </section>
 
     <nav [attr.aria-label]="'footer.nav.ariaLabel' | translate">
-      <a routerLink="/about">{{ 'footer.nav.about' | translate }}</a>
-      <a routerLink="/contact">{{ 'footer.nav.contact' | translate }}</a>
-      <a routerLink="/privacy-policy">{{ 'footer.nav.privacy' | translate }}</a>
+      <a routerLink="/about" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'footer.nav.about' | translate }}
+      </a>
+      <a routerLink="/contact" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'footer.nav.contact' | translate }}
+      </a>
+      <a routerLink="/privacy-policy" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        {{ 'footer.nav.privacy' | translate }}
+      </a>
     </nav>
 
     <section class="footer-meta">

@@ -228,10 +228,10 @@
 
             <div class="options-panel" role="listbox" *ngIf="isMarketDropdownOpen">
               <p class="option-status" *ngIf="isLoadingMarkets">{{ 'productPrices.loading.markets' | translate }}</p>
-              <p class="option-status error" *ngIf="marketErrorMessage">{{ marketErrorMessage }}</p>
+              <p class="option-status error" *ngIf="marketErrorMessageKey">{{ marketErrorMessageKey | translate }}</p>
               <p
                 class="option-status"
-                *ngIf="!isLoadingMarkets && !marketErrorMessage && marketOptions.length === 0"
+                *ngIf="!isLoadingMarkets && !marketErrorMessageKey && marketOptions.length === 0"
               >
                 {{ 'productPrices.market.noResults' | translate }}
               </p>
@@ -290,10 +290,10 @@
 
             <div class="options-panel" role="listbox" *ngIf="isProductDropdownOpen && canSearchProducts">
               <p class="option-status" *ngIf="isLoadingProducts">{{ 'productPrices.loading.products' | translate }}</p>
-              <p class="option-status error" *ngIf="productErrorMessage">{{ productErrorMessage }}</p>
+              <p class="option-status error" *ngIf="productErrorMessageKey">{{ productErrorMessageKey | translate }}</p>
               <p
                 class="option-status"
-                *ngIf="!isLoadingProducts && !productErrorMessage && productOptions.length === 0"
+                *ngIf="!isLoadingProducts && !productErrorMessageKey && productOptions.length === 0"
               >
                 {{ 'productPrices.product.noResults' | translate }}
               </p>
@@ -322,31 +322,33 @@
       <p class="filter-note" *ngIf="!canSearchProducts">
         {{ 'productPrices.filters.selectUnionFirst' | translate }}
       </p>
-      <p class="filter-note success" *ngIf="locationStatusMessage">
-        {{ locationStatusMessage }}
+      <p class="filter-note success" *ngIf="locationStatusMessageKey">
+        {{ locationStatusMessageKey | translate }}
       </p>
-      <p class="filter-note error" *ngIf="locationErrorMessage">
-        {{ locationErrorMessage }}
+      <p class="filter-note error" *ngIf="locationErrorMessageKey">
+        {{ locationErrorMessageKey | translate }}
       </p>
-      <p class="filter-note" *ngIf="gpsStatusMessage">
-        {{ gpsStatusMessage }}
+      <p class="filter-note" *ngIf="gpsStatusMessageKey">
+        {{ gpsStatusMessageKey | translate }}
       </p>
-      <p class="filter-note success" *ngIf="productStatusMessage">
-        {{ productStatusMessage }}
+      <p class="filter-note success" *ngIf="productStatusMessageKey">
+        {{ productStatusMessageKey | translate }}
       </p>
     </section>
 
     <div class="table-card">
       <p class="table-status" *ngIf="isLoading">{{ 'productPrices.loading.prices' | translate }}</p>
-      <p class="table-status error" *ngIf="errorMessage">{{ errorMessage }}</p>
-      <p class="table-status safe-empty" *ngIf="!isLoading && !errorMessage && !hasPriceScope">
-        {{ emptyStateMessage }}
+      <p class="table-status error" *ngIf="hasErrorMessage">
+        {{ errorMessageKey | translate }}
       </p>
-      <p class="table-status" *ngIf="!isLoading && !errorMessage && hasPriceScope && filteredRows.length === 0">
-        {{ emptyStateMessage }}
+      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage && !hasPriceScope">
+        {{ emptyStateMessageKey | translate }}
+      </p>
+      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length === 0">
+        {{ emptyStateMessageKey | translate }}
       </p>
 
-      <div class="price-table-wrap" *ngIf="!isLoading && !errorMessage && hasPriceScope && filteredRows.length > 0">
+      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length > 0">
         <table>
           <thead>
             <tr>
@@ -376,7 +378,7 @@
         </table>
       </div>
 
-      <div class="price-card-list" *ngIf="!isLoading && !errorMessage && hasPriceScope && filteredRows.length > 0">
+      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length > 0">
         <article class="mobile-price-card" *ngFor="let row of pagedRows">
           <div>
             <span class="category-pill">{{ row.categoryNameEn }}</span>

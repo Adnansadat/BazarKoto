@@ -1,47 +1,88 @@
 <main class="policy-page">
   <section class="page-hero">
     <div class="container">
-      <span>{{ 'privacy.hero.eyebrow' | translate }}</span>
-      <h1>{{ 'privacy.hero.title' | translate }}</h1>
+      <span>{{ 'privacyPolicy.eyebrow' | translate }}</span>
+      <h1>{{ 'privacyPolicy.title' | translate }}</h1>
+      <p>{{ 'privacyPolicy.updated' | translate }}</p>
     </div>
   </section>
 
   <section class="container policy-content">
     <article class="policy-doc" aria-label="Privacy policy">
       <p class="policy-lead">
-        This Privacy Policy explains how BazarKoto collects, uses, and protects personal information when you use our platform.
+        {{ 'privacyPolicy.intro' | translate }}
       </p>
 
-      <p>
-        We collect only the data needed to provide and improve our services. This may include contact details, market submissions, and technical usage data.
-      </p>
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.collect.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.collect.description' | translate }}</p>
+        <ul>
+          <li>{{ 'privacyPolicy.collect.item1' | translate }}</li>
+          <li>{{ 'privacyPolicy.collect.item2' | translate }}</li>
+          <li>{{ 'privacyPolicy.collect.item3' | translate }}</li>
+          <li>{{ 'privacyPolicy.collect.item4' | translate }}</li>
+          <li>{{ 'privacyPolicy.collect.item5' | translate }}</li>
+        </ul>
+      </section>
 
-      <ul>
-        <li>Market and price content submitted through the platform.</li>
-        <li>Technical usage data, such as device, browser, and performance signals.</li>
-        <li>Operational metadata required to maintain service quality and reliability.</li>
-      </ul>
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.location.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.location.description' | translate }}</p>
+      </section>
 
-      <p>
-        We use information to operate the service, verify submission quality, respond to support requests, and maintain platform security.
-      </p>
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.use.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.use.description' | translate }}</p>
+        <ul>
+          <li>{{ 'privacyPolicy.use.item1' | translate }}</li>
+          <li>{{ 'privacyPolicy.use.item2' | translate }}</li>
+          <li>{{ 'privacyPolicy.use.item3' | translate }}</li>
+          <li>{{ 'privacyPolicy.use.item4' | translate }}</li>
+          <li>{{ 'privacyPolicy.use.item5' | translate }}</li>
+        </ul>
+      </section>
 
-      <ul>
-        <li>Service operation and reliability monitoring.</li>
-        <li>Fraud prevention, abuse detection, and legal compliance.</li>
-        <li>Product updates and communication about account-related matters.</li>
-      </ul>
+      <section class="policy-section policy-note">
+        <h2>{{ 'privacyPolicy.prices.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.prices.description1' | translate }}</p>
+        <p>{{ 'privacyPolicy.prices.description2' | translate }}</p>
+      </section>
 
-      <p>
-        BazarKoto does not maintain user account profiles or personal identity records. Platform data may be processed only as needed for hosting, security, and legal compliance.
-      </p>
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.public.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.public.description' | translate }}</p>
+      </section>
 
-      <p>
-        If this policy changes in the future, updates will be published on this page with revised terms and effective date information.
-      </p>
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.sharing.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.sharing.description' | translate }}</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.choices.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.choices.description' | translate }}</p>
+        <ul>
+          <li>{{ 'privacyPolicy.choices.item1' | translate }}</li>
+          <li>{{ 'privacyPolicy.choices.item2' | translate }}</li>
+          <li>{{ 'privacyPolicy.choices.item3' | translate }}</li>
+          <li>{{ 'privacyPolicy.choices.item4' | translate }}</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>{{ 'privacyPolicy.updates.title' | translate }}</h2>
+        <p>{{ 'privacyPolicy.updates.description' | translate }}</p>
+      </section>
 
       <p class="policy-contact">
-        Privacy inquiries: <a href="mailto:support@bazarkoto.com">support@bazarkoto.com</a>
+        {{ 'privacyPolicy.contact.label' | translate }}
+        <a
+          href="mailto:support@bazarkoto.com?subject=Privacy%20Inquiry%20-%20BazarKoto"
+          aria-label="Email BazarKoto privacy support"
+          (click)="openPrivacyEmail($event)"
+        >
+          support@bazarkoto.com
+        </a>
       </p>
     </article>
   </section>

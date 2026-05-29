@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -11,7 +11,9 @@ import { Api } from '../../core/services/api';
   templateUrl: './contact-page.component.html',
   styleUrl: './contact-page.component.scss',
 })
-export class ContactPageComponent {
+export class ContactPageComponent implements AfterViewInit, OnDestroy {
+  private static savedScrollY: number | null = null;
+
   name = '';
   email = '';
   subject = '';
@@ -21,6 +23,19 @@ export class ContactPageComponent {
   errorMessage = '';
 
   constructor(private readonly api: Api) {}
+
+  ngAfterViewInit(): void {
+    if (ContactPageComponent.savedScrollY === null) {
+      return;
+    }
+
+    const scrollY = ContactPageComponent.savedScrollY;
+    requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'auto' }));
+  }
+
+  ngOnDestroy(): void {
+    ContactPageComponent.savedScrollY = window.scrollY;
+  }
 
   submit(): void {
     if (this.isSubmitting) {

@@ -7,9 +7,12 @@ import { Api } from '../../../../core/services/api';
 type PriceCategory = 'all' | 'vegetables' | 'staples' | 'protein';
 
 interface AveragePrice {
-  name: string;
+  productNameEn: string;
+  productNameBn?: string;
   market: string;
   category: Exclude<PriceCategory, 'all'>;
+  categoryNameEn?: string;
+  categoryNameBn?: string;
   unit: string;
   average: number;
   change: number;
@@ -56,7 +59,7 @@ interface FaqItem {
 export class HomePageComponent implements OnInit {
   selectedCategory: PriceCategory = 'all';
   isLoadingPrices = true;
-  priceErrorMessage = '';
+  priceErrorMessageKey = '';
   averagePrices: AveragePrice[] = [];
 
   constructor(
@@ -88,54 +91,72 @@ export class HomePageComponent implements OnInit {
 
   readonly phonePrices: AveragePrice[] = [
     {
-      name: 'Onion',
+      productNameEn: 'Onion',
+      productNameBn: 'পেঁয়াজ',
       market: 'Dhaka, Bangladesh',
       category: 'vegetables',
+      categoryNameEn: 'Vegetables',
+      categoryNameBn: 'সবজি',
       unit: 'kg',
       average: 60,
       change: 0,
       searchable: 'Onion Dhaka Bangladesh vegetables',
     },
     {
-      name: 'Potato',
+      productNameEn: 'Potato',
+      productNameBn: 'আলু',
       market: 'Dhaka, Bangladesh',
       category: 'vegetables',
+      categoryNameEn: 'Vegetables',
+      categoryNameBn: 'সবজি',
       unit: 'kg',
       average: 45,
       change: 0,
       searchable: 'Potato Dhaka Bangladesh vegetables',
     },
     {
-      name: 'Rice Miniket',
+      productNameEn: 'Rice Miniket',
+      productNameBn: 'মিনিকেট চাল',
       market: 'Dhaka, Bangladesh',
       category: 'staples',
+      categoryNameEn: 'Rice & Staples',
+      categoryNameBn: 'চাল ও প্রধান খাদ্য',
       unit: 'kg',
       average: 85,
       change: 0,
       searchable: 'Rice Miniket Dhaka Bangladesh staples',
     },
     {
-      name: 'Soybean Oil',
+      productNameEn: 'Soybean Oil',
+      productNameBn: 'সয়াবিন তেল',
       market: 'Dhaka, Bangladesh',
       category: 'staples',
+      categoryNameEn: 'Staples',
+      categoryNameBn: 'প্রধান খাদ্য',
       unit: 'litre',
       average: 195,
       change: 0,
       searchable: 'Soybean Oil Dhaka Bangladesh staples',
     },
     {
-      name: 'Egg',
+      productNameEn: 'Egg',
+      productNameBn: 'ডিম',
       market: 'Dhaka, Bangladesh',
       category: 'protein',
+      categoryNameEn: 'Protein',
+      categoryNameBn: 'প্রোটিন',
       unit: 'dozen',
       average: 150,
       change: 0,
       searchable: 'Egg Dhaka Bangladesh protein',
     },
     {
-      name: 'Rui Fish',
+      productNameEn: 'Rui Fish',
+      productNameBn: 'রুই মাছ',
       market: 'Dhaka, Bangladesh',
       category: 'protein',
+      categoryNameEn: 'Protein',
+      categoryNameBn: 'প্রোটিন',
       unit: 'kg',
       average: 360,
       change: 0,
@@ -224,21 +245,45 @@ export class HomePageComponent implements OnInit {
     });
   }
 
-  getProductInitial(name: string): string {
+  getProductInitial(price: AveragePrice): string {
+    const name = this.getLocalizedProductName(price);
     return name ? name.charAt(0) : '';
+  }
+
+  getLocalizedProductName(price: AveragePrice): string {
+    if (this.currentLanguage === 'bn' && price.productNameBn) {
+      return price.productNameBn;
+    }
+
+    return price.productNameEn || price.productNameBn || '';
+  }
+
+  getLocalizedUnitKey(price: AveragePrice): string {
+    const normalizedUnit = price.unit.toLowerCase().trim();
+    const unitKeyMap: Record<string, string> = {
+      kg: 'home.unit.kg',
+      kilogram: 'home.unit.kg',
+      kilograms: 'home.unit.kg',
+      dozen: 'home.unit.dozen',
+      litre: 'home.unit.liter',
+      liter: 'home.unit.liter',
+      l: 'home.unit.liter',
+    };
+
+    return unitKeyMap[normalizedUnit] ?? '';
   }
 
   private loadPrices(): void {
     this.isLoadingPrices = true;
-    this.priceErrorMessage = '';
+    this.priceErrorMessageKey = '';
 
     this.api.get<PriceSubmissionResponse[]>('/Prices', { pageSize: 100 }).subscribe({
       next: prices => {
         this.averagePrices = this.toAveragePrices(prices);
         this.isLoadingPrices = false;
       },
-      error: error => {
-        this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to load prices.';
+      error: () => {
+        this.priceErrorMessageKey = 'home.prices.error';
         this.isLoadingPrices = false;
       },
     });
@@ -248,7 +293,7 @@ export class HomePageComponent implements OnInit {
     const groupedPrices = new Map<string, PriceSubmissionResponse[]>();
 
     for (const price of prices) {
-      const productName = this.getProductName(price);
+      const productName = this.getStableProductName(price);
 
       if (!productName || price.pricePerUnit <= 0) {
         continue;
@@ -262,13 +307,16 @@ export class HomePageComponent implements OnInit {
       const ordered = [...group].sort((first, second) => this.getPriceTime(second) - this.getPriceTime(first));
       const latest = ordered[0];
       const previous = ordered[1];
-      const productName = this.getProductName(latest);
+      const productName = this.getStableProductName(latest);
       const categoryName = latest.categoryNameEn || latest.category || latest.categoryNameBn || '';
 
       return {
-        name: productName,
+        productNameEn: latest.productNameEn || latest.productName || latest.productNameBn || '',
+        productNameBn: latest.productNameBn,
         market: latest.marketName ?? 'Bangladesh',
         category: this.mapCategory(categoryName),
+        categoryNameEn: latest.categoryNameEn || latest.category,
+        categoryNameBn: latest.categoryNameBn,
         unit: latest.unit,
         average: latest.pricePerUnit,
         change: this.calculateChange(latest, previous),
@@ -289,12 +337,8 @@ export class HomePageComponent implements OnInit {
     return Math.round(((latest.pricePerUnit - previous.pricePerUnit) / previous.pricePerUnit) * 100);
   }
 
-  private getProductName(price: PriceSubmissionResponse): string {
-    if (this.currentLanguage === 'bn' && price.productNameBn) {
-      return price.productNameBn;
-    }
-
-    return price.productNameEn || price.productName || '';
+  private getStableProductName(price: PriceSubmissionResponse): string {
+    return price.productNameEn || price.productName || price.productNameBn || '';
   }
 
   private mapCategory(category: string): Exclude<PriceCategory, 'all'> {

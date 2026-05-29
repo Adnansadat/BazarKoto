@@ -38,13 +38,13 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   totalCount = 0;
   serverTotalPages = 1;
   isLoading = false;
-  errorMessage = '';
-  locationStatusMessage = '';
-  locationErrorMessage = '';
-  marketErrorMessage = '';
-  productStatusMessage = '';
-  productErrorMessage = '';
-  gpsStatusMessage = '';
+  errorMessageKey = '';
+  locationStatusMessageKey = '';
+  locationErrorMessageKey = '';
+  marketErrorMessageKey = '';
+  productStatusMessageKey = '';
+  productErrorMessageKey = '';
+  gpsStatusMessageKey = '';
   isRequestingGps = false;
   priceRows: PublicProductPriceResponse[] = [];
   divisionOptions: LocationResponse[] = [];
@@ -129,20 +129,24 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     return Math.min(this.currentPage * this.pageSize, this.totalCount);
   }
 
-  get emptyStateMessage(): string {
+  get hasErrorMessage(): boolean {
+    return Boolean(this.errorMessageKey);
+  }
+
+  get emptyStateMessageKey(): string {
     if (!this.hasPriceScope) {
-      return this.translate.instant('productPrices.states.selectLocation');
+      return 'productPrices.states.selectLocation';
     }
 
     if (this.selectedProductId) {
-      return this.translate.instant('productPrices.states.noProductPrices');
+      return 'productPrices.states.noProductPrices';
     }
 
     if (this.selectedMarketId) {
-      return this.translate.instant('productPrices.states.noMarketPrices');
+      return 'productPrices.states.noMarketPrices';
     }
 
-    return this.translate.instant('productPrices.states.noUnionPrices');
+    return 'productPrices.states.noUnionPrices';
   }
 
   setCategory(category: PriceCategory): void {
@@ -228,8 +232,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.clearMarketSelection();
     this.clearProductSelection();
     this.clearResults();
-    this.locationStatusMessage = this.selectedUnionOrWardId
-      ? this.translate.instant('productPrices.status.showingLocalPrices')
+    this.locationStatusMessageKey = this.selectedUnionOrWardId
+      ? 'productPrices.status.showingLocalPrices'
       : '';
     this.openLocationDropdown = null;
 
@@ -276,23 +280,23 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedUnionOrWardId = null;
     this.clearMarketSelection();
     this.clearProductSelection();
-    this.locationStatusMessage = '';
+    this.locationStatusMessageKey = '';
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
   }
 
   async useMyLocation(): Promise<void> {
     this.isRequestingGps = true;
-    this.gpsStatusMessage = this.translate.instant('productPrices.gps.detecting');
-    this.locationStatusMessage = '';
-    this.locationErrorMessage = '';
+    this.gpsStatusMessageKey = 'productPrices.gps.detecting';
+    this.locationStatusMessageKey = '';
+    this.locationErrorMessageKey = '';
     this.clearMarketSelection();
     this.clearProductSelection();
     this.clearResults();
 
     try {
       const snapshot = await this.userTracking.requestBrowserLocation();
-      this.gpsStatusMessage = this.toGpsStatusMessage(snapshot);
+      this.gpsStatusMessageKey = this.toGpsStatusMessageKey(snapshot);
 
       if (
         snapshot.gpsPermissionStatus !== 'granted' ||
@@ -307,7 +311,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       );
 
       if (!approximateLocation) {
-        this.locationStatusMessage = this.translate.instant('productPrices.status.detectAreaFailed');
+        this.locationStatusMessageKey = 'productPrices.status.detectAreaFailed';
         return;
       }
 
@@ -346,7 +350,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.clearProductSelection();
     this.marketOptions = [];
     this.isMarketDropdownOpen = false;
-    this.marketErrorMessage = '';
+    this.marketErrorMessageKey = '';
     this.clearResults();
     this.applyMarketLocation(market, previousLocation);
     this.loadPublicPrices();
@@ -386,7 +390,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       this.clearResults();
     }
 
-    this.productStatusMessage = '';
+    this.productStatusMessageKey = '';
 
     this.isProductDropdownOpen = true;
     this.productSearch$.next(value);
@@ -398,8 +402,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.productSearchText = this.productDisplayName(product);
     this.productOptions = [];
     this.isProductDropdownOpen = false;
-    this.productErrorMessage = '';
-    this.productStatusMessage = '';
+    this.productErrorMessageKey = '';
+    this.productStatusMessageKey = '';
     this.clearResults();
     this.loadPublicPrices();
   }
@@ -528,7 +532,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private loadDivisions(): void {
     this.isLoadingDivisions = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     this.locations.getDivisions().subscribe({
       next: divisions => {
@@ -538,7 +542,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.divisionOptions = [];
-        this.locationErrorMessage = this.translate.instant('productPrices.errors.loadDivisions');
+        this.locationErrorMessageKey = 'productPrices.errors.loadDivisions';
         this.isLoadingDivisions = false;
       },
     });
@@ -546,7 +550,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private loadDistricts(divisionId: string): void {
     this.isLoadingDistricts = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     this.locations.getDistricts(divisionId).subscribe({
       next: districts => {
@@ -555,7 +559,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.districtOptions = [];
-        this.locationErrorMessage = this.translate.instant('productPrices.errors.loadDistricts');
+        this.locationErrorMessageKey = 'productPrices.errors.loadDistricts';
         this.isLoadingDistricts = false;
       },
     });
@@ -563,7 +567,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private loadUpazilas(districtId: string): void {
     this.isLoadingUpazilas = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     this.locations.getUpazilas(districtId).subscribe({
       next: upazilas => {
@@ -572,7 +576,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.upazilaOptions = [];
-        this.locationErrorMessage = this.translate.instant('productPrices.errors.loadUpazilas');
+        this.locationErrorMessageKey = 'productPrices.errors.loadUpazilas';
         this.isLoadingUpazilas = false;
       },
     });
@@ -580,7 +584,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private loadUnionOrWards(upazilaId: string): void {
     this.isLoadingUnionOrWards = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     this.locations.getUnionOrWards(upazilaId).subscribe({
       next: unionOrWards => {
@@ -589,7 +593,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.unionOrWardOptions = [];
-        this.locationErrorMessage = this.translate.instant('productPrices.errors.loadUnions');
+        this.locationErrorMessageKey = 'productPrices.errors.loadUnions';
         this.isLoadingUnionOrWards = false;
       },
     });
@@ -610,7 +614,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   private resetBelowUpazila(): void {
     this.selectedUnionOrWardId = null;
     this.unionOrWardOptions = [];
-    this.locationStatusMessage = '';
+    this.locationStatusMessageKey = '';
   }
 
   private clearResults(): void {
@@ -618,7 +622,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.totalCount = 0;
     this.serverTotalPages = 1;
-    this.errorMessage = '';
+    this.errorMessageKey = '';
   }
 
   locationName(option: LocationResponse | undefined): string {
@@ -665,7 +669,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     const requestScope = this.currentMarketOptionScopeKey();
     const effectiveSearch = this.effectiveMarketSearch(search);
     this.isLoadingMarkets = true;
-    this.marketErrorMessage = '';
+    this.marketErrorMessageKey = '';
 
     return this.markets.getMarketOptions({
       search: effectiveSearch,
@@ -680,7 +684,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       }),
       map(response => requestScope === this.currentMarketOptionScopeKey() ? response.data : []),
       catchError(() => {
-        this.marketErrorMessage = this.translate.instant('productPrices.errors.loadMarkets');
+        this.marketErrorMessageKey = 'productPrices.errors.loadMarkets';
         return of([]);
       }),
       finalize(() => {
@@ -700,7 +704,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     const requestScope = this.currentProductOptionScopeKey();
     this.isLoadingProducts = true;
-    this.productErrorMessage = '';
+    this.productErrorMessageKey = '';
 
     return this.products.getProductOptions({
       search: search.trim() || undefined,
@@ -713,7 +717,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       }),
       map(response => requestScope === this.currentProductOptionScopeKey() ? response.data : []),
       catchError(() => {
-        this.productErrorMessage = this.translate.instant('productPrices.errors.loadProducts');
+        this.productErrorMessageKey = 'productPrices.errors.loadProducts';
         return of([]);
       }),
       finalize(() => {
@@ -742,12 +746,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     if (changedLocation) {
-      this.locationStatusMessage = this.translate.instant('productPrices.status.locationUpdatedForMarket');
+      this.locationStatusMessageKey = 'productPrices.status.locationUpdatedForMarket';
       return;
     }
 
-    this.locationStatusMessage = this.selectedUnionOrWardId
-      ? this.translate.instant('productPrices.status.showingLocalPrices')
+    this.locationStatusMessageKey = this.selectedUnionOrWardId
+      ? 'productPrices.status.showingLocalPrices'
       : '';
   }
 
@@ -758,7 +762,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
+    this.errorMessageKey = '';
 
     this.productPrices.getPublicProductPrices({
       unionOrWardId: this.selectedUnionOrWardId ?? undefined,
@@ -777,7 +781,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
         this.priceRows = [];
         this.totalCount = 0;
         this.serverTotalPages = 1;
-        this.errorMessage = error instanceof Error ? error.message : this.translate.instant('productPrices.errors.loadPrices');
+        this.errorMessageKey = 'productPrices.errors.loadPrices';
         this.isLoading = false;
       },
     });
@@ -827,11 +831,11 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       this.districtOptions = districts;
       this.upazilaOptions = upazilas;
       this.unionOrWardOptions = unionOrWards;
-      this.locationStatusMessage = this.translate.instant('productPrices.status.restoredLocation');
+      this.locationStatusMessageKey = 'productPrices.status.restoredLocation';
       this.loadPublicPrices();
     } catch {
       this.userTracking.clearLastKnownLocation();
-      this.locationErrorMessage = this.translate.instant('productPrices.errors.restoreLocation');
+      this.locationErrorMessageKey = 'productPrices.errors.restoreLocation';
     }
   }
 
@@ -843,7 +847,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     const matchedDivision = this.findLocationMatch(location.divisionName, divisions);
     if (!matchedDivision) {
-      this.locationStatusMessage = this.translate.instant('productPrices.status.areaMatchFailed');
+      this.locationStatusMessageKey = 'productPrices.status.areaMatchFailed';
       return;
     }
 
@@ -857,7 +861,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     const matchedDistrict = this.findLocationMatch(location.districtName, this.districtOptions);
     if (!matchedDistrict) {
-      this.locationStatusMessage = this.translate.instant('productPrices.status.foundDivision');
+      this.locationStatusMessageKey = 'productPrices.status.foundDivision';
       return;
     }
 
@@ -866,26 +870,26 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     const matchedUpazila = this.findLocationMatch(location.upazilaName, this.upazilaOptions, true);
     if (!matchedUpazila) {
-      this.locationStatusMessage = this.translate.instant('productPrices.status.foundDistrict');
+      this.locationStatusMessageKey = 'productPrices.status.foundDistrict';
       return;
     }
 
     this.selectedUpazilaId = matchedUpazila.id;
     this.unionOrWardOptions = await this.getUnionOrWardOptions(matchedUpazila.id);
     this.selectedUnionOrWardId = null;
-    this.locationStatusMessage = this.translate.instant('productPrices.status.foundApproximateArea');
+    this.locationStatusMessageKey = 'productPrices.status.foundApproximateArea';
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
   }
 
   private async getDistrictOptions(divisionId: string): Promise<LocationResponse[]> {
     this.isLoadingDistricts = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     try {
       return await firstValueFrom(this.locations.getDistricts(divisionId));
     } catch {
-      this.locationErrorMessage = this.translate.instant('productPrices.errors.loadDistricts');
+      this.locationErrorMessageKey = 'productPrices.errors.loadDistricts';
       return [];
     } finally {
       this.isLoadingDistricts = false;
@@ -894,12 +898,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private async getUpazilaOptions(districtId: string): Promise<LocationResponse[]> {
     this.isLoadingUpazilas = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     try {
       return await firstValueFrom(this.locations.getUpazilas(districtId));
     } catch {
-      this.locationErrorMessage = this.translate.instant('productPrices.errors.loadUpazilas');
+      this.locationErrorMessageKey = 'productPrices.errors.loadUpazilas';
       return [];
     } finally {
       this.isLoadingUpazilas = false;
@@ -908,12 +912,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private async getUnionOrWardOptions(upazilaId: string): Promise<LocationResponse[]> {
     this.isLoadingUnionOrWards = true;
-    this.locationErrorMessage = '';
+    this.locationErrorMessageKey = '';
 
     try {
       return await firstValueFrom(this.locations.getUnionOrWards(upazilaId));
     } catch {
-      this.locationErrorMessage = this.translate.instant('productPrices.errors.loadUnions');
+      this.locationErrorMessageKey = 'productPrices.errors.loadUnions';
       return [];
     } finally {
       this.isLoadingUnionOrWards = false;
@@ -991,20 +995,20 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private toGpsStatusMessage(snapshot: BrowserGpsSnapshot): string {
+  private toGpsStatusMessageKey(snapshot: BrowserGpsSnapshot): string {
     if (snapshot.gpsPermissionStatus === 'granted') {
-      return this.translate.instant('productPrices.gps.granted');
+      return 'productPrices.gps.granted';
     }
 
     if (snapshot.gpsPermissionStatus === 'denied') {
-      return this.translate.instant('productPrices.gps.denied');
+      return 'productPrices.gps.denied';
     }
 
     if (snapshot.gpsPermissionStatus === 'error') {
-      return this.translate.instant('productPrices.gps.error');
+      return 'productPrices.gps.error';
     }
 
-    return this.translate.instant('productPrices.gps.unavailable');
+    return 'productPrices.gps.unavailable';
   }
 
   private clearMarketSelection(): void {
@@ -1013,7 +1017,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.marketSearchText = '';
     this.marketOptions = [];
     this.isMarketDropdownOpen = false;
-    this.marketErrorMessage = '';
+    this.marketErrorMessageKey = '';
   }
 
   private clearProductSelection(): void {
@@ -1022,8 +1026,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.productSearchText = '';
     this.productOptions = [];
     this.isProductDropdownOpen = false;
-    this.productErrorMessage = '';
-    this.productStatusMessage = '';
+    this.productErrorMessageKey = '';
+    this.productStatusMessageKey = '';
   }
 
   private closeDropdowns(): void {
