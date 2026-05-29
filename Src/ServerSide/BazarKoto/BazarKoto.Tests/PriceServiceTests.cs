@@ -1,6 +1,7 @@
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Application.Services;
 using BazarKoto.Contracts.Prices;
+using BazarKoto.Contracts.UserTracking;
 using BazarKoto.Domain.Entities;
 using BazarKoto.Domain.Enums;
 using FluentAssertions;
@@ -14,6 +15,7 @@ public class PriceServiceTests
     private readonly Mock<IMarketRepository> _marketRepository = new();
     private readonly Mock<IProductRepository> _productRepository = new();
     private readonly Mock<IPriceSummaryService> _priceSummaryService = new();
+    private readonly Mock<IUserTrackingService> _userTrackingService = new();
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
 
     [Fact]
@@ -21,10 +23,24 @@ public class PriceServiceTests
     {
         var marketId = Guid.NewGuid();
         var productId = Guid.NewGuid();
+        var divisionId = Guid.NewGuid();
+        var districtId = Guid.NewGuid();
+        var upazilaId = Guid.NewGuid();
+        var unionOrWardId = Guid.NewGuid();
+        var userTrackingDetailsId = Guid.NewGuid();
+        var trackingGuid = Guid.NewGuid();
         PriceSubmission? savedPrice = null;
 
         _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Market { Id = marketId, MarketName = "Test Market" });
+            .ReturnsAsync(new Market
+            {
+                Id = marketId,
+                MarketName = "Test Market",
+                DivisionId = divisionId,
+                DistrictId = districtId,
+                UpazilaId = upazilaId,
+                UnionOrWardId = unionOrWardId
+            });
         _productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Product { Id = productId, NameEn = "Potato", NameBn = "আলু" });
         _priceRepository.Setup(x => x.GetAsync(null, null, null, null, marketId, null, productId, null, null, It.IsAny<CancellationToken>()))
@@ -32,6 +48,12 @@ public class PriceServiceTests
         _priceRepository.Setup(x => x.AddAsync(It.IsAny<PriceSubmission>(), It.IsAny<CancellationToken>()))
             .Callback<PriceSubmission, CancellationToken>((price, _) => savedPrice = price)
             .Returns(Task.CompletedTask);
+        _userTrackingService.Setup(x => x.CreateOrUpdateAsync(It.IsAny<UserTrackingInput>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserTrackingResult
+            {
+                UserTrackingDetailsId = userTrackingDetailsId,
+                TrackingGuid = trackingGuid
+            });
 
         var service = CreateService();
 
@@ -54,6 +76,12 @@ public class PriceServiceTests
         savedPrice.Should().NotBeNull();
         savedPrice!.MarketId.Should().Be(marketId);
         savedPrice.ProductId.Should().Be(productId);
+        savedPrice.DivisionId.Should().Be(divisionId);
+        savedPrice.DistrictId.Should().Be(districtId);
+        savedPrice.UpazilaId.Should().Be(upazilaId);
+        savedPrice.UnionOrWardId.Should().Be(unionOrWardId);
+        savedPrice.UserTrackingDetailsId.Should().Be(userTrackingDetailsId);
+        savedPrice.TrackingGuid.Should().Be(trackingGuid);
         savedPrice.Unit.Should().Be("kg");
         savedPrice.PricePerUnit.Should().Be(55m);
         savedPrice.QuantityChecked.Should().Be(2m);
@@ -61,8 +89,139 @@ public class PriceServiceTests
         savedPrice.PriceSource.Should().Be(PriceSource.ObservedInMarket);
         savedPrice.QualityGrade.Should().Be(QualityGrade.Premium);
         savedPrice.Notes.Should().Be("Clean, medium size");
-        savedPrice.Status.Should().Be(SubmissionStatus.Pending);
+        savedPrice.Status.Should().Be(SubmissionStatus.Approved);
+        response.Data!.TrackingGuid.Should().Be(trackingGuid);
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SubmitPriceAsync_WithTrackingFields_PassesMarketLocationToUserTrackingService()
+    {
+        var marketId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        var divisionId = Guid.NewGuid();
+        var districtId = Guid.NewGuid();
+        var upazilaId = Guid.NewGuid();
+        var unionOrWardId = Guid.NewGuid();
+        var requestTrackingGuid = Guid.NewGuid();
+        UserTrackingInput? trackingInput = null;
+
+        _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Market
+            {
+                Id = marketId,
+                DivisionId = divisionId,
+                DistrictId = districtId,
+                UpazilaId = upazilaId,
+                UnionOrWardId = unionOrWardId
+            });
+        _productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Product { Id = productId, NameEn = "Potato", NameBn = "আলু" });
+        _priceRepository.Setup(x => x.GetAsync(null, null, null, null, marketId, null, productId, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        _userTrackingService.Setup(x => x.CreateOrUpdateAsync(It.IsAny<UserTrackingInput>(), It.IsAny<CancellationToken>()))
+            .Callback<UserTrackingInput, CancellationToken>((input, _) => trackingInput = input)
+            .ReturnsAsync(new UserTrackingResult
+            {
+                UserTrackingDetailsId = Guid.NewGuid(),
+                TrackingGuid = requestTrackingGuid
+            });
+
+        var service = CreateService();
+
+        await service.SubmitPriceAsync(new SubmitPriceRequest
+        {
+            MarketId = marketId,
+            ProductId = productId,
+            Unit = "kg",
+            PricePerUnit = 55m,
+            PriceDate = new DateOnly(2026, 5, 23),
+            SellerType = "Retail",
+            PriceSource = "ObservedInMarket",
+            QualityGrade = "Standard",
+            TrackingGuid = requestTrackingGuid,
+            GpsLatitude = 23.810331m,
+            GpsLongitude = 90.412521m,
+            GpsAccuracyMeters = 15.5m,
+            GpsPermissionStatus = "granted",
+            IpBasedCountry = "Bangladesh",
+            IpBasedRegion = "Dhaka",
+            IpBasedCity = "Dhaka",
+            IpBasedLatitude = 23.800000m,
+            IpBasedLongitude = 90.400000m,
+            IpLocationProvider = "Test Provider",
+            IpLocationAccuracy = "Approximate",
+            LocationSource = "manual"
+        });
+
+        trackingInput.Should().NotBeNull();
+        trackingInput!.TrackingGuid.Should().Be(requestTrackingGuid);
+        trackingInput.GpsLatitude.Should().Be(23.810331m);
+        trackingInput.GpsLongitude.Should().Be(90.412521m);
+        trackingInput.GpsAccuracyMeters.Should().Be(15.5m);
+        trackingInput.GpsPermissionStatus.Should().Be("granted");
+        trackingInput.IpBasedCountry.Should().Be("Bangladesh");
+        trackingInput.IpBasedRegion.Should().Be("Dhaka");
+        trackingInput.IpBasedCity.Should().Be("Dhaka");
+        trackingInput.IpBasedLatitude.Should().Be(23.800000m);
+        trackingInput.IpBasedLongitude.Should().Be(90.400000m);
+        trackingInput.IpLocationProvider.Should().Be("Test Provider");
+        trackingInput.IpLocationAccuracy.Should().Be("Approximate");
+        trackingInput.LastKnownDivisionId.Should().Be(divisionId);
+        trackingInput.LastKnownDistrictId.Should().Be(districtId);
+        trackingInput.LastKnownUpazilaId.Should().Be(upazilaId);
+        trackingInput.LastKnownUnionOrWardId.Should().Be(unionOrWardId);
+        trackingInput.LocationSource.Should().Be("gps");
+    }
+
+    [Fact]
+    public async Task SubmitPriceAsync_WithoutTrackingFields_StillSubmitsAndUsesMarketLocationSource()
+    {
+        var marketId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        UserTrackingInput? trackingInput = null;
+
+        _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Market
+            {
+                Id = marketId,
+                DivisionId = Guid.NewGuid(),
+                DistrictId = Guid.NewGuid(),
+                UpazilaId = Guid.NewGuid(),
+                UnionOrWardId = null
+            });
+        _productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Product { Id = productId, NameEn = "Potato", NameBn = "আলু" });
+        _priceRepository.Setup(x => x.GetAsync(null, null, null, null, marketId, null, productId, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        _priceRepository.Setup(x => x.AddAsync(It.IsAny<PriceSubmission>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _userTrackingService.Setup(x => x.CreateOrUpdateAsync(It.IsAny<UserTrackingInput>(), It.IsAny<CancellationToken>()))
+            .Callback<UserTrackingInput, CancellationToken>((input, _) => trackingInput = input)
+            .ReturnsAsync(new UserTrackingResult
+            {
+                UserTrackingDetailsId = Guid.NewGuid(),
+                TrackingGuid = Guid.NewGuid()
+            });
+
+        var service = CreateService();
+
+        var response = await service.SubmitPriceAsync(new SubmitPriceRequest
+        {
+            MarketId = marketId,
+            ProductId = productId,
+            Unit = "kg",
+            PricePerUnit = 55m,
+            PriceDate = new DateOnly(2026, 5, 23),
+            SellerType = "Retail",
+            PriceSource = "ObservedInMarket",
+            QualityGrade = "Standard"
+        });
+
+        response.Success.Should().BeTrue();
+        trackingInput.Should().NotBeNull();
+        trackingInput!.TrackingGuid.Should().BeNull();
+        trackingInput.LocationSource.Should().Be("market");
     }
 
     [Fact]
@@ -84,6 +243,7 @@ public class PriceServiceTests
             PriceSource = PriceSource.ObservedInMarket,
             QualityGrade = QualityGrade.Standard,
             Notes = "Original notes",
+            Status = SubmissionStatus.Pending,
         };
 
         _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
@@ -117,6 +277,7 @@ public class PriceServiceTests
         price.PriceSource.Should().Be(PriceSource.ObservedInMarket);
         price.QualityGrade.Should().Be(QualityGrade.Standard);
         price.Notes.Should().Be("Original notes");
+        price.Status.Should().Be(SubmissionStatus.Approved);
         _priceRepository.Verify(x => x.Update(price), Times.Once);
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -146,6 +307,7 @@ public class PriceServiceTests
         response.Success.Should().BeFalse();
         response.Message.Should().Contain("Selected market was not found");
         _priceRepository.Verify(x => x.AddAsync(It.IsAny<PriceSubmission>(), It.IsAny<CancellationToken>()), Times.Never);
+        _userTrackingService.Verify(x => x.CreateOrUpdateAsync(It.IsAny<UserTrackingInput>(), It.IsAny<CancellationToken>()), Times.Never);
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -156,6 +318,7 @@ public class PriceServiceTests
             _marketRepository.Object,
             _productRepository.Object,
             _priceSummaryService.Object,
+            _userTrackingService.Object,
             _unitOfWork.Object);
     }
 }

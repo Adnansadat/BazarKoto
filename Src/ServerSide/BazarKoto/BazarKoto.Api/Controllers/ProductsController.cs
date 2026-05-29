@@ -21,6 +21,12 @@ public class ProductsController : ControllerBase
         return Ok(await _productService.GetProductsAsync(request, cancellationToken));
     }
 
+    [HttpGet("options")]
+    public async Task<IActionResult> GetProductOptions([FromQuery] ProductSearchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _productService.GetProductOptionsAsync(request, cancellationToken));
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateProduct(CreateProductRequest request, CancellationToken cancellationToken)
     {

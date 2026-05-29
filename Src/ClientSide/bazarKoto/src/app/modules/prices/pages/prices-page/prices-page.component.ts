@@ -7,6 +7,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize, Subscription } from 'rxjs';
 import { Api } from '../../../../core/services/api';
 import { DraftService } from '../../../../core/services/draft';
+import { UserTracking } from '../../../../core/services/user-tracking';
 
 interface SelectOption {
   value: string;
@@ -68,6 +69,7 @@ interface PriceSubmissionResponse {
   priceSource: string;
   qualityGrade: string;
   notes?: string | null;
+  trackingGuid?: string | null;
 }
 
 interface PriceSummaryResponse {
@@ -161,6 +163,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     private readonly router: Router,
     private readonly api: Api,
     private readonly drafts: DraftService,
+    private readonly userTracking: UserTracking,
     @Inject(DOCUMENT) private readonly document: Document,
   ) {}
 
@@ -464,7 +467,9 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }
 
     this.isSubmittingPrice = true;
-    this.api.post('/Prices', {
+    const trackingContext = this.getSubmissionTrackingContext();
+
+    this.api.post<PriceSubmissionResponse>('/Prices', {
       marketId: this.selectedMarketId,
       productId: this.selectedProductId,
       unit: this.selectedUnit,
@@ -476,8 +481,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       priceSource: this.priceSource === 'Observed in market' ? 'ObservedInMarket' : this.priceSource === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
       qualityGrade: this.quality === 'Low grade' ? 'Low' : this.quality,
       notes: this.notes || null,
+      trackingGuid: trackingContext.trackingGuid,
+      gpsPermissionStatus: trackingContext.gpsPermissionStatus,
+      gpsLatitude: trackingContext.gpsLatitude,
+      gpsLongitude: trackingContext.gpsLongitude,
+      gpsAccuracyMeters: trackingContext.gpsAccuracyMeters,
+      locationSource: trackingContext.locationSource,
     }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
-      next: () => {
+      next: response => {
+        this.userTracking.saveTrackingGuid(response.trackingGuid);
         this.priceSuccessMessage = 'Price submitted successfully.';
         this.showPriceValidation = false;
         this.captureSuccessModalContext();
@@ -499,6 +511,32 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         }
       },
     });
+  }
+
+  private getSubmissionTrackingContext(): {
+    trackingGuid: string;
+    gpsPermissionStatus: string | null;
+    gpsLatitude: number | null;
+    gpsLongitude: number | null;
+    gpsAccuracyMeters: number | null;
+    locationSource: string;
+  } {
+    const trackingGuid = this.userTracking.getOrCreateTrackingGuid();
+    const gpsSnapshot = this.userTracking.getBrowserGpsSnapshot();
+    const hasGpsCoordinates = gpsSnapshot.gpsPermissionStatus === 'granted'
+      && gpsSnapshot.gpsLatitude !== null
+      && gpsSnapshot.gpsLatitude !== undefined
+      && gpsSnapshot.gpsLongitude !== null
+      && gpsSnapshot.gpsLongitude !== undefined;
+
+    return {
+      trackingGuid,
+      gpsPermissionStatus: gpsSnapshot.gpsPermissionStatus,
+      gpsLatitude: gpsSnapshot.gpsLatitude ?? null,
+      gpsLongitude: gpsSnapshot.gpsLongitude ?? null,
+      gpsAccuracyMeters: gpsSnapshot.gpsAccuracyMeters ?? null,
+      locationSource: hasGpsCoordinates ? 'gps' : 'market',
+    };
   }
 
   loadExistingPrice(): void {

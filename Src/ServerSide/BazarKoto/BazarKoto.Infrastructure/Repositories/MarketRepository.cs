@@ -31,6 +31,22 @@ public class MarketRepository : IMarketRepository
         return BuildQuery(divisionId, districtId, upazilaId, unionOrWardId, search).CountAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Market>> GetOptionsAsync(Guid? divisionId = null, Guid? districtId = null, Guid? upazilaId = null, Guid? unionOrWardId = null, string? search = null, int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+    {
+        var query = BuildOptionQuery(divisionId, districtId, upazilaId, unionOrWardId, search);
+
+        return await query
+            .OrderBy(x => x.MarketName)
+            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
+            .Take(Math.Clamp(pageSize, 1, 100))
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountOptionsAsync(Guid? divisionId = null, Guid? districtId = null, Guid? upazilaId = null, Guid? unionOrWardId = null, string? search = null, CancellationToken cancellationToken = default)
+    {
+        return BuildOptionQuery(divisionId, districtId, upazilaId, unionOrWardId, search).CountAsync(cancellationToken);
+    }
+
     public async Task<bool> ExistsAsync(Guid divisionId, Guid districtId, Guid upazilaId, Guid? unionOrWardId, string area, string marketName, CancellationToken cancellationToken = default)
     {
         return await FindDuplicateAsync(divisionId, districtId, upazilaId, unionOrWardId, area, marketName, cancellationToken) is not null;
@@ -90,6 +106,18 @@ public class MarketRepository : IMarketRepository
     {
         var query = Query().AsNoTracking().Where(x => x.Status == RecordStatus.Approved);
 
+        return ApplySearchAndLocationFilters(query, divisionId, districtId, upazilaId, unionOrWardId, search);
+    }
+
+    private IQueryable<Market> BuildOptionQuery(Guid? divisionId, Guid? districtId, Guid? upazilaId, Guid? unionOrWardId, string? search)
+    {
+        var query = Query().AsNoTracking().Where(x => x.Status == RecordStatus.Approved || x.Status == RecordStatus.Pending);
+
+        return ApplySearchAndLocationFilters(query, divisionId, districtId, upazilaId, unionOrWardId, search);
+    }
+
+    private static IQueryable<Market> ApplySearchAndLocationFilters(IQueryable<Market> query, Guid? divisionId, Guid? districtId, Guid? upazilaId, Guid? unionOrWardId, string? search)
+    {
         if (divisionId.HasValue)
         {
             query = query.Where(x => x.DivisionId == divisionId.Value);

@@ -30,6 +30,13 @@ public class ProductService : IProductService
         return Page(products.Select(ToResponse), request, totalCount);
     }
 
+    public async Task<PagedResponse<ProductOptionResponse>> GetProductOptionsAsync(ProductSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        var products = await _productRepository.GetOptionsAsync(request.CategoryId, request.Search, request.UnionOrWardId, request.MarketId, request.PageNumber, request.PageSize, cancellationToken);
+        var totalCount = await _productRepository.CountOptionsAsync(request.CategoryId, request.Search, request.UnionOrWardId, request.MarketId, cancellationToken);
+        return Page(products.Select(ToOptionResponse), request, totalCount);
+    }
+
     public async Task<ApiResponse<ProductResponse>> CreateProductAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
     {
         var validationErrors = ValidateRequest(request);
@@ -156,6 +163,26 @@ public class ProductService : IProductService
             Notes = product.Notes,
             Status = product.Status.ToString(),
             IsActive = product.IsActive
+        };
+    }
+
+    private static ProductOptionResponse ToOptionResponse(Product product)
+    {
+        return new ProductOptionResponse
+        {
+            Id = product.Id,
+            ProductId = product.Id,
+            ProductNameEn = product.NameEn,
+            ProductNameBn = product.NameBn,
+            LocalOrAlternateName = product.LocalName,
+            CategoryId = product.CategoryId,
+            CategoryNameEn = product.Category?.NameEn ?? string.Empty,
+            CategoryNameBn = product.Category?.NameBn ?? string.Empty,
+            PrimaryUnit = product.PrimaryUnit,
+            ProductState = product.ProductState.ToString(),
+            DisplayLabel = string.IsNullOrWhiteSpace(product.Category?.NameEn)
+                ? $"{product.NameEn} ({product.PrimaryUnit})"
+                : $"{product.NameEn} — {product.Category.NameEn}"
         };
     }
 

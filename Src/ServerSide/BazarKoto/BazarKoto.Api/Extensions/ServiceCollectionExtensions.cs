@@ -2,6 +2,7 @@ using System.Text;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
 using BazarKoto.Api.Filters;
+using BazarKoto.Api.Services;
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Application.Services;
 using BazarKoto.Application.Validators;
@@ -62,6 +63,8 @@ public static class ServiceCollectionExtensions
         });
         services.AddApplicationServices();
         services.AddInfrastructure(configuration);
+        services.AddHttpContextAccessor();
+        services.AddScoped<IUserTrackingRequestContextAccessor, HttpUserTrackingRequestContextAccessor>();
         services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
         services.AddJwtAuthentication(configuration);
         services.AddAuthorization();
@@ -79,6 +82,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IPriceService, PriceService>();
         services.AddScoped<IPriceSummaryService, PriceSummaryService>();
+        services.AddScoped<IUserTrackingService, UserTrackingService>();
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         services.AddScoped<IContactService, ContactService>();

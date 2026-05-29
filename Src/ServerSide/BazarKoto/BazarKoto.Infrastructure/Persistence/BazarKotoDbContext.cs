@@ -25,6 +25,7 @@ public class BazarKotoDbContext : DbContext, IUnitOfWork
     public DbSet<Contributor> Contributors => Set<Contributor>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<PageVisit> PageVisits => Set<PageVisit>();
+    public DbSet<UserTrackingDetails> UserTrackingDetails => Set<UserTrackingDetails>();
     public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
     public DbSet<AdMetric> AdMetrics => Set<AdMetric>();
 

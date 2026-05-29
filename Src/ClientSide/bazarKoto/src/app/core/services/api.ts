@@ -11,6 +11,17 @@ export interface ApiResponse<T> {
   errors: string[];
 }
 
+export interface PagedResponse<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  errors: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -27,6 +38,21 @@ export class Api {
       })
       .pipe(
         map(response => this.unwrap(response)),
+        catchError(error => this.handleError(error)),
+      );
+  }
+
+  getPaged<T>(
+    path: string,
+    params?: Record<string, string | number | boolean | null | undefined>,
+  ): Observable<PagedResponse<T>> {
+    return this.http
+      .get<PagedResponse<T>>(this.buildUrl(path), {
+        headers: this.buildHeaders(),
+        params: this.buildParams(params),
+      })
+      .pipe(
+        map(response => this.unwrapPaged(response)),
         catchError(error => this.handleError(error)),
       );
   }
@@ -98,6 +124,14 @@ export class Api {
     }
 
     return response.data as T;
+  }
+
+  private unwrapPaged<T>(response: PagedResponse<T>): PagedResponse<T> {
+    if (!response.success) {
+      throw new Error(response.errors?.join(', ') || response.message || 'Request failed.');
+    }
+
+    return response;
   }
 
   private handleError(error: unknown): Observable<never> {

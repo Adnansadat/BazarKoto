@@ -38,8 +38,8 @@ export const routes: Routes = [
   {
     path: 'product-prices',
     loadChildren: () =>
-      import('./modules/live-prices/live-prices.routes')
-        .then(m => m.LIVE_PRICES_ROUTES)
+      import('./modules/product-prices/product-prices.routes')
+        .then(m => m.PRODUCT_PRICES_ROUTES)
   },
 
   {

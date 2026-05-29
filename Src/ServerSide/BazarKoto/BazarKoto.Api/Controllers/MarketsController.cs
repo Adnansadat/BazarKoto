@@ -21,6 +21,12 @@ public class MarketsController : ControllerBase
         return Ok(await _marketService.GetMarketsAsync(request, cancellationToken));
     }
 
+    [HttpGet("options")]
+    public async Task<IActionResult> GetMarketOptions([FromQuery] MarketSearchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _marketService.GetMarketOptionsAsync(request, cancellationToken));
+    }
+
     [HttpGet("nearby")]
     public async Task<IActionResult> GetNearbyMarkets([FromQuery] MarketSearchRequest request, CancellationToken cancellationToken)
     {

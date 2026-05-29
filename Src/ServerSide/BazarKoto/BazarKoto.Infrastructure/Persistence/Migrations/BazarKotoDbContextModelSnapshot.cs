@@ -495,6 +495,12 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("DistrictId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("DivisionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("MarketId")
                         .HasColumnType("uniqueidentifier");
 
@@ -542,21 +548,49 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("SubmittedByUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("TrackingGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UnionOrWardId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<Guid?>("UpazilaId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("UserTrackingDetailsId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("MarketId");
+                    b.HasIndex("DistrictId");
+
+                    b.HasIndex("DivisionId");
+
+                    b.HasIndex("PriceDate");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("SubmittedByUserId");
+
+                    b.HasIndex("TrackingGuid");
+
+                    b.HasIndex("UpazilaId");
+
+                    b.HasIndex("UserTrackingDetailsId");
+
+                    b.HasIndex("MarketId", "ProductId", "PriceDate");
+
+                    b.HasIndex("UnionOrWardId", "MarketId", "PriceDate");
+
+                    b.HasIndex("UnionOrWardId", "ProductId", "PriceDate");
 
                     b.ToTable("PriceSubmissions");
                 });
@@ -819,6 +853,133 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("BazarKoto.Domain.Entities.UserTrackingDetails", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BrowserName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("BrowserVersion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeviceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("GpsAccuracyMeters")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("GpsLatitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal?>("GpsLongitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<string>("GpsPermissionStatus")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("IpBasedCity")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("IpBasedCountry")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("IpBasedLatitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal?>("IpBasedLongitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<string>("IpBasedRegion")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("IpLocationAccuracy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IpLocationProvider")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<Guid?>("LastKnownDistrictId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastKnownDivisionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastKnownUnionOrWardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LastKnownUpazilaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LocationSource")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("OS")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RawIpAddress")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("RawUserAgent")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("TrackingGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceType");
+
+                    b.HasIndex("LastKnownDistrictId");
+
+                    b.HasIndex("LastKnownDivisionId");
+
+                    b.HasIndex("LastKnownUnionOrWardId");
+
+                    b.HasIndex("LastKnownUpazilaId");
+
+                    b.HasIndex("LastSeenAt");
+
+                    b.HasIndex("OS");
+
+                    b.HasIndex("TrackingGuid")
+                        .IsUnique();
+
+                    b.ToTable("UserTrackingDetails");
+                });
+
             modelBuilder.Entity("BazarKoto.Domain.Entities.AdminAuditLog", b =>
                 {
                     b.HasOne("BazarKoto.Domain.Entities.User", "AdminUser")
@@ -925,6 +1086,16 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BazarKoto.Domain.Entities.PriceSubmission", b =>
                 {
+                    b.HasOne("BazarKoto.Domain.Entities.District", "District")
+                        .WithMany()
+                        .HasForeignKey("DistrictId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BazarKoto.Domain.Entities.Division", "Division")
+                        .WithMany()
+                        .HasForeignKey("DivisionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("BazarKoto.Domain.Entities.Market", "Market")
                         .WithMany()
                         .HasForeignKey("MarketId")
@@ -942,11 +1113,36 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SubmittedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("BazarKoto.Domain.Entities.UnionOrWard", "UnionOrWard")
+                        .WithMany()
+                        .HasForeignKey("UnionOrWardId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BazarKoto.Domain.Entities.Upazila", "Upazila")
+                        .WithMany()
+                        .HasForeignKey("UpazilaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BazarKoto.Domain.Entities.UserTrackingDetails", "UserTrackingDetails")
+                        .WithMany()
+                        .HasForeignKey("UserTrackingDetailsId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("District");
+
+                    b.Navigation("Division");
+
                     b.Navigation("Market");
 
                     b.Navigation("Product");
 
                     b.Navigation("SubmittedByUser");
+
+                    b.Navigation("UnionOrWard");
+
+                    b.Navigation("Upazila");
+
+                    b.Navigation("UserTrackingDetails");
                 });
 
             modelBuilder.Entity("BazarKoto.Domain.Entities.Product", b =>
@@ -980,6 +1176,37 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("District");
+                });
+
+            modelBuilder.Entity("BazarKoto.Domain.Entities.UserTrackingDetails", b =>
+                {
+                    b.HasOne("BazarKoto.Domain.Entities.District", "LastKnownDistrict")
+                        .WithMany()
+                        .HasForeignKey("LastKnownDistrictId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BazarKoto.Domain.Entities.Division", "LastKnownDivision")
+                        .WithMany()
+                        .HasForeignKey("LastKnownDivisionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("BazarKoto.Domain.Entities.UnionOrWard", "LastKnownUnionOrWard")
+                        .WithMany()
+                        .HasForeignKey("LastKnownUnionOrWardId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BazarKoto.Domain.Entities.Upazila", "LastKnownUpazila")
+                        .WithMany()
+                        .HasForeignKey("LastKnownUpazilaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("LastKnownDistrict");
+
+                    b.Navigation("LastKnownDivision");
+
+                    b.Navigation("LastKnownUnionOrWard");
+
+                    b.Navigation("LastKnownUpazila");
                 });
 
             modelBuilder.Entity("BazarKoto.Domain.Entities.District", b =>

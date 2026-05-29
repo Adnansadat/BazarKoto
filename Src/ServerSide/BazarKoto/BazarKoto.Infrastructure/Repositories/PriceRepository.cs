@@ -77,6 +77,85 @@ public class PriceRepository : IPriceRepository
         return await query.OrderByDescending(x => x.PriceDate).ThenByDescending(x => x.CreatedAt).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<PriceSubmission>> GetPublicProductPricesAsync(
+        Guid? divisionId = null,
+        Guid? districtId = null,
+        Guid? upazilaId = null,
+        Guid? unionOrWardId = null,
+        Guid? marketId = null,
+        Guid? categoryId = null,
+        Guid? productId = null,
+        DateOnly? date = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = Query().AsNoTracking().Where(x => x.Status == SubmissionStatus.Approved);
+
+        if (marketId.HasValue)
+        {
+            query = query.Where(x => x.MarketId == marketId.Value);
+        }
+        else if (unionOrWardId.HasValue)
+        {
+            query = query.Where(x =>
+                (x.UnionOrWardId.HasValue && x.UnionOrWardId == unionOrWardId.Value) ||
+                (!x.UnionOrWardId.HasValue && x.Market != null && x.Market.UnionOrWardId == unionOrWardId.Value));
+        }
+
+        if (divisionId.HasValue)
+        {
+            query = query.Where(x =>
+                (x.DivisionId.HasValue && x.DivisionId == divisionId.Value) ||
+                (!x.DivisionId.HasValue && x.Market != null && x.Market.DivisionId == divisionId.Value));
+        }
+
+        if (districtId.HasValue)
+        {
+            query = query.Where(x =>
+                (x.DistrictId.HasValue && x.DistrictId == districtId.Value) ||
+                (!x.DistrictId.HasValue && x.Market != null && x.Market.DistrictId == districtId.Value));
+        }
+
+        if (upazilaId.HasValue)
+        {
+            query = query.Where(x =>
+                (x.UpazilaId.HasValue && x.UpazilaId == upazilaId.Value) ||
+                (!x.UpazilaId.HasValue && x.Market != null && x.Market.UpazilaId == upazilaId.Value));
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(x => x.Product != null && x.Product.CategoryId == categoryId.Value);
+        }
+
+        if (productId.HasValue)
+        {
+            query = query.Where(x => x.ProductId == productId.Value);
+        }
+
+        if (date.HasValue)
+        {
+            query = query.Where(x => x.PriceDate == date.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim();
+            query = query.Where(x =>
+                (x.Product != null && (
+                    x.Product.NameEn.Contains(normalizedSearch) ||
+                    x.Product.NameBn.Contains(normalizedSearch) ||
+                    (x.Product.LocalName != null && x.Product.LocalName.Contains(normalizedSearch)))) ||
+                (x.Market != null && x.Market.MarketName.Contains(normalizedSearch)));
+        }
+
+        return await query
+            .OrderByDescending(x => x.PriceDate)
+            .ThenByDescending(x => x.PriceTime)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<PriceSubmission>> GetPendingAsync(CancellationToken cancellationToken = default)
     {
         return await Query().AsNoTracking().Where(x => x.Status == SubmissionStatus.Pending).ToListAsync(cancellationToken);
@@ -106,6 +185,13 @@ public class PriceRepository : IPriceRepository
     {
         return _dbContext.PriceSubmissions
             .Include(x => x.Market)
+            .ThenInclude(x => x!.Division)
+            .Include(x => x.Market)
+            .ThenInclude(x => x!.District)
+            .Include(x => x.Market)
+            .ThenInclude(x => x!.Upazila)
+            .Include(x => x.Market)
+            .ThenInclude(x => x!.UnionOrWard)
             .Include(x => x.Product)
             .ThenInclude(x => x!.Category)
             .Include(x => x.SubmittedByUser);

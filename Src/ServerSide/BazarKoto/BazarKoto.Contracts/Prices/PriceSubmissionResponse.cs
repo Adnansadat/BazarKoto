@@ -21,4 +21,5 @@ public class PriceSubmissionResponse
     public string QualityGrade { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public string Status { get; set; } = string.Empty;
+    public Guid? TrackingGuid { get; set; }
 }

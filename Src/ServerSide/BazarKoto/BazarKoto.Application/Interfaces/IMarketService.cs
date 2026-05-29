@@ -6,6 +6,7 @@ namespace BazarKoto.Application.Interfaces;
 public interface IMarketService
 {
     Task<PagedResponse<MarketResponse>> GetMarketsAsync(MarketSearchRequest request, CancellationToken cancellationToken = default);
+    Task<PagedResponse<MarketOptionResponse>> GetMarketOptionsAsync(MarketSearchRequest request, CancellationToken cancellationToken = default);
     Task<PagedResponse<MarketResponse>> GetNearbyMarketsAsync(MarketSearchRequest request, CancellationToken cancellationToken = default);
     Task<ApiResponse<MarketResponse>> CreateMarketAsync(CreateMarketRequest request, CancellationToken cancellationToken = default);
     Task<PagedResponse<MarketResponse>> GetPendingMarketsAsync(PaginationRequest request, CancellationToken cancellationToken = default);

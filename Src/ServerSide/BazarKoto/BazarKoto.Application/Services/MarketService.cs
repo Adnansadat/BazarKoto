@@ -24,6 +24,13 @@ public class MarketService : IMarketService
         return Page(markets.Select(ToResponse), request, totalCount);
     }
 
+    public async Task<PagedResponse<MarketOptionResponse>> GetMarketOptionsAsync(MarketSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        var markets = await _marketRepository.GetOptionsAsync(request.DivisionId, request.DistrictId, request.UpazilaId, request.UnionOrWardId, request.Search, request.PageNumber, request.PageSize, cancellationToken);
+        var totalCount = await _marketRepository.CountOptionsAsync(request.DivisionId, request.DistrictId, request.UpazilaId, request.UnionOrWardId, request.Search, cancellationToken);
+        return Page(markets.Select(ToOptionResponse), request, totalCount);
+    }
+
     public async Task<PagedResponse<MarketResponse>> GetNearbyMarketsAsync(MarketSearchRequest request, CancellationToken cancellationToken = default)
     {
         var markets = await _marketRepository.GetAsync(request.DivisionId, request.DistrictId, request.UpazilaId, request.UnionOrWardId, request.Search, request.PageNumber, request.PageSize, cancellationToken);
@@ -113,6 +120,43 @@ public class MarketService : IMarketService
             CreatedAt = market.CreatedAt,
             UpdatedAt = market.UpdatedAt
         };
+    }
+
+    private static MarketOptionResponse ToOptionResponse(Market market)
+    {
+        return new MarketOptionResponse
+        {
+            Id = market.Id,
+            MarketId = market.Id,
+            MarketName = market.MarketName,
+            DisplayLabel = BuildMarketDisplayLabel(market),
+            DivisionId = market.DivisionId,
+            DivisionNameEn = market.Division?.NameEn ?? string.Empty,
+            DivisionNameBn = market.Division?.NameBn ?? string.Empty,
+            DistrictId = market.DistrictId,
+            DistrictNameEn = market.District?.NameEn ?? string.Empty,
+            DistrictNameBn = market.District?.NameBn ?? string.Empty,
+            UpazilaId = market.UpazilaId,
+            UpazilaNameEn = market.Upazila?.NameEn ?? string.Empty,
+            UpazilaNameBn = market.Upazila?.NameBn ?? string.Empty,
+            UnionOrWardId = market.UnionOrWardId,
+            UnionOrWardNameEn = market.UnionOrWard?.NameEn,
+            UnionOrWardNameBn = market.UnionOrWard?.NameBn
+        };
+    }
+
+    private static string BuildMarketDisplayLabel(Market market)
+    {
+        var locationParts = new[]
+        {
+            market.UnionOrWard?.NameEn,
+            market.Upazila?.NameEn,
+            market.District?.NameEn,
+            string.IsNullOrWhiteSpace(market.Division?.NameEn) ? null : $"{market.Division.NameEn} Division"
+        }.Where(part => !string.IsNullOrWhiteSpace(part));
+
+        var location = string.Join(", ", locationParts);
+        return string.IsNullOrWhiteSpace(location) ? market.MarketName : $"{market.MarketName} — {location}";
     }
 
     private static PagedResponse<T> Page<T>(IEnumerable<T> items, PaginationRequest request, int? totalCount = null)

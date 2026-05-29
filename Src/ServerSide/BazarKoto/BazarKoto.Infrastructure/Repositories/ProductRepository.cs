@@ -1,5 +1,6 @@
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Domain.Entities;
+using BazarKoto.Domain.Enums;
 using BazarKoto.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +40,22 @@ public class ProductRepository : IProductRepository
         return BuildQuery(categoryId, search).CountAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Product>> GetOptionsAsync(Guid? categoryId = null, string? search = null, Guid? unionOrWardId = null, Guid? marketId = null, int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+    {
+        var query = BuildOptionQuery(categoryId, search, unionOrWardId, marketId);
+
+        return await query
+            .OrderBy(x => x.NameEn)
+            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
+            .Take(Math.Clamp(pageSize, 1, 100))
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<int> CountOptionsAsync(Guid? categoryId = null, string? search = null, Guid? unionOrWardId = null, Guid? marketId = null, CancellationToken cancellationToken = default)
+    {
+        return BuildOptionQuery(categoryId, search, unionOrWardId, marketId).CountAsync(cancellationToken);
+    }
+
     public Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _dbContext.ProductCategories
@@ -51,9 +68,41 @@ public class ProductRepository : IProductRepository
         var query = _dbContext.Products
             .AsNoTracking()
             .Include(x => x.Category)
-            .Where(x => x.IsActive && x.Status == Domain.Enums.RecordStatus.Approved)
+            .Where(x => x.IsActive && x.Status == RecordStatus.Approved)
             .AsQueryable();
 
+        return ApplyCategoryAndSearchFilters(query, categoryId, search);
+    }
+
+    private IQueryable<Product> BuildOptionQuery(Guid? categoryId, string? search, Guid? unionOrWardId, Guid? marketId)
+    {
+        var query = _dbContext.Products
+            .AsNoTracking()
+            .Include(x => x.Category)
+            .Where(x => x.IsActive && (x.Status == RecordStatus.Approved || x.Status == RecordStatus.Pending))
+            .AsQueryable();
+
+        if (marketId.HasValue)
+        {
+            query = query.Where(product => _dbContext.PriceSubmissions.Any(price =>
+                price.Status == SubmissionStatus.Approved &&
+                price.ProductId == product.Id &&
+                price.MarketId == marketId.Value));
+        }
+        else if (unionOrWardId.HasValue)
+        {
+            query = query.Where(product => _dbContext.PriceSubmissions.Any(price =>
+                price.Status == SubmissionStatus.Approved &&
+                price.ProductId == product.Id &&
+                ((price.UnionOrWardId.HasValue && price.UnionOrWardId == unionOrWardId.Value) ||
+                 (!price.UnionOrWardId.HasValue && price.Market != null && price.Market.UnionOrWardId == unionOrWardId.Value))));
+        }
+
+        return ApplyCategoryAndSearchFilters(query, categoryId, search);
+    }
+
+    private static IQueryable<Product> ApplyCategoryAndSearchFilters(IQueryable<Product> query, Guid? categoryId, string? search)
+    {
         if (categoryId.HasValue)
         {
             query = query.Where(x => x.CategoryId == categoryId.Value);
