@@ -49,6 +49,7 @@ secrets.json
 wwwroot/uploads/
 wwwroot/attachments/
 wwwroot/contact-attachments/
+/Src/ServerSide/BazarKoto/BazarKoto.Api/wwwroot/uploads/
 
 # Uploaded image files inside wwwroot
 wwwroot/**/*.png
