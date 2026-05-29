@@ -15,6 +15,12 @@
       <a routerLink="/product-prices" routerLinkActive="active">
         {{ 'nav.livePrices' | translate }}
       </a>
+      <a *ngIf="isAdmin$ | async" routerLink="/admin/dashboard" routerLinkActive="active">
+        Admin
+      </a>
+      <a *ngIf="isAdmin$ | async" routerLink="/admin/messages" routerLinkActive="active">
+        Contact Messages
+      </a>
     </nav>
 
     <app-language-switcher />

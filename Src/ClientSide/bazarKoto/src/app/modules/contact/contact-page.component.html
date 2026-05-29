@@ -24,26 +24,119 @@
       </div>
     </article>
 
-    <form class="contact-form" (ngSubmit)="submit()">
+    <form class="contact-form" novalidate (ngSubmit)="submit()">
       <label>
         <span>{{ 'contact.form.name.label' | translate }}</span>
-        <input type="text" name="name" [(ngModel)]="name" [placeholder]="'contact.form.name.placeholder' | translate" required />
+        <input
+          type="text"
+          name="name"
+          [(ngModel)]="name"
+          (ngModelChange)="saveDraft()"
+          (blur)="markTouched('name')"
+          [placeholder]="'contact.form.name.placeholder' | translate"
+          [attr.aria-invalid]="getValidationKeys('name').length > 0" />
+        <small class="field-error" *ngFor="let errorKey of getValidationKeys('name')">
+          {{ errorKey | translate }}
+        </small>
       </label>
+
       <label>
         <span>{{ 'contact.form.email.label' | translate }}</span>
-        <input type="email" name="email" [(ngModel)]="email" [placeholder]="'contact.form.email.placeholder' | translate" required />
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          (ngModelChange)="saveDraft()"
+          (blur)="markTouched('email')"
+          [placeholder]="'contact.form.email.placeholder' | translate"
+          [attr.aria-invalid]="getValidationKeys('email').length > 0" />
+        <small class="field-error" *ngFor="let errorKey of getValidationKeys('email')">
+          {{ errorKey | translate }}
+        </small>
       </label>
+
       <label>
         <span>{{ 'contact.form.subject.label' | translate }}</span>
-        <input type="text" name="subject" [(ngModel)]="subject" [placeholder]="'contact.form.subject.placeholder' | translate" required />
+        <input
+          type="text"
+          name="subject"
+          [(ngModel)]="subject"
+          (ngModelChange)="saveDraft()"
+          (blur)="markTouched('subject')"
+          [placeholder]="'contact.form.subject.placeholder' | translate"
+          [attr.aria-invalid]="getValidationKeys('subject').length > 0" />
+        <small class="field-error" *ngFor="let errorKey of getValidationKeys('subject')">
+          {{ errorKey | translate }}
+        </small>
       </label>
+
       <label>
         <span>{{ 'contact.form.message.label' | translate }}</span>
-        <textarea rows="5" name="message" [(ngModel)]="message" [placeholder]="'contact.form.message.placeholder' | translate" required></textarea>
+        <textarea
+          rows="5"
+          name="message"
+          [(ngModel)]="message"
+          (ngModelChange)="saveDraft()"
+          (blur)="markTouched('message')"
+          [placeholder]="'contact.form.message.placeholder' | translate"
+          [attr.aria-invalid]="getValidationKeys('message').length > 0"></textarea>
+        <small class="character-count">{{ message.length }} / 2000</small>
+        <small class="field-error" *ngFor="let errorKey of getValidationKeys('message')">
+          {{ errorKey | translate }}
+        </small>
       </label>
-      <p class="status-message" *ngIf="successMessage">{{ successMessage }}</p>
-      <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
-      <button type="submit" [disabled]="isSubmitting">{{ 'contact.form.submit' | translate }}</button>
+
+      <div class="screenshot-field" [class.has-file]="selectedScreenshot">
+        <input
+          #screenshotInput
+          type="file"
+          name="screenshot"
+          accept="image/png,image/jpeg,image/webp"
+          (change)="onScreenshotSelected($event)" />
+        <div class="attachment-panel">
+          <div class="attachment-copy">
+            <span>{{ 'contact.form.screenshot.label' | translate }}</span>
+            <small class="field-helper">{{ 'contact.form.screenshot.helper' | translate }}</small>
+            <small class="selected-file" *ngIf="selectedScreenshot">{{ selectedScreenshot.name }}</small>
+          </div>
+          <div class="screenshot-actions">
+            <button class="secondary-button" type="button" (click)="screenshotInput.click()">
+              {{ 'contact.form.screenshot.choose' | translate }}
+            </button>
+            <button
+              class="secondary-button muted"
+              type="button"
+              *ngIf="selectedScreenshot"
+              (click)="removeScreenshot(screenshotInput)">
+              {{ 'contact.form.screenshot.remove' | translate }}
+            </button>
+          </div>
+        </div>
+        <small class="field-error" *ngIf="screenshotErrorKey">{{ screenshotErrorKey | translate }}</small>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessageKey || backendErrors.length">
+        <p *ngIf="errorMessageKey">{{ errorMessageKey | translate }}</p>
+        <ul *ngIf="backendErrors.length">
+          <li *ngFor="let error of backendErrors">{{ error }}</li>
+        </ul>
+      </div>
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ (isSubmitting ? 'contact.form.sending' : 'contact.form.submit') | translate }}
+      </button>
     </form>
   </section>
+
+  <div class="modal-backdrop" *ngIf="showSuccessModal">
+    <section
+      class="success-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-success-title">
+      <h2 id="contact-success-title">{{ 'contact.modal.title' | translate }}</h2>
+      <p>{{ 'contact.modal.body' | translate }}</p>
+      <button type="button" (click)="closeSuccessModal()">{{ 'contact.modal.ok' | translate }}</button>
+    </section>
+  </div>
 </main>

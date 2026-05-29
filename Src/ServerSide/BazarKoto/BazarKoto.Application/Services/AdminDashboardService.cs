@@ -11,17 +11,20 @@ public class AdminDashboardService : IAdminDashboardService
     private readonly IProductRepository _productRepository;
     private readonly IPriceRepository _priceRepository;
     private readonly IAnalyticsRepository _analyticsRepository;
+    private readonly IContactRepository _contactRepository;
 
     public AdminDashboardService(
         IMarketRepository marketRepository,
         IProductRepository productRepository,
         IPriceRepository priceRepository,
-        IAnalyticsRepository analyticsRepository)
+        IAnalyticsRepository analyticsRepository,
+        IContactRepository contactRepository)
     {
         _marketRepository = marketRepository;
         _productRepository = productRepository;
         _priceRepository = priceRepository;
         _analyticsRepository = analyticsRepository;
+        _contactRepository = contactRepository;
     }
 
     public async Task<ApiResponse<AdminDashboardResponse>> GetDashboardAsync(CancellationToken cancellationToken = default)
@@ -33,6 +36,8 @@ public class AdminDashboardService : IAdminDashboardService
         var pendingPrices = await _priceRepository.GetPendingAsync(cancellationToken);
         var visits = await _analyticsRepository.GetRecentVisitsAsync(cancellationToken);
         var today = DateTime.UtcNow.Date;
+        var newContactMessages = await _contactRepository.CountAsync(status: "New", cancellationToken: cancellationToken);
+        var inProgressContactMessages = await _contactRepository.CountAsync(status: "InProgress", cancellationToken: cancellationToken);
 
         return ApiResponse<AdminDashboardResponse>.Ok(new AdminDashboardResponse
         {
@@ -58,7 +63,7 @@ public class AdminDashboardService : IAdminDashboardService
                 PendingProducts = products.Count(x => x.Status.ToString() == "Pending"),
                 PendingPriceSubmissions = pendingPrices.Count,
                 FlaggedPriceSubmissions = prices.Count(x => x.Status.ToString() == "Flagged"),
-                PendingContactMessages = 0
+                PendingContactMessages = newContactMessages + inProgressContactMessages
             },
             PeakHours = visits
                 .GroupBy(x => x.VisitedAt.Hour)

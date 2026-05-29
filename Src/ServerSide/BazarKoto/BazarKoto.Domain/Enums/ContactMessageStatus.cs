@@ -4,7 +4,9 @@ namespace BazarKoto.Domain.Enums
     {
         New,
         Read,
+        InProgress,
         Resolved,
-        Archived
+        Archived,
+        Spam
     }
 }

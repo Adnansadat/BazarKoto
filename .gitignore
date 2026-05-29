@@ -1,3 +1,4 @@
+```gitignore
 # General
 .DS_Store
 Thumbs.db
@@ -44,6 +45,24 @@ appsettings.Development.json
 appsettings.Production.json
 secrets.json
 
+# User uploaded / generated files
+wwwroot/uploads/
+wwwroot/attachments/
+wwwroot/contact-attachments/
+
+# Uploaded image files inside wwwroot
+wwwroot/**/*.png
+wwwroot/**/*.jpg
+wwwroot/**/*.jpeg
+wwwroot/**/*.webp
+
+# But keep static project assets if needed
+!wwwroot/assets/
+!wwwroot/assets/**
+!wwwroot/images/
+!wwwroot/images/**
+
 # Keep safe examples
 !appsettings.example.json
 !.env.example
+```

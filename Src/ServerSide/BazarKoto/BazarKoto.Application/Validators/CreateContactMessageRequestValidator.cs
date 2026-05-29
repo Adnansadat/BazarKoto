@@ -7,9 +7,24 @@ public class CreateContactMessageRequestValidator : AbstractValidator<CreateCont
 {
     public CreateContactMessageRequestValidator()
     {
-        RuleFor(x => x.Name).NotEmpty();
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Subject).NotEmpty();
-        RuleFor(x => x.Message).NotEmpty();
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .MinimumLength(2)
+            .MaximumLength(80);
+
+        RuleFor(x => x.Email)
+            .NotEmpty()
+            .EmailAddress()
+            .MaximumLength(120);
+
+        RuleFor(x => x.Subject)
+            .NotEmpty()
+            .MinimumLength(5)
+            .MaximumLength(150);
+
+        RuleFor(x => x.Message)
+            .NotEmpty()
+            .MinimumLength(20)
+            .MaximumLength(2000);
     }
 }

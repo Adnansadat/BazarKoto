@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 
 import { Api } from './api';
 
@@ -26,6 +26,8 @@ export class Auth {
   private readonly emailKey = 'bazarKoto.email';
   private readonly roleKey = 'bazarKoto.role';
   private readonly expiresAtKey = 'bazarKoto.expiresAt';
+  private readonly adminState = new BehaviorSubject<boolean>(this.isCurrentAdmin());
+  readonly isAdmin$ = this.adminState.asObservable();
 
   constructor(private readonly api: Api) {}
 
@@ -37,6 +39,7 @@ export class Auth {
         localStorage.setItem(this.emailKey, response.email);
         localStorage.setItem(this.roleKey, response.role);
         localStorage.setItem(this.expiresAtKey, response.expiresAt);
+        this.adminState.next(this.isCurrentAdmin());
       })
     );
   }
@@ -47,6 +50,15 @@ export class Auth {
     localStorage.removeItem(this.emailKey);
     localStorage.removeItem(this.roleKey);
     localStorage.removeItem(this.expiresAtKey);
+    this.adminState.next(false);
+  }
+
+  logoutFromServer(): Observable<void> {
+    return this.api.postResponse<object>('/Auth/logout', {}).pipe(
+      map(() => undefined),
+      catchError(() => of(undefined)),
+      tap(() => this.logout())
+    );
   }
 
   isAuthenticated(): boolean {
@@ -82,5 +94,9 @@ export class Auth {
 
   hasRole(role: string): boolean {
     return localStorage.getItem(this.roleKey) === role;
+  }
+
+  isCurrentAdmin(): boolean {
+    return this.isAuthenticated() && this.hasRole('Admin');
   }
 }

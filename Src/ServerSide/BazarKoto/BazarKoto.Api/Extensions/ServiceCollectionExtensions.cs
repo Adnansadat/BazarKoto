@@ -65,6 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddInfrastructure(configuration);
         services.AddHttpContextAccessor();
         services.AddScoped<IUserTrackingRequestContextAccessor, HttpUserTrackingRequestContextAccessor>();
+        services.AddScoped<IContactScreenshotStorage, ContactScreenshotStorage>();
         services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
         services.AddJwtAuthentication(configuration);
         services.AddAuthorization();

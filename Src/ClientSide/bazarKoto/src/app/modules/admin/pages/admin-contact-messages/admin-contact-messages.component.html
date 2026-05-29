@@ -1,0 +1,166 @@
+<main class="admin-contact-page">
+  <section class="admin-hero">
+    <div>
+      <span>Admin inbox</span>
+      <h1>Contact Messages</h1>
+      <p>Review user reports, feedback, and support requests submitted from the public contact page.</p>
+    </div>
+    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut">
+      {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+    </button>
+  </section>
+
+  <section class="admin-layout">
+    <article class="list-panel">
+      <div class="filters">
+        <label>
+          <span>Search</span>
+          <input
+            type="search"
+            [(ngModel)]="search"
+            placeholder="Name, email, subject, or message"
+            (keyup.enter)="applyFilters()" />
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select [(ngModel)]="status" (change)="applyFilters()">
+            <option *ngFor="let option of statuses" [value]="option">
+              {{ option || 'All statuses' }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>From</span>
+          <input type="date" [(ngModel)]="dateFrom" (change)="applyFilters()" />
+        </label>
+
+        <label>
+          <span>To</span>
+          <input type="date" [(ngModel)]="dateTo" (change)="applyFilters()" />
+        </label>
+
+        <label>
+          <span>Page size</span>
+          <select [(ngModel)]="pageSize" (change)="changePageSize()">
+            <option *ngFor="let option of pageSizeOptions" [ngValue]="option">{{ option }}</option>
+          </select>
+        </label>
+
+        <div class="filter-actions">
+          <button type="button" (click)="applyFilters()">Apply</button>
+          <button class="ghost-button" type="button" (click)="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <p class="state" *ngIf="isLoadingList">Loading contact messages...</p>
+      <p class="state error" *ngIf="listError">{{ listError }}</p>
+
+      <div class="message-table" *ngIf="!isLoadingList && !listError">
+        <button
+          type="button"
+          class="message-row"
+          *ngFor="let message of messages"
+          [class.active]="selectedMessage?.id === message.id"
+          (click)="openMessage(message)">
+          <span class="message-created">{{ formatDate(message.createdAt) }}</span>
+          <strong class="message-name">{{ message.name }}</strong>
+          <span class="message-email">{{ message.email }}</span>
+          <span class="message-subject">{{ message.subject }}</span>
+          <span class="message-preview">{{ message.messagePreview || '-' }}</span>
+          <em class="message-status" [ngClass]="message.status.toLowerCase()">{{ message.status }}</em>
+          <span class="message-image">{{ message.hasScreenshot ? 'Image' : '-' }}</span>
+        </button>
+
+        <p class="state" *ngIf="messages.length === 0">No contact messages found.</p>
+      </div>
+
+      <div class="pagination" *ngIf="totalPages > 1">
+        <span>Page {{ pageNumber }} of {{ totalPages }} · {{ totalCount }} total</span>
+        <div>
+          <button type="button" (click)="previousPage()" [disabled]="pageNumber === 1">Previous</button>
+          <button type="button" (click)="nextPage()" [disabled]="pageNumber === totalPages">Next</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="detail-panel">
+      <div class="detail-scroll">
+        <p class="state" *ngIf="isLoadingDetail">Loading message detail...</p>
+        <p class="state error" *ngIf="detailError">{{ detailError }}</p>
+
+        <ng-container *ngIf="selectedMessage; else emptyDetail">
+          <header>
+            <span [ngClass]="selectedMessage.status.toLowerCase()">{{ selectedMessage.status }}</span>
+            <h2>{{ selectedMessage.subject }}</h2>
+            <p>{{ selectedMessage.name }} · {{ selectedMessage.email }}</p>
+          </header>
+
+          <div class="message-body">
+            {{ selectedMessage.message }}
+          </div>
+
+          <div class="screenshot-preview" *ngIf="screenshotUrl(selectedMessage) as imageUrl">
+            <img [src]="imageUrl" [alt]="selectedMessage.screenshotOriginalFileName || 'Contact message image'" />
+            <a [href]="imageUrl" target="_blank" rel="noopener">
+              Open image
+            </a>
+          </div>
+          <div class="image-meta" *ngIf="selectedMessage.screenshotUrl">
+            <span>{{ selectedMessage.screenshotOriginalFileName || selectedMessage.screenshotFileName || 'Attached image' }}</span>
+            <span>{{ selectedMessage.screenshotContentType || '-' }}</span>
+            <span>{{ formatBytes(selectedMessage.screenshotSizeBytes) }}</span>
+          </div>
+          <p class="state error" *ngIf="screenshotError">{{ screenshotError }}</p>
+
+          <div class="detail-actions">
+            <label>
+              <span>Status</span>
+              <select [(ngModel)]="selectedStatus">
+                <option *ngFor="let option of statuses.slice(1)" [value]="option">{{ option }}</option>
+              </select>
+            </label>
+            <button type="button" (click)="saveStatus()" [disabled]="isSavingStatus">
+              {{ isSavingStatus ? 'Saving...' : 'Save status' }}
+            </button>
+            <a [href]="replyUrl(selectedMessage)">Reply</a>
+          </div>
+
+          <label class="note-field">
+            <span>Admin note</span>
+            <textarea rows="5" maxlength="1000" [(ngModel)]="adminNote"></textarea>
+            <small>{{ adminNote.length }} / 1000</small>
+          </label>
+          <button type="button" (click)="saveNote()" [disabled]="isSavingNote || adminNote.length > 1000">
+            {{ isSavingNote ? 'Saving...' : 'Save note' }}
+          </button>
+
+          <details class="metadata">
+            <summary>Metadata</summary>
+            <dl>
+              <div><dt>Created</dt><dd>{{ formatDate(selectedMessage.createdAt) }}</dd></div>
+              <div><dt>Updated</dt><dd>{{ formatDate(selectedMessage.updatedAt) }}</dd></div>
+              <div><dt>Read</dt><dd>{{ formatDate(selectedMessage.readAt) }}</dd></div>
+              <div><dt>Resolved</dt><dd>{{ formatDate(selectedMessage.resolvedAt) }}</dd></div>
+              <div><dt>IP</dt><dd>{{ selectedMessage.ipAddress || '-' }}</dd></div>
+              <div><dt>User agent</dt><dd>{{ selectedMessage.userAgent || '-' }}</dd></div>
+              <div><dt>Browser</dt><dd>{{ selectedMessage.browserName || '-' }}</dd></div>
+              <div><dt>Device</dt><dd>{{ selectedMessage.deviceType || '-' }}</dd></div>
+              <div><dt>OS</dt><dd>{{ selectedMessage.os || '-' }}</dd></div>
+              <div><dt>Image name</dt><dd>{{ selectedMessage.screenshotOriginalFileName || selectedMessage.screenshotFileName || '-' }}</dd></div>
+              <div><dt>Image type</dt><dd>{{ selectedMessage.screenshotContentType || '-' }}</dd></div>
+              <div><dt>Image size</dt><dd>{{ formatBytes(selectedMessage.screenshotSizeBytes) }}</dd></div>
+            </dl>
+          </details>
+
+          <p class="state success" *ngIf="statusMessage">{{ statusMessage }}</p>
+        </ng-container>
+
+        <ng-template #emptyDetail>
+          <p class="state">Select a message to view details.</p>
+        </ng-template>
+      </div>
+    </article>
+  </section>
+</main>

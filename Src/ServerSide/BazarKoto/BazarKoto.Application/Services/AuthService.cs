@@ -68,8 +68,18 @@ public class AuthService : IAuthService
         return Task.FromResult(ApiResponse<LoginResponse>.Fail("Token refresh is not configured yet."));
     }
 
-    public Task<ApiResponse<object>> LogoutAsync(CancellationToken cancellationToken = default)
+    public async Task<ApiResponse<object>> LogoutAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(ApiResponse<object>.Ok(new object(), "Logged out."));
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is not null)
+        {
+            user.RefreshTokenHash = null;
+            user.RefreshTokenExpiresAt = null;
+            _userRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return ApiResponse<object>.Ok(new object(), "Logged out.");
     }
 }

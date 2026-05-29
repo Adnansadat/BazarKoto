@@ -57,6 +57,15 @@ export class Api {
       );
   }
 
+  getBlob(path: string): Observable<Blob> {
+    return this.http
+      .get(this.buildUrl(path), {
+        headers: this.buildHeaders(),
+        responseType: 'blob',
+      })
+      .pipe(catchError(error => this.handleError(error)));
+  }
+
   post<T>(path: string, body: unknown): Observable<T> {
     return this.http
       .post<ApiResponse<T>>(this.buildUrl(path), body, { headers: this.buildHeaders() })
@@ -75,6 +84,15 @@ export class Api {
   put<T>(path: string, body: unknown): Observable<T> {
     return this.http
       .put<ApiResponse<T>>(this.buildUrl(path), body, { headers: this.buildHeaders() })
+      .pipe(
+        map(response => this.unwrap(response)),
+        catchError(error => this.handleError(error)),
+      );
+  }
+
+  patch<T>(path: string, body: unknown): Observable<T> {
+    return this.http
+      .patch<ApiResponse<T>>(this.buildUrl(path), body, { headers: this.buildHeaders() })
       .pipe(
         map(response => this.unwrap(response)),
         catchError(error => this.handleError(error)),

@@ -8,6 +8,9 @@
         price records that keep BazarKoto reliable.
       </p>
     </div>
+    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut">
+      {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+    </button>
   </section>
 
   <section class="dashboard-section" aria-labelledby="traffic-title">
@@ -44,15 +47,33 @@
       <p class="dashboard-state" *ngIf="isLoading">Loading peak hours...</p>
 
       <div class="list-table" *ngIf="!isLoading && !errorMessage">
-        <div *ngIf="peakHours.length === 0">
+        <div class="empty-row" *ngIf="peakHours.length === 0">
           <strong>0</strong>
           <span>visits</span>
           <em>No peak hour data yet</em>
         </div>
-        <div *ngFor="let hour of peakHours">
+        <div *ngFor="let hour of pagedPeakHours">
           <strong>{{ hour.time }}</strong>
           <span>{{ hour.visits }} visits</span>
           <em>{{ hour.share }}</em>
+        </div>
+      </div>
+
+      <div class="peak-pagination" *ngIf="!isLoading && !errorMessage && shouldShowPeakHoursPagination">
+        <span>Page {{ peakHoursPage }} of {{ peakHoursPageCount }}</span>
+        <div>
+          <button
+            type="button"
+            (click)="goToPreviousPeakHoursPage()"
+            [disabled]="peakHoursPage === 1">
+            Previous
+          </button>
+          <button
+            type="button"
+            (click)="goToNextPeakHoursPage()"
+            [disabled]="peakHoursPage === peakHoursPageCount">
+            Next
+          </button>
         </div>
       </div>
     </article>
@@ -68,7 +89,11 @@
       <p class="dashboard-state" *ngIf="isLoading">Loading moderation queue...</p>
 
       <div class="queue-list" *ngIf="!isLoading && !errorMessage">
-        <button type="button" *ngFor="let item of moderationQueue">
+        <button
+          type="button"
+          *ngFor="let item of moderationQueue"
+          [class.clickable]="item.route"
+          (click)="openQueueItem(item)">
           <span>{{ item.label }}</span>
           <strong>{{ item.count }}</strong>
           <em>{{ item.helper }}</em>

@@ -40,20 +40,34 @@
 .contact-card,
 .contact-form {
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 20px;
   padding: 24px;
   background: white;
 }
 
+.contact-card {
+  border: 1px solid rgba(20, 83, 45, 0.13);
+  background:
+    linear-gradient(135deg, rgba(240, 253, 244, 0.92), rgba(255, 247, 237, 0.82)),
+    #ffffff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+}
+
 .contact-card h2 {
-  margin-top: 0;
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 500;
 }
 
 .contact-card div {
   display: grid;
   gap: 6px;
-  padding: 14px 0;
-  border-bottom: 1px solid #e2e8f0;
+  margin-top: 14px;
+  border: 1px solid rgba(20, 83, 45, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .contact-card span,
@@ -66,9 +80,11 @@
 .contact-form {
   display: grid;
   gap: 18px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.06);
 }
 
-label {
+label,
+.screenshot-field {
   display: grid;
   gap: 8px;
 }
@@ -89,6 +105,7 @@ input {
 textarea {
   min-height: 140px;
   padding-top: 14px;
+  resize: vertical;
 }
 
 button {
@@ -100,6 +117,116 @@ button {
   background: #0f766e;
   color: white;
   font-weight: 800;
+  cursor: pointer;
+}
+
+.contact-form > button[type="submit"] {
+  justify-self: end;
+}
+
+button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #fca5a5;
+}
+
+.field-helper,
+.character-count,
+.selected-file {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.character-count {
+  justify-self: end;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.screenshot-field > input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.attachment-panel {
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background:
+    linear-gradient(135deg, rgba(248, 250, 252, 0.96), rgba(240, 253, 244, 0.72)),
+    #ffffff;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.screenshot-field.has-file .attachment-panel {
+  border-color: #99f6e4;
+  background:
+    linear-gradient(135deg, rgba(240, 253, 244, 0.92), rgba(255, 247, 237, 0.74)),
+    #ffffff;
+  box-shadow: 0 12px 28px rgba(15, 118, 110, 0.08);
+}
+
+.attachment-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.attachment-copy span {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.screenshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.secondary-button {
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #047857;
+  font-weight: 500;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.secondary-button:hover {
+  border-color: #10b981;
+  background: #dcfce7;
+  transform: translateY(-1px);
+}
+
+.secondary-button.muted {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
 }
 
 .status-message {
@@ -110,8 +237,55 @@ button {
 
 .error-message {
   margin: 0;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fef2f2;
   color: #b91c1c;
-  font-weight: 800;
+}
+
+.error-message p,
+.error-message ul {
+  margin: 0;
+}
+
+.error-message ul {
+  padding-left: 18px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.success-modal {
+  width: min(440px, 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 24px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+}
+
+.success-modal h2 {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.success-modal p {
+  margin: 0 0 18px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.success-modal button {
+  min-width: 84px;
 }
 
 @media (max-width: 900px) {
@@ -122,5 +296,27 @@ button {
   .contact-grid {
     margin-top: 24px;
     grid-template-columns: 1fr;
+  }
+
+  .attachment-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-card,
+  .contact-form,
+  .success-modal {
+    padding: 18px;
+  }
+
+  button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .contact-form > button[type="submit"] {
+    justify-self: stretch;
   }
 }

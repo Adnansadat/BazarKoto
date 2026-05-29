@@ -1,5 +1,6 @@
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Contracts.Common;
+using BazarKoto.Contracts.Contact;
 using BazarKoto.Contracts.Markets;
 using BazarKoto.Contracts.Products;
 using Microsoft.AspNetCore.Authorization;
@@ -17,19 +18,25 @@ public class AdminController : ControllerBase
     private readonly IMarketService _marketService;
     private readonly IProductService _productService;
     private readonly IPriceService _priceService;
+    private readonly IContactService _contactService;
+    private readonly IWebHostEnvironment _environment;
 
     public AdminController(
         IAdminDashboardService dashboardService,
         IAnalyticsService analyticsService,
         IMarketService marketService,
         IProductService productService,
-        IPriceService priceService)
+        IPriceService priceService,
+        IContactService contactService,
+        IWebHostEnvironment environment)
     {
         _dashboardService = dashboardService;
         _analyticsService = analyticsService;
         _marketService = marketService;
         _productService = productService;
         _priceService = priceService;
+        _contactService = contactService;
+        _environment = environment;
     }
 
     [HttpGet("dashboard")]
@@ -102,5 +109,58 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> RejectPrice(Guid id, [FromQuery] string? reason, CancellationToken cancellationToken)
     {
         return Ok(await _priceService.RejectPriceAsync(id, reason, cancellationToken));
+    }
+
+    [HttpGet("ContactMessages")]
+    public async Task<IActionResult> GetContactMessages([FromQuery] ContactMessageSearchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _contactService.GetContactMessagesAsync(request, cancellationToken));
+    }
+
+    [HttpGet("ContactMessages/{id:guid}")]
+    public async Task<IActionResult> GetContactMessage(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await _contactService.GetContactMessageAsync(id, cancellationToken));
+    }
+
+    [HttpGet("ContactMessages/{id:guid}/screenshot")]
+    public async Task<IActionResult> GetContactMessageScreenshot(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _contactService.GetContactMessageAsync(id, cancellationToken);
+
+        if (!response.Success || response.Data is null)
+        {
+            return NotFound(response);
+        }
+
+        if (string.IsNullOrWhiteSpace(response.Data.ScreenshotFileName))
+        {
+            return NotFound(ApiResponse<object>.Fail("Screenshot was not found."));
+        }
+
+        var webRootPath = string.IsNullOrWhiteSpace(_environment.WebRootPath)
+            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
+            : _environment.WebRootPath;
+        var uploadRoot = Path.GetFullPath(Path.Combine(webRootPath, "uploads", "contact-screenshots"));
+        var filePath = Path.GetFullPath(Path.Combine(uploadRoot, response.Data.ScreenshotFileName));
+
+        if (!filePath.StartsWith(uploadRoot, StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(filePath))
+        {
+            return NotFound(ApiResponse<object>.Fail("Screenshot was not found."));
+        }
+
+        return PhysicalFile(filePath, response.Data.ScreenshotContentType ?? "application/octet-stream");
+    }
+
+    [HttpPatch("ContactMessages/{id:guid}/status")]
+    public async Task<IActionResult> UpdateContactMessageStatus(Guid id, UpdateContactMessageStatusRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _contactService.UpdateContactMessageStatusAsync(id, request, cancellationToken));
+    }
+
+    [HttpPatch("ContactMessages/{id:guid}/note")]
+    public async Task<IActionResult> UpdateContactMessageNote(Guid id, UpdateContactMessageNoteRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _contactService.UpdateContactMessageNoteAsync(id, request, cancellationToken));
     }
 }

@@ -4,6 +4,7 @@ using BazarKoto.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BazarKoto.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BazarKotoDbContext))]
-    partial class BazarKotoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529172019_AddContactMessageScreenshotFields")]
+    partial class AddContactMessageScreenshotFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

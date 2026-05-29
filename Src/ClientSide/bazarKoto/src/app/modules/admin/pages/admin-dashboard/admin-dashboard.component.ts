@@ -17,6 +17,7 @@ interface AdminQueueItem {
   label: string;
   count: number;
   helper: string;
+  route?: string;
 }
 
 interface PeakHour {
@@ -67,11 +68,14 @@ interface AdminDashboardResponse {
   styleUrl: './admin-dashboard.component.scss',
 })
 export class AdminDashboardComponent implements OnInit {
+  readonly peakHoursPageSize = 5;
   isLoading = true;
+  isLoggingOut = false;
   errorMessage = '';
   trafficMetrics: DashboardMetric[] = [];
   dataMetrics: DashboardMetric[] = [];
   peakHours: PeakHour[] = [];
+  peakHoursPage = 1;
   moderationQueue: AdminQueueItem[] = [];
 
   readonly managementAreas: ManagementArea[] = [
@@ -119,6 +123,7 @@ export class AdminDashboardComponent implements OnInit {
 
   private bindDashboard(dashboard: AdminDashboardResponse): void {
     const peakHour = dashboard.peakHours[0];
+    this.peakHoursPage = 1;
 
     this.trafficMetrics = [
       {
@@ -200,8 +205,51 @@ export class AdminDashboardComponent implements OnInit {
         label: 'User support messages',
         count: dashboard.moderation.pendingContactMessages,
         helper: 'Contact and correction requests',
+        route: '/admin/messages',
       },
     ];
+  }
+
+  openQueueItem(item: AdminQueueItem): void {
+    if (item.route) {
+      void this.router.navigate([item.route]);
+    }
+  }
+
+  logout(): void {
+    if (this.isLoggingOut) {
+      return;
+    }
+
+    this.isLoggingOut = true;
+    this.auth.logoutFromServer().subscribe({
+      next: () => void this.router.navigate(['/admin']),
+      error: () => {
+        this.auth.logout();
+        void this.router.navigate(['/admin']);
+      },
+    });
+  }
+
+  get pagedPeakHours(): PeakHour[] {
+    const startIndex = (this.peakHoursPage - 1) * this.peakHoursPageSize;
+    return this.peakHours.slice(startIndex, startIndex + this.peakHoursPageSize);
+  }
+
+  get peakHoursPageCount(): number {
+    return Math.ceil(this.peakHours.length / this.peakHoursPageSize);
+  }
+
+  get shouldShowPeakHoursPagination(): boolean {
+    return this.peakHours.length > this.peakHoursPageSize;
+  }
+
+  goToPreviousPeakHoursPage(): void {
+    this.peakHoursPage = Math.max(1, this.peakHoursPage - 1);
+  }
+
+  goToNextPeakHoursPage(): void {
+    this.peakHoursPage = Math.min(this.peakHoursPageCount, this.peakHoursPage + 1);
   }
 
   private handleLoadError(error: unknown): void {

@@ -1,7 +1,14 @@
 .admin-dashboard-page {
   min-height: calc(100vh - 78px);
-  padding: 40px 20px 72px;
-  background: #f8fafc;
+  padding: 44px 20px 74px;
+  background:
+    radial-gradient(circle at top left, rgba(251, 146, 60, 0.12), transparent 34rem),
+    linear-gradient(180deg, #fffaf3 0%, #f8fafc 34%, #f8fafc 100%);
+  font-family: inherit;
+}
+
+.admin-dashboard-page strong {
+  font-weight: 500;
 }
 
 .dashboard-hero,
@@ -15,14 +22,54 @@
 .panel,
 .metric-card,
 .management-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.06);
 }
 
 .dashboard-hero {
-  padding: 30px;
+  position: relative;
+  padding: 26px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  background:
+    linear-gradient(135deg, rgba(240, 253, 244, 0.92), rgba(255, 247, 237, 0.82)),
+    #ffffff;
+  border-color: rgba(20, 83, 45, 0.13);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.admin-logout-button {
+  align-self: flex-start;
+  min-height: 40px;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 999px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #0f766e;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.admin-logout-button:hover:not(:disabled) {
+  border-color: #0f766e;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.admin-logout-button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 .dashboard-hero span,
@@ -30,15 +77,16 @@
 .metric-card span {
   color: #ea580c;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 500;
   text-transform: uppercase;
 }
 
 .dashboard-hero h1 {
   max-width: 760px;
-  margin: 10px 0;
-  color: #0f172a;
-  font-size: clamp(32px, 4vw, 44px);
+  margin: 8px 0;
+  color: #020617;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: 0;
 }
@@ -49,19 +97,20 @@
 .list-table span,
 .queue-list em {
   margin: 0;
-  color: #64748b;
-  line-height: 1.6;
+  color: #475569;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 .dashboard-section {
   margin-top: 20px;
-  padding: 26px;
+  padding: 24px;
 }
 
 .dashboard-state {
   margin: 0;
   color: #64748b;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .dashboard-state.error {
@@ -81,21 +130,25 @@
 }
 
 .section-heading h2 {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   color: #0f172a;
-  font-size: 24px;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 500;
   line-height: 1.2;
 }
 
 .section-heading button,
-.management-card button {
-  min-height: 42px;
-  border: 0;
-  border-radius: 8px;
-  padding: 0 14px;
-  background: #0f766e;
-  color: white;
-  font-weight: 800;
+.management-card button,
+.peak-pagination button {
+  min-height: 40px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 0 15px;
+  background: #f0fdf4;
+  color: #047857;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -106,14 +159,15 @@
 
 .section-heading button:hover,
 .management-card button:hover,
-.queue-list button:hover,
-.metric-card:hover,
-.management-card:hover {
+.peak-pagination button:hover:not(:disabled) {
+  border-color: #10b981;
+  background: #dcfce7;
   transform: translateY(-1px);
 }
 
-.section-heading button:hover {
-  box-shadow: 0 10px 22px rgba(15, 118, 110, 0.18);
+.peak-pagination button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
 }
 
 .metric-grid {
@@ -123,7 +177,7 @@
 }
 
 .metric-card {
-  padding: 18px;
+  padding: 17px;
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -136,13 +190,15 @@
 .list-table div:hover {
   border-color: #cbd5e1;
   box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .metric-card strong {
   display: block;
-  margin: 10px 0 6px;
+  margin: 9px 0 6px;
   color: #0f766e;
   font-size: 28px;
+  font-weight: 500;
   line-height: 1.1;
 }
 
@@ -152,7 +208,7 @@
   color: #334155;
   font-size: 13px;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: 0;
 }
 
@@ -163,10 +219,11 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   background: transparent;
+  box-shadow: none;
 }
 
 .panel {
-  padding: 26px;
+  padding: 24px;
 }
 
 .list-table,
@@ -178,9 +235,9 @@
 .list-table div,
 .queue-list button {
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px;
-  background: #fff;
+  border-radius: 14px;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, #ffffff, #f8fffc);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -196,20 +253,27 @@
 .list-table strong,
 .queue-list span {
   color: #0f172a;
-  font-weight: 900;
+  font-weight: 500;
 }
 
 .list-table em {
   grid-column: 1 / -1;
   color: #0f766e;
+  font-size: 13px;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 400;
+}
+
+.list-table .empty-row {
+  background: linear-gradient(135deg, #f8fafc, #f0fdf4);
 }
 
 .queue-list button {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 4px 12px;
+  color: inherit;
+  font: inherit;
   text-align: left;
   cursor: pointer;
 }
@@ -217,11 +281,29 @@
 .queue-list strong {
   color: #ea580c;
   font-size: 22px;
+  font-weight: 500;
 }
 
 .queue-list em {
   grid-column: 1 / -1;
+  font-size: 13px;
   font-style: normal;
+}
+
+.peak-pagination {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.peak-pagination div {
+  display: flex;
+  gap: 8px;
 }
 
 .management-grid {
@@ -231,7 +313,7 @@
 }
 
 .management-card {
-  padding: 22px;
+  padding: 20px;
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -241,7 +323,8 @@
 .management-card h3 {
   margin: 0 0 8px;
   color: #0f172a;
-  font-size: 20px;
+  font-size: 19px;
+  font-weight: 500;
   line-height: 1.25;
 }
 
@@ -254,9 +337,7 @@
 
 .management-card button {
   min-height: 38px;
-  background: #f0fdfa;
-  color: #0f766e;
-  border: 1px solid #99f6e4;
+  border-radius: 8px;
 }
 
 button:focus-visible {
@@ -276,12 +357,38 @@ button:focus-visible {
 }
 
 @media (max-width: 640px) {
+  .admin-dashboard-page {
+    padding: 28px 14px 56px;
+  }
+
+  .dashboard-hero,
+  .dashboard-section,
+  .panel {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .section-heading,
   .list-table div,
-  .queue-list button {
+  .queue-list button,
+  .peak-pagination {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .peak-pagination div {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .peak-pagination button {
+    flex: 1;
   }
 
   .metric-grid,
