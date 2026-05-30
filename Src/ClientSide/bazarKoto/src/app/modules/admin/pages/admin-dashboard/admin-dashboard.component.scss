@@ -1,10 +1,7 @@
 .admin-dashboard-page {
   min-height: calc(100vh - 78px);
   padding: 44px 20px 74px;
-  background:
-    radial-gradient(circle at top left, rgba(251, 146, 60, 0.12), transparent 34rem),
-    linear-gradient(180deg, #fffaf3 0%, #f8fafc 34%, #f8fafc 100%);
-  font-family: inherit;
+  background: linear-gradient(180deg, #fffaf3 0%, #f8fafc 34%, #f8fafc 100%);
 }
 
 .admin-dashboard-page strong {
@@ -34,12 +31,7 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  background:
-    linear-gradient(135deg, rgba(240, 253, 244, 0.92), rgba(255, 247, 237, 0.82)),
-    #ffffff;
-  border-color: rgba(20, 83, 45, 0.13);
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
-  overflow: hidden;
+  background: linear-gradient(135deg,#f0fdf4,#fff7ed);
 }
 
 .admin-logout-button {
@@ -54,11 +46,6 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
 }
 
 .admin-logout-button:hover:not(:disabled) {
@@ -143,7 +130,8 @@
 
 .section-heading button,
 .management-card button,
-.peak-pagination button {
+.peak-pagination button,
+.price-management-workspace header button {
   min-height: 40px;
   border: 1px solid #bbf7d0;
   border-radius: 999px;
@@ -154,19 +142,14 @@
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
 }
 
 .section-heading button:hover,
 .management-card button:hover,
-.peak-pagination button:hover:not(:disabled) {
+.peak-pagination button:hover:not(:disabled),
+.price-management-workspace header button:hover {
   border-color: #10b981;
   background: #dcfce7;
-  transform: translateY(-1px);
 }
 
 .section-heading button:disabled,
@@ -183,10 +166,6 @@
 
 .metric-card {
   padding: 17px;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
 }
 
 .metric-card:hover,
@@ -195,7 +174,6 @@
 .list-table div:hover {
   border-color: #cbd5e1;
   box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
-  transform: translateY(-1px);
 }
 
 .metric-card strong {
@@ -215,7 +193,6 @@
   font-size: 13px;
   font-style: normal;
   font-weight: 500;
-  letter-spacing: 0;
 }
 
 .split-grid {
@@ -232,6 +209,11 @@
   padding: 24px;
 }
 
+.mod-panel {
+  display: flex;
+  flex-direction: column;
+}
+
 .list-table,
 .queue-list {
   display: grid;
@@ -243,11 +225,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 13px 14px;
-  background: linear-gradient(135deg, #ffffff, #f8fffc);
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
+  background: linear-gradient(135deg,#f0fdf4,#fff7ed);
 }
 
 .list-table div {
@@ -268,11 +246,6 @@
   color: #0f766e;
   font-size: 13px;
   font-style: normal;
-  font-weight: 400;
-}
-
-.list-table .empty-row {
-  background: linear-gradient(135deg, #f8fafc, #f0fdf4);
 }
 
 .queue-list button {
@@ -306,7 +279,6 @@
   gap: 14px;
   color: #334155;
   font-size: 14px;
-  font-weight: 400;
 }
 
 .peak-pagination div {
@@ -318,16 +290,13 @@
 
 .management-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
 .management-card {
   padding: 20px;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
+  background: linear-gradient(135deg,#f0fdf4,#fff7ed)
 }
 
 .management-card h3 {
@@ -335,24 +304,337 @@
   color: #0f172a;
   font-size: 19px;
   font-weight: 500;
-  line-height: 1.25;
 }
 
 .management-card div {
   margin-top: 16px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  justify-content: flex-end;
 }
 
 .management-card button {
   min-height: 38px;
-  border-radius: 8px;
+  border-radius: 8px
 }
 
-button:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.22);
-  outline-offset: 2px;
+.price-management-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 18px;
+  background: rgba(248, 250, 252, 0.94);
+  overflow: auto;
+}
+
+.price-management-workspace {
+  min-height: calc(100vh - 36px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 22px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.price-management-workspace header {
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(135deg, rgba(240, 253, 244, 0.92), rgba(255, 247, 237, 0.74));
+}
+
+.price-management-workspace header span {
+  color: #ea580c;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.price-management-workspace header h2 {
+  margin: 6px 0 6px;
+  color: #0f172a;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.price-management-workspace header p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.price-management-content {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.price-management-filters,
+.price-management-table-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+}
+
+.price-management-filters {
+  padding: 20px;
+  background: #f8fffc;
+}
+
+.filter-card-heading {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.filter-card-heading h3 {
+  margin: 0 0 5px;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.filter-card-heading p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.filter-card-heading button {
+  min-height: 38px;
+  border: 1px solid rgba(234, 88, 12, 0.22);
+  border-radius: 8px;
+  padding: 0 14px;
+  background: #fff7ed;
+  color: #ea580c;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.price-management-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.5fr);
+  gap: 12px;
+}
+
+.price-management-filter-grid label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.price-management-filter-grid input,
+.price-management-filter-grid select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #dbe7e2;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #0f172a;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.price-management-filter-grid input:focus,
+.price-management-filter-grid select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.price-management-table-card {
+  padding: 18px;
+}
+
+.table-status {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.table-status.error {
+  color: #b91c1c;
+}
+
+.table-status.success {
+  color: #047857;
+}
+
+.admin-price-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-price-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 940px;
+}
+
+.admin-price-table-wrap th,
+.admin-price-table-wrap td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  font-size: 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-price-table-wrap th {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.admin-price-table-wrap td strong {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.admin-price-table-wrap td span,
+.admin-price-table-wrap td small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.status-pill {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: #f0fdf4;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.price-edit-button {
+  min-height: 34px;
+  border: 1px solid rgba(234, 88, 12, 0.22);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff7ed;
+  color: #ea580c;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.price-edit-button:hover {
+  border-color: #fb923c;
+  background: #ffedd5;
+}
+
+.pagination-bar {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.page-summary {
+  display: grid;
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pagination-bar button {
+  min-height: 36px;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #f0fdf4;
+  color: #047857;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pagination-bar button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+}
+
+.price-edit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1010;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.price-edit-card {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.price-edit-card header,
+.price-edit-card footer {
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.price-edit-card header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.price-edit-card h3,
+.price-edit-card p {
+  margin: 0;
+}
+
+.price-edit-card p {
+  margin-top: 10px;
+}
+
+.price-edit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 18px;
+}
+
+.readonly-field {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.submitted-field {
+  grid-column: 1 / -1;
+}
+
+.price-edit-card footer {
+  border-top: 1px solid #e2e8f0;
+  align-items: center;
 }
 
 @media (max-width: 1000px) {
@@ -386,10 +668,36 @@ button:focus-visible {
   .section-heading,
   .list-table div,
   .queue-list button,
-  .peak-pagination {
+  .peak-pagination,
+  .price-management-workspace header {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .price-management-modal {
+    padding: 10px;
+  }
+
+  .price-management-workspace {
+    min-height: calc(100vh - 20px);
+    border-radius: 18px;
+  }
+
+  .price-management-workspace header,
+  .price-management-content {
+    padding: 18px;
+  }
+
+  .filter-card-heading,
+  .price-management-filter-grid,
+  .price-edit-grid,
+  .price-edit-card header,
+  .price-edit-card footer,
+  .pagination-bar {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .peak-pagination div {

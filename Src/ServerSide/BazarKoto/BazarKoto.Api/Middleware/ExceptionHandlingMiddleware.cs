@@ -23,6 +23,10 @@ public class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            _logger.LogDebug("Request was cancelled by the client.");
+        }
         catch (Exception exception)
         {
             _logger.LogError(exception, "Unhandled API exception.");

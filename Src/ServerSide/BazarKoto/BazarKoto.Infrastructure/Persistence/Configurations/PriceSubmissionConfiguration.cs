@@ -18,6 +18,10 @@ public class PriceSubmissionConfiguration : IEntityTypeConfiguration<PriceSubmis
         builder.Property(x => x.Status).HasConversion<string>().IsRequired().HasMaxLength(64);
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.HasIndex(x => x.PriceDate);
+        builder.HasIndex(x => x.CreatedAt);
+        builder.HasIndex(x => new { x.Status, x.CreatedAt });
+        builder.HasIndex(x => new { x.MarketId, x.CreatedAt });
+        builder.HasIndex(x => new { x.ProductId, x.CreatedAt });
         builder.HasIndex(x => new { x.UnionOrWardId, x.ProductId, x.PriceDate });
         builder.HasIndex(x => new { x.UnionOrWardId, x.MarketId, x.PriceDate });
         builder.HasIndex(x => new { x.MarketId, x.ProductId, x.PriceDate });

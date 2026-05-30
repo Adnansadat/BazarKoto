@@ -1,5 +1,6 @@
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Application.Services;
+using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Prices;
 using BazarKoto.Contracts.UserTracking;
 using BazarKoto.Domain.Entities;
@@ -280,6 +281,166 @@ public class PriceServiceTests
         price.Status.Should().Be(SubmissionStatus.Approved);
         _priceRepository.Verify(x => x.Update(price), Times.Once);
         _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAdminPriceAsync_WithValidRequest_UpdatesEditableFields()
+    {
+        var priceId = Guid.NewGuid();
+        var productId = Guid.NewGuid();
+        var marketId = Guid.NewGuid();
+        var divisionId = Guid.NewGuid();
+        var districtId = Guid.NewGuid();
+        var upazilaId = Guid.NewGuid();
+        var unionOrWardId = Guid.NewGuid();
+        var price = new PriceSubmission
+        {
+            Id = priceId,
+            ProductId = Guid.NewGuid(),
+            MarketId = Guid.NewGuid(),
+            Unit = "kg",
+            PricePerUnit = 55m,
+            PriceDate = new DateOnly(2026, 5, 23),
+            PriceTime = new TimeOnly(9, 30),
+            PriceSource = PriceSource.UserReported,
+            Status = SubmissionStatus.Pending,
+            Notes = "Old notes",
+        };
+        var product = new Product
+        {
+            Id = productId,
+            NameEn = "Potato",
+            NameBn = "আলু",
+            LocalName = "Local potato",
+        };
+        var market = new Market
+        {
+            Id = marketId,
+            MarketName = "Test Market",
+            Area = "Main road",
+            VillageOrMoholla = "North para",
+            DivisionId = divisionId,
+            DistrictId = districtId,
+            UpazilaId = upazilaId,
+            UnionOrWardId = unionOrWardId,
+        };
+
+        _priceRepository.Setup(x => x.GetByIdAsync(priceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(price);
+        _productRepository.Setup(x => x.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+        _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(market);
+
+        var service = CreateService();
+
+        var response = await service.UpdateAdminPriceAsync(priceId, new AdminUpdatePriceRequest
+        {
+            ProductId = productId,
+            MarketId = marketId,
+            Price = 70m,
+            Unit = " piece ",
+            PriceDate = new DateOnly(2026, 5, 24),
+            PriceTime = new TimeOnly(14, 15),
+            Status = "Approved",
+            Source = "ObservedInMarket",
+            Notes = " Updated notes ",
+        });
+
+        response.Success.Should().BeTrue();
+        price.ProductId.Should().Be(productId);
+        price.MarketId.Should().Be(marketId);
+        price.DivisionId.Should().Be(divisionId);
+        price.DistrictId.Should().Be(districtId);
+        price.UpazilaId.Should().Be(upazilaId);
+        price.UnionOrWardId.Should().Be(unionOrWardId);
+        price.PricePerUnit.Should().Be(70m);
+        price.Unit.Should().Be("piece");
+        price.PriceDate.Should().Be(new DateOnly(2026, 5, 24));
+        price.PriceTime.Should().Be(new TimeOnly(14, 15));
+        price.Status.Should().Be(SubmissionStatus.Approved);
+        price.PriceSource.Should().Be(PriceSource.ObservedInMarket);
+        price.Notes.Should().Be("Updated notes");
+        price.UpdatedAt.Should().NotBeNull();
+        response.Data!.ProductName.Should().Be("Potato");
+        response.Data.Price.Should().Be(70m);
+        response.Data.Source.Should().Be("ObservedInMarket");
+        _priceRepository.Verify(x => x.Update(price), Times.Once);
+        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAdminPriceAsync_WithMissingPrice_ReturnsFailureWithoutSaving()
+    {
+        var priceId = Guid.NewGuid();
+
+        _priceRepository.Setup(x => x.GetByIdAsync(priceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PriceSubmission?)null);
+
+        var service = CreateService();
+
+        var response = await service.UpdateAdminPriceAsync(priceId, new AdminUpdatePriceRequest
+        {
+            Price = 70m,
+        });
+
+        response.Success.Should().BeFalse();
+        response.Message.Should().Be("Price submission was not found.");
+        _priceRepository.Verify(x => x.Update(It.IsAny<PriceSubmission>()), Times.Never);
+        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAdminPriceAsync_WithInvalidPrice_ReturnsValidationFailureWithoutSaving()
+    {
+        var service = CreateService();
+
+        var response = await service.UpdateAdminPriceAsync(Guid.NewGuid(), new AdminUpdatePriceRequest
+        {
+            Price = 0m,
+        });
+
+        response.Success.Should().BeFalse();
+        response.Message.Should().Be("Validation failed.");
+        response.Errors.Should().Contain("Price must be greater than zero.");
+        _priceRepository.Verify(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _priceRepository.Verify(x => x.Update(It.IsAny<PriceSubmission>()), Times.Never);
+        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateAdminPriceAsync_WithMissingMarket_ReturnsValidationFailureWithoutSaving()
+    {
+        var priceId = Guid.NewGuid();
+        var marketId = Guid.NewGuid();
+        var price = new PriceSubmission
+        {
+            Id = priceId,
+            ProductId = Guid.NewGuid(),
+            MarketId = Guid.NewGuid(),
+            Unit = "kg",
+            PricePerUnit = 55m,
+            PriceDate = new DateOnly(2026, 5, 23),
+        };
+
+        _priceRepository.Setup(x => x.GetByIdAsync(priceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(price);
+        _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Market?)null);
+
+        var service = CreateService();
+
+        var response = await service.UpdateAdminPriceAsync(priceId, new AdminUpdatePriceRequest
+        {
+            MarketId = marketId,
+            Price = 70m,
+        });
+
+        response.Success.Should().BeFalse();
+        response.Message.Should().Be("Validation failed.");
+        response.Errors.Should().Contain("Selected market was not found.");
+        _priceRepository.Verify(x => x.Update(It.IsAny<PriceSubmission>()), Times.Never);
+        _unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

@@ -21,6 +21,7 @@ public class MarketConfiguration : IEntityTypeConfiguration<Market>
         builder.HasIndex(x => x.DistrictId);
         builder.HasIndex(x => x.UpazilaId);
         builder.HasIndex(x => x.UnionOrWardId);
+        builder.HasIndex(x => x.MarketName);
         builder.HasIndex(x => new { x.DistrictId, x.UpazilaId, x.MarketName });
         builder.HasOne(x => x.Division)
             .WithMany()

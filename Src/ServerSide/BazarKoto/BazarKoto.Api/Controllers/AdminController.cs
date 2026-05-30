@@ -1,5 +1,6 @@
 using BazarKoto.Api.Services;
 using BazarKoto.Application.Interfaces;
+using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Contact;
 using BazarKoto.Contracts.Markets;
@@ -128,6 +129,44 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetPendingPrices([FromQuery] PaginationRequest request, CancellationToken cancellationToken)
     {
         return Ok(await _priceService.GetPendingPricesAsync(request, cancellationToken));
+    }
+
+    [HttpGet("prices")]
+    public async Task<IActionResult> GetPrices([FromQuery] AdminPriceSearchRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await _priceService.GetAdminPricesAsync(request, cancellationToken));
+    }
+
+    [HttpPut("prices/{id:guid}")]
+    public async Task<IActionResult> UpdatePrice(Guid id, AdminUpdatePriceRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _priceService.UpdateAdminPriceAsync(id, request, cancellationToken);
+
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+
+            if (string.Equals(response.Message, "Price submission was not found.", StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound(response);
+            }
+
+            return BadRequest(response);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Admin price update failed for {PriceId}.", id);
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<object>.Fail("Unable to update price record right now."));
+        }
     }
 
     [HttpPut("prices/{id:guid}/approve")]

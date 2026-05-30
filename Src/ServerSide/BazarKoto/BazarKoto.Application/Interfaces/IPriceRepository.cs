@@ -29,6 +29,17 @@ public interface IPriceRepository
         string? search = null,
         CancellationToken cancellationToken = default);
 
+    Task<(IReadOnlyList<PriceSubmission> Items, int TotalCount)> GetAdminPricesAsync(
+        string? search = null,
+        SubmissionStatus? status = null,
+        DateTime? submittedFrom = null,
+        DateTime? submittedTo = null,
+        Guid? productId = null,
+        Guid? marketId = null,
+        int pageNumber = 1,
+        int pageSize = 10,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PriceSubmission>> GetPendingAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PriceSubmission>> GetTodayAsync(DateOnly date, SubmissionStatus? status = null, CancellationToken cancellationToken = default);
     Task<PriceSubmission?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

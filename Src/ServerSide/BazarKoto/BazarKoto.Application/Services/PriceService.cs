@@ -1,4 +1,5 @@
 using BazarKoto.Application.Interfaces;
+using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Prices;
 using BazarKoto.Contracts.UserTracking;
@@ -47,6 +48,127 @@ public class PriceService : IPriceService
             cancellationToken: cancellationToken);
 
         return Page(prices.Select(ToResponse), request);
+    }
+
+    public async Task<AdminPriceListResponse> GetAdminPricesAsync(AdminPriceSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        var normalizedSearch = string.IsNullOrWhiteSpace(request.Search) ? null : request.Search.Trim();
+        var status = ParseAdminSubmissionStatus(request.Status);
+
+        if (!string.IsNullOrWhiteSpace(request.Status) && !status.HasValue)
+        {
+            return EmptyAdminPricePage(request, "Selected price status is not supported.");
+        }
+
+        var submittedFrom = request.DateFrom?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var submittedTo = request.DateTo?.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+
+        if (submittedFrom.HasValue && submittedTo.HasValue && submittedFrom.Value > submittedTo.Value)
+        {
+            return EmptyAdminPricePage(request, "Date from must be before date to.");
+        }
+
+        var (items, totalCount) = await _priceRepository.GetAdminPricesAsync(
+            search: normalizedSearch,
+            status: status,
+            submittedFrom: submittedFrom,
+            submittedTo: submittedTo,
+            productId: request.ProductId,
+            marketId: request.MarketId,
+            pageNumber: request.PageNumber,
+            pageSize: request.PageSize,
+            cancellationToken: cancellationToken);
+
+        return ToAdminPriceListResponse(items, totalCount, request);
+    }
+
+    public async Task<ApiResponse<AdminPriceRecordResponse>> UpdateAdminPriceAsync(Guid id, AdminUpdatePriceRequest request, CancellationToken cancellationToken = default)
+    {
+        var validationErrors = ValidateAdminUpdatePriceRequest(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return ApiResponse<AdminPriceRecordResponse>.Fail("Validation failed.", validationErrors);
+        }
+
+        var priceSubmission = await _priceRepository.GetByIdAsync(id, cancellationToken);
+
+        if (priceSubmission is null)
+        {
+            return ApiResponse<AdminPriceRecordResponse>.Fail("Price submission was not found.");
+        }
+
+        if (request.ProductId.HasValue)
+        {
+            var product = await _productRepository.GetByIdAsync(request.ProductId.Value, cancellationToken);
+
+            if (product is null)
+            {
+                return ApiResponse<AdminPriceRecordResponse>.Fail("Validation failed.", ["Selected product was not found."]);
+            }
+
+            priceSubmission.ProductId = product.Id;
+            priceSubmission.Product = product;
+        }
+
+        if (request.MarketId.HasValue)
+        {
+            var market = await _marketRepository.GetByIdAsync(request.MarketId.Value, cancellationToken);
+
+            if (market is null)
+            {
+                return ApiResponse<AdminPriceRecordResponse>.Fail("Validation failed.", ["Selected market was not found."]);
+            }
+
+            priceSubmission.MarketId = market.Id;
+            priceSubmission.Market = market;
+            priceSubmission.DivisionId = market.DivisionId;
+            priceSubmission.DistrictId = market.DistrictId;
+            priceSubmission.UpazilaId = market.UpazilaId;
+            priceSubmission.UnionOrWardId = market.UnionOrWardId;
+        }
+
+        if (request.Price.HasValue)
+        {
+            priceSubmission.PricePerUnit = request.Price.Value;
+        }
+
+        if (request.Unit is not null)
+        {
+            priceSubmission.Unit = request.Unit.Trim();
+        }
+
+        if (request.PriceDate.HasValue)
+        {
+            priceSubmission.PriceDate = request.PriceDate.Value;
+        }
+
+        if (request.PriceTime.HasValue)
+        {
+            priceSubmission.PriceTime = request.PriceTime.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            priceSubmission.Status = ParseEnum(request.Status.Trim(), priceSubmission.Status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Source))
+        {
+            priceSubmission.PriceSource = ParseEnum(request.Source.Trim(), priceSubmission.PriceSource);
+        }
+
+        if (request.Notes is not null)
+        {
+            priceSubmission.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+        }
+
+        priceSubmission.UpdatedAt = DateTime.UtcNow;
+
+        _priceRepository.Update(priceSubmission);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return ApiResponse<AdminPriceRecordResponse>.Ok(ToAdminPriceRecordResponse(priceSubmission), "Price record updated successfully.");
     }
 
     public async Task<PagedResponse<PublicProductPriceResponse>> GetPublicProductPricesAsync(PublicProductPriceSearchRequest request, CancellationToken cancellationToken = default)
@@ -311,6 +433,114 @@ public class PriceService : IPriceService
         };
     }
 
+    private static AdminPriceListResponse ToAdminPriceListResponse(
+        IReadOnlyList<PriceSubmission> prices,
+        int totalCount,
+        AdminPriceSearchRequest request)
+    {
+        var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)request.PageSize);
+
+        return new AdminPriceListResponse
+        {
+            Message = "Success",
+            Data = prices.Select(ToAdminPriceRecordResponse).ToList(),
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            HasPreviousPage = request.PageNumber > 1 && totalPages > 0,
+            HasNextPage = request.PageNumber < totalPages
+        };
+    }
+
+    private static AdminPriceListResponse EmptyAdminPricePage(AdminPriceSearchRequest request, string message)
+    {
+        return new AdminPriceListResponse
+        {
+            Message = message,
+            Data = [],
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = 0,
+            TotalPages = 0,
+            HasPreviousPage = false,
+            HasNextPage = false
+        };
+    }
+
+    private static AdminPriceRecordResponse ToAdminPriceRecordResponse(PriceSubmission price)
+    {
+        return new AdminPriceRecordResponse
+        {
+            Id = price.Id,
+            ProductId = price.ProductId,
+            ProductName = price.Product?.NameEn ?? string.Empty,
+            ProductLocalName = price.Product?.LocalName,
+            AlternateName = price.Product?.NameBn,
+            MarketId = price.MarketId,
+            MarketName = price.Market?.MarketName ?? string.Empty,
+            Location = BuildLocationLabel(price),
+            Price = price.PricePerUnit,
+            Unit = price.Unit,
+            SubmittedAt = price.CreatedAt,
+            Status = price.Status.ToString(),
+            Source = price.PriceSource.ToString(),
+            UpdatedAt = price.UpdatedAt
+        };
+    }
+
+    private static string BuildLocationLabel(PriceSubmission price)
+    {
+        var parts = new[]
+        {
+            price.Market?.VillageOrMoholla,
+            price.Market?.Area,
+            price.Market?.UnionOrWard?.NameEn,
+            price.Market?.Upazila?.NameEn,
+            price.Market?.District?.NameEn,
+            price.Market?.Division?.NameEn
+        };
+
+        return string.Join(", ", parts.Where(part => !string.IsNullOrWhiteSpace(part)).Select(part => part!.Trim()));
+    }
+
+    private static List<string> ValidateAdminUpdatePriceRequest(AdminUpdatePriceRequest request)
+    {
+        var errors = new List<string>();
+
+        if (request.ProductId == Guid.Empty)
+        {
+            errors.Add("Product is required.");
+        }
+
+        if (request.MarketId == Guid.Empty)
+        {
+            errors.Add("Market is required.");
+        }
+
+        if (request.Price.HasValue && request.Price.Value <= 0)
+        {
+            errors.Add("Price must be greater than zero.");
+        }
+
+        if (request.Unit is not null && string.IsNullOrWhiteSpace(request.Unit))
+        {
+            errors.Add("Unit is required.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status) && !Enum.TryParse<SubmissionStatus>(request.Status.Trim(), true, out _))
+        {
+            errors.Add("Status is not supported.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Source) && !Enum.TryParse<PriceSource>(request.Source.Trim(), true, out _))
+        {
+            errors.Add("Source is not supported.");
+        }
+
+        return errors;
+    }
+
     private static UserTrackingInput BuildUserTrackingInput(SubmitPriceRequest request, Market market)
     {
         return new UserTrackingInput
@@ -386,5 +616,15 @@ public class PriceService : IPriceService
     private static SubmissionStatus? ParseSubmissionStatus(string? value)
     {
         return Enum.TryParse<SubmissionStatus>(value, true, out var parsed) ? parsed : null;
+    }
+
+    private static SubmissionStatus? ParseAdminSubmissionStatus(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return Enum.TryParse<SubmissionStatus>(value.Trim(), true, out var parsed) ? parsed : null;
     }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -167,7 +167,7 @@ export class Api {
     const message = response?.errors?.join(', ') || response?.message;
 
     if (message) {
-      return throwError(() => new Error(message));
+      return throwError(() => this.buildRequestError(message, error));
     }
 
     if (error instanceof Error) {
@@ -175,6 +175,16 @@ export class Api {
     }
 
     return throwError(() => new Error('Request failed.'));
+  }
+
+  private buildRequestError(message: string, error: unknown): Error {
+    const requestError = new Error(message) as Error & { status?: number };
+
+    if (error instanceof HttpErrorResponse) {
+      requestError.status = error.status;
+    }
+
+    return requestError;
   }
 
   private getErrorResponse(error: unknown): ApiResponse<unknown> | null {

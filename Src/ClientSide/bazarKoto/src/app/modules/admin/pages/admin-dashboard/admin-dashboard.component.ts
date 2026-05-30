@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
+import { AdminPriceRecord, AdminPrices } from '../../../../core/services/admin-prices';
 import { Api } from '../../../../core/services/api';
 import { Auth } from '../../../../core/services/auth';
 
@@ -29,7 +32,13 @@ interface PeakHour {
 interface ManagementArea {
   title: string;
   description: string;
-  actions: string[];
+}
+
+interface PriceEditForm {
+  price: number | null;
+  unit: string;
+  status: string;
+  source: string;
 }
 
 interface AdminDashboardResponse {
@@ -63,51 +72,87 @@ interface AdminDashboardResponse {
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   standalone: true,
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly peakHoursPageSize = 5;
   isLoading = true;
   isLoggingOut = false;
   isExportingTrafficReport = false;
+  isPriceManagementModalOpen = false;
   errorMessage = '';
   exportMessage = '';
   exportErrorMessage = '';
+  priceManagementMessage = '';
+  priceManagementSearch = '';
+  priceManagementStatus = '';
+  priceManagementPage = 1;
+  priceManagementTotalCount = 0;
+  priceManagementTotalPages = 0;
+  priceManagementHasPreviousPage = false;
+  priceManagementHasNextPage = false;
+  readonly priceManagementPageSize = 10;
+  readonly priceManagementStatuses = ['Approved', 'Pending', 'Flagged', 'Rejected'];
+  readonly priceSourceOptions = ['ObservedInMarket', 'SellerProvided', 'Receipt', 'UserReported', 'OnlineListing', 'Other'];
+  readonly unitOptions = [
+    { value: 'kg', label: 'kg' },
+    { value: 'gram', label: 'gram' },
+    { value: 'piece', label: 'piece' },
+    { value: 'dozen', label: 'dozen' },
+    { value: 'litre', label: 'litre' },
+    { value: 'packet', label: 'packet' },
+  ];
+  isLoadingPriceRecords = false;
+  isPriceEditModalOpen = false;
+  isSavingPriceEdit = false;
+  priceRecordsErrorMessage = '';
+  priceEditMessage = '';
+  priceEditErrorMessage = '';
+  priceEditValidationErrors: string[] = [];
+  selectedPriceRecord: AdminPriceRecord | null = null;
+  priceEditForm: PriceEditForm = {
+    price: null,
+    unit: '',
+    status: '',
+    source: '',
+  };
+  priceRecords: AdminPriceRecord[] = [];
   trafficMetrics: DashboardMetric[] = [];
   dataMetrics: DashboardMetric[] = [];
   peakHours: PeakHour[] = [];
   peakHoursPage = 1;
   moderationQueue: AdminQueueItem[] = [];
+  private priceRecordsRequest?: Subscription;
+  private priceRecordsRequestId = 0;
+  private priceSearchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly managementAreas: ManagementArea[] = [
     {
-      title: 'Market data',
-      description: 'Approve, edit, merge, or archive market locations and contributor activity.',
-      actions: ['Review markets', 'Merge duplicates', 'Audit locations'],
-    },
-    {
-      title: 'Product data',
-      description: 'Manage categories, product names, default units, and product states.',
-      actions: ['Edit products', 'Resolve duplicates', 'Manage categories'],
-    },
-    {
-      title: 'Price data',
-      description: 'Validate submitted prices, inspect sources, and flag unusual bazar rates.',
-      actions: ['Review prices', 'Flag outliers', 'Export records'],
+      title: 'Price Management',
+      description: 'Review, search, and update submitted product price records from one admin workspace.',
     },
   ];
 
   constructor(
     private readonly api: Api,
+    private readonly adminPrices: AdminPrices,
     private readonly auth: Auth,
     private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.priceRecordsRequest?.unsubscribe();
+
+    if (this.priceSearchDebounceTimer) {
+      clearTimeout(this.priceSearchDebounceTimer);
+    }
   }
 
   private loadDashboard(): void {
@@ -191,14 +236,15 @@ export class AdminDashboardComponent implements OnInit {
 
     this.moderationQueue = [
       {
+        label: 'User support messages',
+        count: dashboard.moderation.pendingContactMessages,
+        helper: 'Contact and correction requests',
+        route: '/admin/messages',
+      },
+      {
         label: 'Pending market approvals',
         count: dashboard.moderation.pendingMarkets,
         helper: 'New or edited market records',
-      },
-      {
-        label: 'Flagged price submissions',
-        count: dashboard.moderation.flaggedPriceSubmissions,
-        helper: 'Outlier prices needing validation',
       },
       {
         label: 'Pending product reviews',
@@ -206,10 +252,9 @@ export class AdminDashboardComponent implements OnInit {
         helper: 'Product records waiting for review',
       },
       {
-        label: 'User support messages',
-        count: dashboard.moderation.pendingContactMessages,
-        helper: 'Contact and correction requests',
-        route: '/admin/messages',
+        label: 'Flagged price submissions',
+        count: dashboard.moderation.flaggedPriceSubmissions,
+        helper: 'Outlier prices needing validation',
       },
     ];
   }
@@ -218,6 +263,216 @@ export class AdminDashboardComponent implements OnInit {
     if (item.route) {
       void this.router.navigate([item.route]);
     }
+  }
+
+  openPriceManagementModal(): void {
+    this.isPriceManagementModalOpen = true;
+    this.priceManagementMessage = '';
+    this.priceManagementPage = 1;
+    this.loadAdminPriceRecords();
+  }
+
+  closePriceManagementModal(): void {
+    if (this.isSavingPriceEdit) {
+      return;
+    }
+
+    this.priceRecordsRequest?.unsubscribe();
+    this.closePriceEditModal();
+    this.isPriceManagementModalOpen = false;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.isSavingPriceEdit) {
+      return;
+    }
+
+    if (this.isPriceEditModalOpen) {
+      this.closePriceEditModal();
+      return;
+    }
+
+    if (this.isPriceManagementModalOpen) {
+      this.closePriceManagementModal();
+    }
+  }
+
+  get priceManagementPageCount(): number {
+    return Math.max(1, this.priceManagementTotalPages);
+  }
+
+  get priceManagementPageStart(): number {
+    return this.priceManagementTotalCount === 0
+      ? 0
+      : (this.priceManagementPage - 1) * this.priceManagementPageSize + 1;
+  }
+
+  get priceManagementPageEnd(): number {
+    return Math.min(this.priceManagementPage * this.priceManagementPageSize, this.priceManagementTotalCount);
+  }
+
+  onPriceManagementFiltersChange(): void {
+    this.priceManagementPage = 1;
+    this.priceManagementMessage = '';
+    this.loadAdminPriceRecords(true);
+  }
+
+  resetPriceManagementFilters(): void {
+    this.priceManagementSearch = '';
+    this.priceManagementStatus = '';
+    this.priceManagementPage = 1;
+    this.priceManagementMessage = '';
+    this.priceRecordsErrorMessage = '';
+    this.loadAdminPriceRecords();
+  }
+
+  previousPriceManagementPage(): void {
+    if (!this.priceManagementHasPreviousPage || this.isLoadingPriceRecords) {
+      return;
+    }
+
+    this.priceManagementPage = Math.max(1, this.priceManagementPage - 1);
+    this.loadAdminPriceRecords();
+  }
+
+  nextPriceManagementPage(): void {
+    if (!this.priceManagementHasNextPage || this.isLoadingPriceRecords) {
+      return;
+    }
+
+    this.priceManagementPage = Math.min(this.priceManagementPageCount, this.priceManagementPage + 1);
+    this.loadAdminPriceRecords();
+  }
+
+  openPriceEditModal(record: AdminPriceRecord): void {
+    this.selectedPriceRecord = record;
+    this.initializePriceEditForm(record);
+    this.priceEditMessage = '';
+    this.priceEditErrorMessage = '';
+    this.priceEditValidationErrors = [];
+    this.isPriceEditModalOpen = true;
+  }
+
+  closePriceEditModal(): void {
+    if (this.isSavingPriceEdit) {
+      return;
+    }
+
+    this.isPriceEditModalOpen = false;
+    this.selectedPriceRecord = null;
+    this.priceEditMessage = '';
+    this.priceEditErrorMessage = '';
+    this.priceEditValidationErrors = [];
+  }
+
+  initializePriceEditForm(record: AdminPriceRecord): void {
+    this.priceEditForm = {
+      price: record.price,
+      unit: record.unit,
+      status: record.status,
+      source: record.source,
+    };
+  }
+
+  savePriceEdit(): void {
+    if (this.isSavingPriceEdit || !this.selectedPriceRecord) {
+      return;
+    }
+
+    this.priceEditValidationErrors = this.validatePriceEditForm();
+    this.priceEditErrorMessage = '';
+
+    if (this.priceEditValidationErrors.length > 0) {
+      this.priceEditMessage = '';
+      return;
+    }
+
+    this.isSavingPriceEdit = true;
+    this.priceEditMessage = '';
+
+    this.adminPrices.updateAdminPrice(this.selectedPriceRecord.id, {
+      price: this.priceEditForm.price!,
+      unit: this.priceEditForm.unit.trim(),
+      status: this.priceEditForm.status,
+      source: this.priceEditForm.source,
+    }).subscribe({
+      next: updatedRecord => {
+        this.isSavingPriceEdit = false;
+        this.isPriceEditModalOpen = false;
+        this.selectedPriceRecord = null;
+        this.priceEditValidationErrors = [];
+        this.priceEditErrorMessage = '';
+        this.priceManagementMessage = 'Price record updated successfully.';
+        this.replaceVisiblePriceRecord(updatedRecord);
+      },
+      error: error => {
+        this.isSavingPriceEdit = false;
+        this.priceEditErrorMessage = this.getPriceEditErrorMessage(error);
+      },
+    });
+  }
+
+  validatePriceEditForm(): string[] {
+    const errors: string[] = [];
+
+    if (this.priceEditForm.price === null || this.priceEditForm.price === undefined) {
+      errors.push('Price is required.');
+    } else if (this.priceEditForm.price <= 0) {
+      errors.push('Price must be greater than 0.');
+    }
+
+    if (!this.priceEditForm.unit.trim()) {
+      errors.push('Unit is required.');
+    }
+
+    if (!this.priceEditForm.status) {
+      errors.push('Status is required.');
+    }
+
+    if (!this.priceEditForm.source) {
+      errors.push('Source is required.');
+    }
+
+    return errors;
+  }
+
+  private getPriceEditErrorMessage(error: unknown): string {
+    const status = typeof error === 'object' && error !== null && 'status' in error
+      ? Number((error as { status?: number }).status)
+      : 0;
+
+    if (status === 404) {
+      return 'This price record could not be found. It may have been removed.';
+    }
+
+    if (status === 401 || status === 403) {
+      return 'You are not authorized to update this record.';
+    }
+
+    if (status === 400) {
+      return 'Some price details are invalid. Please review the form and try again.';
+    }
+
+    return 'Could not update price record. Please try again.';
+  }
+
+  private replaceVisiblePriceRecord(updatedRecord: AdminPriceRecord): void {
+    const normalizedStatus = this.priceManagementStatus.trim().toLowerCase();
+    const recordMatchesStatus = !normalizedStatus || updatedRecord.status.toLowerCase() === normalizedStatus;
+
+    if (!recordMatchesStatus) {
+      this.priceRecords = this.priceRecords.filter(record => record.id !== updatedRecord.id);
+      this.priceManagementTotalCount = Math.max(0, this.priceManagementTotalCount - 1);
+      this.priceManagementTotalPages = Math.ceil(this.priceManagementTotalCount / this.priceManagementPageSize);
+      this.priceManagementHasNextPage = this.priceManagementPage < this.priceManagementPageCount;
+      this.priceManagementHasPreviousPage = this.priceManagementPage > 1 && this.priceManagementTotalPages > 0;
+      return;
+    }
+
+    this.priceRecords = this.priceRecords.map(record =>
+      record.id === updatedRecord.id ? updatedRecord : record
+    );
   }
 
   exportTrafficIntelligenceReport(): void {
@@ -342,6 +597,58 @@ export class AdminDashboardComponent implements OnInit {
 
     const fileNameMatch = /filename="?([^";]+)"?/i.exec(contentDisposition);
     return fileNameMatch?.[1]?.trim() || null;
+  }
+
+  private loadAdminPriceRecords(debounce = false): void {
+    if (this.priceSearchDebounceTimer) {
+      clearTimeout(this.priceSearchDebounceTimer);
+      this.priceSearchDebounceTimer = null;
+    }
+
+    if (debounce) {
+      this.priceSearchDebounceTimer = setTimeout(() => this.loadAdminPriceRecords(), 300);
+      return;
+    }
+
+    const requestId = ++this.priceRecordsRequestId;
+
+    this.priceRecordsRequest?.unsubscribe();
+    this.isLoadingPriceRecords = true;
+    this.priceRecordsErrorMessage = '';
+
+    this.priceRecordsRequest = this.adminPrices.getAdminPrices({
+      search: this.priceManagementSearch.trim(),
+      status: this.priceManagementStatus,
+      pageNumber: this.priceManagementPage,
+      pageSize: this.priceManagementPageSize,
+    }).subscribe({
+      next: response => {
+        if (requestId !== this.priceRecordsRequestId) {
+          return;
+        }
+
+        this.priceRecords = response.data;
+        this.priceManagementPage = response.pageNumber;
+        this.priceManagementTotalCount = response.totalCount;
+        this.priceManagementTotalPages = response.totalPages;
+        this.priceManagementHasPreviousPage = response.hasPreviousPage;
+        this.priceManagementHasNextPage = response.hasNextPage;
+        this.isLoadingPriceRecords = false;
+      },
+      error: () => {
+        if (requestId !== this.priceRecordsRequestId) {
+          return;
+        }
+
+        this.priceRecords = [];
+        this.priceManagementTotalCount = 0;
+        this.priceManagementTotalPages = 0;
+        this.priceManagementHasPreviousPage = false;
+        this.priceManagementHasNextPage = false;
+        this.priceRecordsErrorMessage = 'Could not load price records. Please try again.';
+        this.isLoadingPriceRecords = false;
+      },
+    });
   }
 
   formatNumber(value: number): string {

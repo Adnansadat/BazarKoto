@@ -18,6 +18,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.Notes).HasMaxLength(1000);
         builder.Property(x => x.Status).HasConversion<string>().IsRequired().HasMaxLength(64);
         builder.HasIndex(x => x.CategoryId);
+        builder.HasIndex(x => x.NameEn);
+        builder.HasIndex(x => x.NameBn);
+        builder.HasIndex(x => x.LocalName);
         builder.HasIndex(x => new { x.CategoryId, x.Slug }).IsUnique();
         builder.HasOne(x => x.Category)
             .WithMany()

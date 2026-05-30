@@ -1,3 +1,4 @@
+using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Prices;
 
@@ -6,6 +7,8 @@ namespace BazarKoto.Application.Interfaces;
 public interface IPriceService
 {
     Task<PagedResponse<PriceSubmissionResponse>> GetPricesAsync(PriceSearchRequest request, CancellationToken cancellationToken = default);
+    Task<AdminPriceListResponse> GetAdminPricesAsync(AdminPriceSearchRequest request, CancellationToken cancellationToken = default);
+    Task<ApiResponse<AdminPriceRecordResponse>> UpdateAdminPriceAsync(Guid id, AdminUpdatePriceRequest request, CancellationToken cancellationToken = default);
     Task<PagedResponse<PublicProductPriceResponse>> GetPublicProductPricesAsync(PublicProductPriceSearchRequest request, CancellationToken cancellationToken = default);
     Task<ApiResponse<PriceSubmissionResponse>> GetLatestPriceAsync(PriceSearchRequest request, CancellationToken cancellationToken = default);
     Task<ApiResponse<PriceSubmissionResponse>> SubmitPriceAsync(SubmitPriceRequest request, CancellationToken cancellationToken = default);

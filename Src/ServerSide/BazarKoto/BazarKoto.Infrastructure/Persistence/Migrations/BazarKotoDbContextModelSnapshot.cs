@@ -466,6 +466,8 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DistrictId", "UpazilaId", "MarketName");
 
+                    b.HasIndex("MarketName");
+
                     b.ToTable("Markets");
                 });
 
@@ -620,6 +622,8 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("DivisionId");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("PriceDate");
 
                     b.HasIndex("ProductId");
@@ -633,6 +637,12 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserTrackingDetailsId");
 
                     b.HasIndex("MarketId", "ProductId", "PriceDate");
+
+                    b.HasIndex("MarketId", "CreatedAt");
+
+                    b.HasIndex("ProductId", "CreatedAt");
+
+                    b.HasIndex("Status", "CreatedAt");
 
                     b.HasIndex("UnionOrWardId", "MarketId", "PriceDate");
 
@@ -700,6 +710,12 @@ namespace BazarKoto.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("LocalName");
+
+                    b.HasIndex("NameBn");
+
+                    b.HasIndex("NameEn");
 
                     b.HasIndex("CategoryId", "Slug")
                         .IsUnique();

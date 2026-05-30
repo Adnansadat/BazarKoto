@@ -156,6 +156,91 @@ public class PriceRepository : IPriceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<(IReadOnlyList<PriceSubmission> Items, int TotalCount)> GetAdminPricesAsync(
+        string? search = null,
+        SubmissionStatus? status = null,
+        DateTime? submittedFrom = null,
+        DateTime? submittedTo = null,
+        Guid? productId = null,
+        Guid? marketId = null,
+        int pageNumber = 1,
+        int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.PriceSubmissions.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim();
+
+            query = query.Where(x =>
+                (x.Product != null && (
+                    x.Product.NameEn.Contains(normalizedSearch) ||
+                    x.Product.NameBn.Contains(normalizedSearch) ||
+                    (x.Product.LocalName != null && x.Product.LocalName.Contains(normalizedSearch)))) ||
+                (x.Market != null && (
+                    x.Market.MarketName.Contains(normalizedSearch) ||
+                    x.Market.Area.Contains(normalizedSearch) ||
+                    x.Market.VillageOrMoholla.Contains(normalizedSearch) ||
+                    x.Market.Landmark.Contains(normalizedSearch))) ||
+                x.Unit.Contains(normalizedSearch));
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(x => x.Status == status.Value);
+        }
+
+        if (submittedFrom.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt >= submittedFrom.Value);
+        }
+
+        if (submittedTo.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt <= submittedTo.Value);
+        }
+
+        if (productId.HasValue)
+        {
+            query = query.Where(x => x.ProductId == productId.Value);
+        }
+
+        if (marketId.HasValue)
+        {
+            query = query.Where(x => x.MarketId == marketId.Value);
+        }
+
+        var pageIds = await query
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.PriceDate)
+            .ThenByDescending(x => x.PriceTime)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        var skippedCount = (pageNumber - 1) * pageSize;
+        var totalCount = pageIds.Count < pageSize
+            ? skippedCount + pageIds.Count
+            : await query.CountAsync(cancellationToken);
+
+        if (pageIds.Count == 0)
+        {
+            return ([], totalCount);
+        }
+
+        var orderById = pageIds.Select((id, index) => new { id, index }).ToDictionary(x => x.id, x => x.index);
+        var items = await Query()
+            .AsNoTracking()
+            .Where(x => pageIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        items = items.OrderBy(x => orderById[x.Id]).ToList();
+
+        return (items, totalCount);
+    }
+
     public async Task<IReadOnlyList<PriceSubmission>> GetPendingAsync(CancellationToken cancellationToken = default)
     {
         return await Query().AsNoTracking().Where(x => x.Status == SubmissionStatus.Pending).ToListAsync(cancellationToken);
