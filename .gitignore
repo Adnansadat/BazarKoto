@@ -1,4 +1,3 @@
-```gitignore
 # General
 .DS_Store
 Thumbs.db
@@ -46,10 +45,12 @@ appsettings.Production.json
 secrets.json
 
 # User uploaded / generated files
+.runtime/
 wwwroot/uploads/
 wwwroot/attachments/
 wwwroot/contact-attachments/
 /Src/ServerSide/BazarKoto/BazarKoto.Api/wwwroot/uploads/
+/Src/ClientSide/bazarKoto/public/uploads/
 
 # Uploaded image files inside wwwroot
 wwwroot/**/*.png
@@ -66,4 +67,3 @@ wwwroot/**/*.webp
 # Keep safe examples
 !appsettings.example.json
 !.env.example
-```

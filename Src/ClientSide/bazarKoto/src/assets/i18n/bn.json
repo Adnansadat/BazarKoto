@@ -527,6 +527,7 @@
   "contact.validation.message.min": "বার্তা কমপক্ষে ২০ অক্ষরের হতে হবে।",
   "contact.validation.message.max": "বার্তা ২০০০ অক্ষর বা কম হতে হবে।",
   "contact.validation.screenshot.type": "সংযুক্ত ছবি PNG, JPG, JPEG বা WEBP হতে হবে।",
+  "contact.validation.screenshot.single": "শুধু একটি ছবি সংযুক্ত করুন।",
   "contact.validation.screenshot.max": "সংযুক্ত ছবি ৩ MB বা ছোট হতে হবে।",
 
   "privacyPolicy.eyebrow": "গোপনীয়তা নীতি",

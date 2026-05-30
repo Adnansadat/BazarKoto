@@ -19,13 +19,12 @@ import { Auth } from '../../../../core/services/auth';
 })
 export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   readonly statuses = ['', 'New', 'Read', 'InProgress', 'Resolved', 'Spam'];
-  readonly pageSizeOptions = [10, 20, 50];
+  readonly pageSize = 4;
   search = '';
   status = '';
   dateFrom = '';
   dateTo = '';
   pageNumber = 1;
-  pageSize = 10;
   totalPages = 0;
   totalCount = 0;
   messages: AdminContactMessageListItem[] = [];
@@ -58,7 +57,7 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   }
 
   loadMessages(pageNumber = this.pageNumber): void {
-    this.pageNumber = pageNumber;
+    this.pageNumber = this.clampPage(pageNumber);
     this.isLoadingList = true;
     this.listError = '';
 
@@ -87,10 +86,6 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
     this.status = '';
     this.dateFrom = '';
     this.dateTo = '';
-    this.loadMessages(1);
-  }
-
-  changePageSize(): void {
     this.loadMessages(1);
   }
 
@@ -170,6 +165,18 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
     }
   }
 
+  firstPage(): void {
+    if (this.pageNumber > 1) {
+      this.loadMessages(1);
+    }
+  }
+
+  lastPage(): void {
+    if (this.totalPages > 1 && this.pageNumber < this.totalPages) {
+      this.loadMessages(this.totalPages);
+    }
+  }
+
   screenshotUrl(message: AdminContactMessageDetail): string | null {
     return message.screenshotUrl ? this.screenshotPreviewUrl : null;
   }
@@ -213,13 +220,21 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
     return `${(value / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  formatNumber(value: number): string {
+    return value.toLocaleString();
+  }
+
   private bindMessageList(response: PagedResponse<AdminContactMessageListItem>): void {
     this.messages = response.data;
-    this.pageNumber = response.pageNumber;
-    this.pageSize = response.pageSize;
-    this.totalCount = response.totalCount;
     this.totalPages = response.totalPages;
+    this.pageNumber = this.clampPage(response.pageNumber);
+    this.totalCount = response.totalCount;
     this.isLoadingList = false;
+  }
+
+  private clampPage(pageNumber: number): number {
+    const maxPage = Math.max(1, this.totalPages || 1);
+    return Math.min(Math.max(1, pageNumber), maxPage);
   }
 
   private bindDetail(detail: AdminContactMessageDetail): void {

@@ -303,6 +303,8 @@
 
 .peak-pagination div {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -388,7 +390,7 @@ button:focus-visible {
   }
 
   .peak-pagination button {
-    flex: 1;
+    flex: 1 1 calc(50% - 4px);
   }
 
   .metric-grid,

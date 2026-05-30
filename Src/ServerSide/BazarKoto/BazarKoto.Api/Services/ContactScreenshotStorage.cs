@@ -6,6 +6,7 @@ namespace BazarKoto.Api.Services;
 public class ContactScreenshotStorage : IContactScreenshotStorage
 {
     private const string UploadUrlPrefix = "uploads/contact-screenshots";
+    private const string UploadDirectoryName = "contact-screenshots";
     private readonly IWebHostEnvironment _environment;
 
     public ContactScreenshotStorage(IWebHostEnvironment environment)
@@ -46,14 +47,11 @@ public class ContactScreenshotStorage : IContactScreenshotStorage
         };
     }
 
-    private string GetUploadRoot()
+    public static string GetUploadRoot(IWebHostEnvironment environment)
     {
-        var webRootPath = string.IsNullOrWhiteSpace(_environment.WebRootPath)
-            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
-            : _environment.WebRootPath;
-
-        var uploadRoot = Path.GetFullPath(Path.Combine(webRootPath, "uploads", "contact-screenshots"));
-        var expectedRoot = Path.GetFullPath(Path.Combine(webRootPath, "uploads"));
+        var frontendPublicRoot = ResolveFrontendPublicRoot(environment);
+        var uploadRoot = Path.GetFullPath(Path.Combine(frontendPublicRoot, "uploads", UploadDirectoryName));
+        var expectedRoot = Path.GetFullPath(Path.Combine(frontendPublicRoot, "uploads"));
 
         if (!uploadRoot.StartsWith(expectedRoot, StringComparison.OrdinalIgnoreCase))
         {
@@ -61,6 +59,28 @@ public class ContactScreenshotStorage : IContactScreenshotStorage
         }
 
         return uploadRoot;
+    }
+
+    private static string ResolveFrontendPublicRoot(IWebHostEnvironment environment)
+    {
+        if (!string.IsNullOrWhiteSpace(environment.WebRootPath))
+        {
+            return Path.GetFullPath(environment.WebRootPath);
+        }
+
+        return Path.GetFullPath(Path.Combine(
+            environment.ContentRootPath,
+            "..",
+            "..",
+            "..",
+            "ClientSide",
+            "bazarKoto",
+            "public"));
+    }
+
+    private string GetUploadRoot()
+    {
+        return GetUploadRoot(_environment);
     }
 
     private static string GetExtension(string contentType)

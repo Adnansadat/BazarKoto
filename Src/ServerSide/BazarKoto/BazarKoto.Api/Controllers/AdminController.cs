@@ -1,3 +1,4 @@
+using BazarKoto.Api.Services;
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Contact;
@@ -138,10 +139,7 @@ public class AdminController : ControllerBase
             return NotFound(ApiResponse<object>.Fail("Screenshot was not found."));
         }
 
-        var webRootPath = string.IsNullOrWhiteSpace(_environment.WebRootPath)
-            ? Path.Combine(_environment.ContentRootPath, "wwwroot")
-            : _environment.WebRootPath;
-        var uploadRoot = Path.GetFullPath(Path.Combine(webRootPath, "uploads", "contact-screenshots"));
+        var uploadRoot = ContactScreenshotStorage.GetUploadRoot(_environment);
         var filePath = Path.GetFullPath(Path.Combine(uploadRoot, response.Data.ScreenshotFileName));
 
         if (!filePath.StartsWith(uploadRoot, StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(filePath))

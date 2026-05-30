@@ -41,13 +41,6 @@
           <input type="date" [(ngModel)]="dateTo" (change)="applyFilters()" />
         </label>
 
-        <label>
-          <span>Page size</span>
-          <select [(ngModel)]="pageSize" (change)="changePageSize()">
-            <option *ngFor="let option of pageSizeOptions" [ngValue]="option">{{ option }}</option>
-          </select>
-        </label>
-
         <div class="filter-actions">
           <button type="button" (click)="applyFilters()">Apply</button>
           <button class="ghost-button" type="button" (click)="clearFilters()">Clear</button>
@@ -76,11 +69,13 @@
         <p class="state" *ngIf="messages.length === 0">No contact messages found.</p>
       </div>
 
-      <div class="pagination" *ngIf="totalPages > 1">
-        <span>Page {{ pageNumber }} of {{ totalPages }} · {{ totalCount }} total</span>
+      <div class="pagination" *ngIf="!isLoadingList && !listError && totalPages > 1">
+        <span>Page {{ formatNumber(pageNumber) }} of {{ formatNumber(totalPages) }}</span>
         <div>
+          <button type="button" (click)="firstPage()" [disabled]="pageNumber === 1">First</button>
           <button type="button" (click)="previousPage()" [disabled]="pageNumber === 1">Previous</button>
-          <button type="button" (click)="nextPage()" [disabled]="pageNumber === totalPages">Next</button>
+          <button type="button" (click)="nextPage()" [disabled]="pageNumber >= totalPages">Next</button>
+          <button type="button" (click)="lastPage()" [disabled]="pageNumber >= totalPages">Last</button>
         </div>
       </div>
     </article>

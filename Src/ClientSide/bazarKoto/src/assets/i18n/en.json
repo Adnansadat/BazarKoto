@@ -527,6 +527,7 @@
   "contact.validation.message.min": "Message must be at least 20 characters.",
   "contact.validation.message.max": "Message must be 2000 characters or less.",
   "contact.validation.screenshot.type": "Image attachment must be PNG, JPG, JPEG, or WEBP.",
+  "contact.validation.screenshot.single": "Please attach only one image.",
   "contact.validation.screenshot.max": "Image attachment must be 3 MB or smaller.",
 
   "privacyPolicy.eyebrow": "Privacy Policy",

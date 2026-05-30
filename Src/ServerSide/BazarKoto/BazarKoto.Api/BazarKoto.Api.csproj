@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <FrontendPublicRoot>..\..\..\ClientSide\bazarKoto\public\</FrontendPublicRoot>
+    <WebRootPath>$(FrontendPublicRoot)</WebRootPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +30,21 @@
     <ProjectReference Include="..\BazarKoto.Domain\BazarKoto.Domain.csproj" />
     <ProjectReference Include="..\BazarKoto.Infrastructure\BazarKoto.Infrastructure.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Watch Remove="logs\**\*" />
+    <Watch Remove="wwwroot\uploads\**\*" />
+    <Watch Remove="$(FrontendPublicRoot)uploads\**\*" />
+    <Content Remove="logs\**\*" />
+    <Content Remove="wwwroot\uploads\**\*" />
+    <Content Remove="$(FrontendPublicRoot)uploads\**\*" />
+    <None Remove="logs\**\*" />
+    <None Remove="wwwroot\uploads\**\*" />
+    <None Remove="$(FrontendPublicRoot)uploads\**\*" />
+  </ItemGroup>
+
+  <Target Name="EnsureUploadDirectories" BeforeTargets="Build">
+    <MakeDir Directories="$(FrontendPublicRoot)uploads\contact-screenshots\" />
+  </Target>
 
 </Project>

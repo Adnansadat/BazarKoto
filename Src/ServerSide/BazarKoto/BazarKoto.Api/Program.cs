@@ -7,7 +7,14 @@ using BazarKoto.Infrastructure.Persistence.Seed.MasterData;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+var frontendPublicRoot = ResolveFrontendPublicRoot();
+Environment.SetEnvironmentVariable("ASPNETCORE_WEBROOT", frontendPublicRoot);
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = frontendPublicRoot
+});
 
 builder.Host.UseSerilog((context, loggerConfiguration) =>
 {
@@ -73,3 +80,36 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string ResolveFrontendPublicRoot()
+{
+    var searchRoots = new[]
+    {
+        Directory.GetCurrentDirectory(),
+        AppContext.BaseDirectory
+    };
+
+    foreach (var searchRoot in searchRoots)
+    {
+        var directory = new DirectoryInfo(searchRoot);
+
+        while (directory is not null)
+        {
+            var frontendPublicRoot = Path.GetFullPath(Path.Combine(
+                directory.FullName,
+                "Src",
+                "ClientSide",
+                "bazarKoto",
+                "public"));
+
+            if (Directory.Exists(frontendPublicRoot))
+            {
+                return frontendPublicRoot;
+            }
+
+            directory = directory.Parent;
+        }
+    }
+
+    throw new DirectoryNotFoundException("Frontend public folder was not found at Src/ClientSide/bazarKoto/public.");
+}

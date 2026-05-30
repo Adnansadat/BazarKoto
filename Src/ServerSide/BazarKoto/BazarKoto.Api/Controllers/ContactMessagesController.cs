@@ -9,6 +9,8 @@ namespace BazarKoto.Api.Controllers;
 [Route("api/[controller]")]
 public class ContactMessagesController : ControllerBase
 {
+    private const int MaxMultipartRequestBytes = 4 * 1024 * 1024;
+
     private readonly IContactService _contactService;
     private readonly ILogger<ContactMessagesController> _logger;
 
@@ -20,36 +22,45 @@ public class ContactMessagesController : ControllerBase
 
     [HttpPost]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(4 * 1024 * 1024)]
-    public async Task<IActionResult> CreateContactMessage([FromForm] ContactMessageFormRequest request, CancellationToken cancellationToken)
+    [RequestSizeLimit(MaxMultipartRequestBytes)]
+    public async Task<IActionResult> CreateContactMessage(CancellationToken cancellationToken)
     {
         try
         {
-            if (HttpContext.Request.Form.Files.Count > 1)
+            if (Request.ContentLength > MaxMultipartRequestBytes)
+            {
+                return BadRequest(ApiResponse<object>.Fail("Validation failed.", ["Request size must be 4 MB or smaller."]));
+            }
+
+            var form = await Request.ReadFormAsync(cancellationToken);
+            var screenshotFiles = form.Files.GetFiles("screenshot");
+
+            if (screenshotFiles.Count > 1)
             {
                 return BadRequest(ApiResponse<object>.Fail("Validation failed.", ["Only one screenshot file can be uploaded."]));
             }
 
-            if (HttpContext.Request.Form.Files.Count == 1 && request.Screenshot is null)
+            if (form.Files.Count != screenshotFiles.Count)
             {
                 return BadRequest(ApiResponse<object>.Fail("Validation failed.", ["Only the screenshot file field is supported."]));
             }
 
-            await using var screenshotStream = request.Screenshot?.OpenReadStream();
+            var screenshot = screenshotFiles.Count == 1 ? screenshotFiles[0] : null;
+            await using var screenshotStream = screenshot?.OpenReadStream();
             var response = await _contactService.CreateContactMessageAsync(new CreateContactMessageRequest
             {
-                Name = request.Name,
-                Email = request.Email,
-                Subject = request.Subject,
-                Message = request.Message,
-                Screenshot = request.Screenshot is null || screenshotStream is null
+                Name = form["name"].ToString(),
+                Email = form["email"].ToString(),
+                Subject = form["subject"].ToString(),
+                Message = form["message"].ToString(),
+                Screenshot = screenshot is null || screenshotStream is null
                     ? null
                     : new ContactScreenshotUpload
                     {
                         Content = screenshotStream,
-                        FileName = request.Screenshot.FileName,
-                        ContentType = request.Screenshot.ContentType,
-                        Length = request.Screenshot.Length
+                        FileName = screenshot.FileName,
+                        ContentType = screenshot.ContentType,
+                        Length = screenshot.Length
                     }
             }, cancellationToken);
 
@@ -71,13 +82,4 @@ public class ContactMessagesController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, ApiResponse<object>.Fail("Request failed.", ["Unable to submit your message right now."]));
         }
     }
-}
-
-public class ContactMessageFormRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Subject { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-    public IFormFile? Screenshot { get; set; }
 }

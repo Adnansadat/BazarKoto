@@ -60,8 +60,14 @@
       </div>
 
       <div class="peak-pagination" *ngIf="!isLoading && !errorMessage && shouldShowPeakHoursPagination">
-        <span>Page {{ peakHoursPage }} of {{ peakHoursPageCount }}</span>
+        <span>Page {{ formatNumber(peakHoursPage) }} of {{ formatNumber(peakHoursPageCount) }}</span>
         <div>
+          <button
+            type="button"
+            (click)="goToFirstPeakHoursPage()"
+            [disabled]="peakHoursPage === 1">
+            First
+          </button>
           <button
             type="button"
             (click)="goToPreviousPeakHoursPage()"
@@ -73,6 +79,12 @@
             (click)="goToNextPeakHoursPage()"
             [disabled]="peakHoursPage === peakHoursPageCount">
             Next
+          </button>
+          <button
+            type="button"
+            (click)="goToLastPeakHoursPage()"
+            [disabled]="peakHoursPage === peakHoursPageCount">
+            Last
           </button>
         </div>
       </div>

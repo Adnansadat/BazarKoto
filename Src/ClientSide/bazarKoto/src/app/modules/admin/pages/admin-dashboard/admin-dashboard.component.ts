@@ -232,12 +232,13 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   get pagedPeakHours(): PeakHour[] {
-    const startIndex = (this.peakHoursPage - 1) * this.peakHoursPageSize;
+    const page = this.clampPeakHoursPage(this.peakHoursPage);
+    const startIndex = (page - 1) * this.peakHoursPageSize;
     return this.peakHours.slice(startIndex, startIndex + this.peakHoursPageSize);
   }
 
   get peakHoursPageCount(): number {
-    return Math.ceil(this.peakHours.length / this.peakHoursPageSize);
+    return Math.max(1, Math.ceil(this.peakHours.length / this.peakHoursPageSize));
   }
 
   get shouldShowPeakHoursPagination(): boolean {
@@ -245,11 +246,19 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   goToPreviousPeakHoursPage(): void {
-    this.peakHoursPage = Math.max(1, this.peakHoursPage - 1);
+    this.peakHoursPage = this.clampPeakHoursPage(this.peakHoursPage - 1);
   }
 
   goToNextPeakHoursPage(): void {
-    this.peakHoursPage = Math.min(this.peakHoursPageCount, this.peakHoursPage + 1);
+    this.peakHoursPage = this.clampPeakHoursPage(this.peakHoursPage + 1);
+  }
+
+  goToFirstPeakHoursPage(): void {
+    this.peakHoursPage = 1;
+  }
+
+  goToLastPeakHoursPage(): void {
+    this.peakHoursPage = this.peakHoursPageCount;
   }
 
   private handleLoadError(error: unknown): void {
@@ -266,8 +275,12 @@ export class AdminDashboardComponent implements OnInit {
       error instanceof Error ? error.message : 'Unable to load dashboard data.';
   }
 
-  private formatNumber(value: number): string {
+  formatNumber(value: number): string {
     return value.toLocaleString();
+  }
+
+  private clampPeakHoursPage(page: number): number {
+    return Math.min(Math.max(1, page), this.peakHoursPageCount);
   }
 
   private formatHour(hour: number): string {

@@ -147,12 +147,19 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
 
   onScreenshotSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+    const files = input.files;
+    const file = files?.[0] ?? null;
 
     this.screenshotErrorKey = '';
     this.selectedScreenshot = null;
 
     if (!file) {
+      return;
+    }
+
+    if ((files?.length ?? 0) > 1) {
+      this.screenshotErrorKey = 'contact.validation.screenshot.single';
+      input.value = '';
       return;
     }
 
