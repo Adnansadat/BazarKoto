@@ -20,7 +20,9 @@ public class AdminController : ControllerBase
     private readonly IProductService _productService;
     private readonly IPriceService _priceService;
     private readonly IContactService _contactService;
+    private readonly ITrafficIntelligencePdfService _trafficIntelligencePdfService;
     private readonly IWebHostEnvironment _environment;
+    private readonly ILogger<AdminController> _logger;
 
     public AdminController(
         IAdminDashboardService dashboardService,
@@ -29,7 +31,9 @@ public class AdminController : ControllerBase
         IProductService productService,
         IPriceService priceService,
         IContactService contactService,
-        IWebHostEnvironment environment)
+        ITrafficIntelligencePdfService trafficIntelligencePdfService,
+        IWebHostEnvironment environment,
+        ILogger<AdminController> logger)
     {
         _dashboardService = dashboardService;
         _analyticsService = analyticsService;
@@ -37,13 +41,39 @@ public class AdminController : ControllerBase
         _productService = productService;
         _priceService = priceService;
         _contactService = contactService;
+        _trafficIntelligencePdfService = trafficIntelligencePdfService;
         _environment = environment;
+        _logger = logger;
     }
 
     [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
     {
         return Ok(await _dashboardService.GetDashboardAsync(cancellationToken));
+    }
+
+    [HttpGet("traffic-intelligence/export-pdf")]
+    public async Task<IActionResult> ExportTrafficIntelligencePdf(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var report = await _dashboardService.GetTrafficIntelligenceReportAsync(cancellationToken);
+            var pdf = _trafficIntelligencePdfService.Generate(report);
+            var fileName = $"BazarKoto-Traffic-Intelligence-Report-{report.GeneratedAt:yyyyMMdd-HHmm}.pdf";
+
+            return File(pdf, "application/pdf", fileName);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Traffic intelligence PDF export failed.");
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<object>.Fail("Unable to export traffic report right now."));
+        }
     }
 
     [HttpGet("traffic")]

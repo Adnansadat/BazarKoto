@@ -66,6 +66,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<IUserTrackingRequestContextAccessor, HttpUserTrackingRequestContextAccessor>();
         services.AddScoped<IContactScreenshotStorage, ContactScreenshotStorage>();
+        services.AddScoped<ITrafficIntelligencePdfService, TrafficIntelligencePdfService>();
         services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
         services.AddJwtAuthentication(configuration);
         services.AddAuthorization();
@@ -131,7 +132,8 @@ public static class ServiceCollectionExtensions
             {
                 policy.WithOrigins(origins)
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .WithExposedHeaders("Content-Disposition");
             });
         });
 

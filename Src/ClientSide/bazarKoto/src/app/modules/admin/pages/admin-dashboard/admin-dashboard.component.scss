@@ -117,6 +117,10 @@
   color: #b91c1c;
 }
 
+.dashboard-state.success {
+  color: #047857;
+}
+
 .section-heading {
   margin-bottom: 18px;
   display: flex;
@@ -165,6 +169,7 @@
   transform: translateY(-1px);
 }
 
+.section-heading button:disabled,
 .peak-pagination button:disabled {
   opacity: 0.52;
   cursor: not-allowed;
@@ -200,6 +205,7 @@
   font-size: 28px;
   font-weight: 500;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .metric-card em {
@@ -254,6 +260,7 @@
 .queue-list span {
   color: #0f172a;
   font-weight: 500;
+  min-width: 0;
 }
 
 .list-table em {
@@ -282,6 +289,7 @@
   color: #ea580c;
   font-size: 22px;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .queue-list em {

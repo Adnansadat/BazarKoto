@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -61,6 +61,16 @@ export class Api {
     return this.http
       .get(this.buildUrl(path), {
         headers: this.buildHeaders(),
+        responseType: 'blob',
+      })
+      .pipe(catchError(error => this.handleError(error)));
+  }
+
+  getBlobResponse(path: string): Observable<HttpResponse<Blob>> {
+    return this.http
+      .get(this.buildUrl(path), {
+        headers: this.buildHeaders(),
+        observe: 'response',
         responseType: 'blob',
       })
       .pipe(catchError(error => this.handleError(error)));

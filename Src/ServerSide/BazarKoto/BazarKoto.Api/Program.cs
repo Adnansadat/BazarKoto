@@ -5,7 +5,10 @@ using BazarKoto.Infrastructure.Persistence;
 using BazarKoto.Infrastructure.Persistence.Seed;
 using BazarKoto.Infrastructure.Persistence.Seed.MasterData;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 using Serilog;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var frontendPublicRoot = ResolveFrontendPublicRoot();
 Environment.SetEnvironmentVariable("ASPNETCORE_WEBROOT", frontendPublicRoot);

@@ -19,11 +19,18 @@
         <span>Traffic intelligence</span>
         <h2 id="traffic-title">Website traffic and ad readiness</h2>
       </div>
-      <button type="button">Export report</button>
+      <button
+        type="button"
+        (click)="exportTrafficIntelligenceReport()"
+        [disabled]="isExportingTrafficReport || isLoading">
+        {{ isExportingTrafficReport ? 'Exporting...' : 'Export report' }}
+      </button>
     </div>
 
     <p class="dashboard-state" *ngIf="isLoading">Loading dashboard data...</p>
     <p class="dashboard-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    <p class="dashboard-state success" *ngIf="exportMessage">{{ exportMessage }}</p>
+    <p class="dashboard-state error" *ngIf="exportErrorMessage">{{ exportErrorMessage }}</p>
 
     <div class="metric-grid" *ngIf="!isLoading && !errorMessage">
       <article class="metric-card" *ngFor="let metric of trafficMetrics">
@@ -107,7 +114,7 @@
           [class.clickable]="item.route"
           (click)="openQueueItem(item)">
           <span>{{ item.label }}</span>
-          <strong>{{ item.count }}</strong>
+          <strong>{{ formatNumber(item.count) }}</strong>
           <em>{{ item.helper }}</em>
         </button>
       </div>
