@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -7,5 +7,6 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [TranslateModule],
   templateUrl: './about-page.component.html',
   styleUrl: './about-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutPageComponent {}

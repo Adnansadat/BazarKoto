@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [TranslateModule],
   templateUrl: './privacy-policy-page.component.html',
   styleUrl: './privacy-policy-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PrivacyPolicyPageComponent {
   private readonly privacyMailtoUrl = 'mailto:support@bazarkoto.com?subject=Privacy%20Inquiry%20-%20BazarKoto';

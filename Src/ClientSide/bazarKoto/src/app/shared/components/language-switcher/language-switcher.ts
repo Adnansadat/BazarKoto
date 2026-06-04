@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Language } from '../../../core/services/language';
 
 @Component({
@@ -6,6 +6,7 @@ import { Language } from '../../../core/services/language';
   imports: [],
   templateUrl: './language-switcher.html',
   styleUrl: './language-switcher.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageSwitcher {
   constructor(protected readonly language: Language) {}

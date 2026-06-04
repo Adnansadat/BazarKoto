@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -10,6 +10,7 @@ import { Auth } from '../../../core/services/auth';
   imports: [RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcher, NgIf, AsyncPipe],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
   readonly isAdmin$;
