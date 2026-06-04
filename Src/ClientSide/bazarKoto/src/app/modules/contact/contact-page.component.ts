@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -31,10 +31,10 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   private readonly draftKey = 'bazarKoto.contactFormDraft';
   private static savedScrollY: number | null = null;
 
-  name = '';
-  email = '';
-  subject = '';
-  message = '';
+  name = signal('');
+  email = signal('');
+  subject = signal('');
+  message = signal('');
   selectedScreenshot: File | null = null;
   screenshotErrorKey = '';
   backendErrors: string[] = [];
@@ -108,10 +108,10 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
 
   saveDraft(): void {
     this.draftService.saveDraft(this.draftKey, {
-      name: this.name,
-      email: this.email,
-      subject: this.subject,
-      message: this.message,
+      name: this.name(),
+      email: this.email(),
+      subject: this.subject(),
+      message: this.message(),
     } satisfies ContactFormDraft);
   }
 
@@ -120,7 +120,7 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
       return [];
     }
 
-    const value = this[field].trim();
+    const value = this.getFieldValue(field).trim();
 
     if (!value) {
       return [`contact.validation.${field}.required`];
@@ -190,10 +190,10 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
 
   private buildFormData(): FormData {
     const formData = new FormData();
-    formData.append('name', this.name.trim());
-    formData.append('email', this.email.trim());
-    formData.append('subject', this.subject.trim());
-    formData.append('message', this.message.trim());
+    formData.append('name', this.name().trim());
+    formData.append('email', this.email().trim());
+    formData.append('subject', this.subject().trim());
+    formData.append('message', this.message().trim());
 
     if (this.selectedScreenshot) {
       formData.append('screenshot', this.selectedScreenshot);
@@ -218,10 +218,10 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   private resetForm(): void {
-    this.name = '';
-    this.email = '';
-    this.subject = '';
-    this.message = '';
+    this.name.set('');
+    this.email.set('');
+    this.subject.set('');
+    this.message.set('');
     this.selectedScreenshot = null;
     this.screenshotErrorKey = '';
     this.backendErrors = [];
@@ -242,10 +242,10 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.name = draft.name ?? '';
-    this.email = draft.email ?? '';
-    this.subject = draft.subject ?? '';
-    this.message = draft.message ?? '';
+    this.name.set(draft.name ?? '');
+    this.email.set(draft.email ?? '');
+    this.subject.set(draft.subject ?? '');
+    this.message.set(draft.message ?? '');
   }
 
   private clearDraft(): void {
@@ -271,6 +271,15 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
 
   private isValidEmail(value: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  private getFieldValue(field: ContactField): string {
+    return {
+      name: this.name(),
+      email: this.email(),
+      subject: this.subject(),
+      message: this.message(),
+    }[field];
   }
 
   private clearScreenshotInput(): void {

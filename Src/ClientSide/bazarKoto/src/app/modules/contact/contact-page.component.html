@@ -30,8 +30,8 @@
         <input
           type="text"
           name="name"
-          [(ngModel)]="name"
-          (ngModelChange)="saveDraft()"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event); saveDraft()"
           (blur)="markTouched('name')"
           [placeholder]="'contact.form.name.placeholder' | translate"
           [attr.aria-invalid]="getValidationKeys('name').length > 0" />
@@ -45,8 +45,8 @@
         <input
           type="email"
           name="email"
-          [(ngModel)]="email"
-          (ngModelChange)="saveDraft()"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event); saveDraft()"
           (blur)="markTouched('email')"
           [placeholder]="'contact.form.email.placeholder' | translate"
           [attr.aria-invalid]="getValidationKeys('email').length > 0" />
@@ -60,8 +60,8 @@
         <input
           type="text"
           name="subject"
-          [(ngModel)]="subject"
-          (ngModelChange)="saveDraft()"
+          [ngModel]="subject()"
+          (ngModelChange)="subject.set($event); saveDraft()"
           (blur)="markTouched('subject')"
           [placeholder]="'contact.form.subject.placeholder' | translate"
           [attr.aria-invalid]="getValidationKeys('subject').length > 0" />
@@ -75,12 +75,12 @@
         <textarea
           rows="5"
           name="message"
-          [(ngModel)]="message"
-          (ngModelChange)="saveDraft()"
+          [ngModel]="message()"
+          (ngModelChange)="message.set($event); saveDraft()"
           (blur)="markTouched('message')"
           [placeholder]="'contact.form.message.placeholder' | translate"
           [attr.aria-invalid]="getValidationKeys('message').length > 0"></textarea>
-        <small class="character-count">{{ message.length }} / 2000</small>
+        <small class="character-count">{{ message().length }} / 2000</small>
         <small class="field-error" *ngFor="let errorKey of getValidationKeys('message')">
           {{ errorKey | translate }}
         </small>
