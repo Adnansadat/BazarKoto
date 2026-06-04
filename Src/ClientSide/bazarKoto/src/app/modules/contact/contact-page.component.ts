@@ -1,6 +1,16 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  PLATFORM_ID,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf, isPlatformBrowser } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 
@@ -22,10 +32,12 @@ interface ContactFormDraft {
   imports: [TranslateModule, FormsModule, NgIf, NgFor],
   templateUrl: './contact-page.component.html',
   styleUrl: './contact-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContactPageComponent implements AfterViewInit, OnDestroy {
   @ViewChild('screenshotInput') private screenshotInput?: ElementRef<HTMLInputElement>;
 
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly maxScreenshotSizeBytes = 3 * 1024 * 1024;
   private readonly allowedScreenshotTypes = new Set(['image/png', 'image/jpeg', 'image/webp']);
   private readonly draftKey = 'bazarKoto.contactFormDraft';
@@ -37,16 +49,16 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   message = signal('');
   selectedScreenshot = signal<File | null>(null);
   screenshotErrorKey = signal('');
-  backendErrors: string[] = [];
-  isSubmitting = false;
-  errorMessageKey = '';
-  showSuccessModal = false;
-  touched: Record<ContactField, boolean> = {
+  backendErrors = signal<string[]>([]);
+  isSubmitting = signal(false);
+  errorMessageKey = signal('');
+  showSuccessModal = signal(false);
+  touched = signal<Record<ContactField, boolean>>({
     name: false,
     email: false,
     subject: false,
     message: false,
-  };
+  });
 
   constructor(
     private readonly contactMessages: ContactMessages,
@@ -56,7 +68,7 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (ContactPageComponent.savedScrollY === null) {
+    if (!this.isBrowser || ContactPageComponent.savedScrollY === null) {
       return;
     }
 
@@ -65,45 +77,52 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     ContactPageComponent.savedScrollY = window.scrollY;
   }
 
   submit(): void {
-    if (this.isSubmitting) {
+    if (this.isSubmitting()) {
       return;
     }
 
     this.markAllTouched();
-    this.errorMessageKey = '';
-    this.backendErrors = [];
+    this.errorMessageKey.set('');
+    this.backendErrors.set([]);
 
     if (!this.isFormValid()) {
       return;
     }
 
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
 
     this.contactMessages.submitContactMessage(this.buildFormData())
       .pipe(finalize(() => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
       }))
       .subscribe({
         next: () => {
           this.resetForm();
           this.clearDraft();
-          this.showSuccessModal = true;
+          this.showSuccessModal.set(true);
         },
         error: error => {
-          this.errorMessageKey = 'contact.error.submit';
-          this.backendErrors = error instanceof ContactMessageSubmitError
+          this.errorMessageKey.set('contact.error.submit');
+          this.backendErrors.set(error instanceof ContactMessageSubmitError
             ? error.validationErrors
-            : [];
+            : []);
         },
       });
   }
 
   markTouched(field: ContactField): void {
-    this.touched[field] = true;
+    this.touched.update(touched => ({
+      ...touched,
+      [field]: true,
+    }));
   }
 
   saveDraft(): void {
@@ -116,7 +135,7 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   getValidationKeys(field: ContactField): string[] {
-    if (!this.touched[field]) {
+    if (!this.touched()[field]) {
       return [];
     }
 
@@ -185,7 +204,7 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   closeSuccessModal(): void {
-    this.showSuccessModal = false;
+    this.showSuccessModal.set(false);
   }
 
   private buildFormData(): FormData {
@@ -204,18 +223,18 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   }
 
   private isFormValid(): boolean {
-    return (Object.keys(this.touched) as ContactField[])
+    return (Object.keys(this.touched()) as ContactField[])
       .every(field => this.getValidationKeys(field).length === 0)
       && !this.screenshotErrorKey();
   }
 
   private markAllTouched(): void {
-    this.touched = {
+    this.touched.set({
       name: true,
       email: true,
       subject: true,
       message: true,
-    };
+    });
   }
 
   private resetForm(): void {
@@ -225,15 +244,15 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
     this.message.set('');
     this.selectedScreenshot.set(null);
     this.screenshotErrorKey.set('');
-    this.backendErrors = [];
-    this.errorMessageKey = '';
+    this.backendErrors.set([]);
+    this.errorMessageKey.set('');
     this.clearScreenshotInput();
-    this.touched = {
+    this.touched.set({
       name: false,
       email: false,
       subject: false,
       message: false,
-    };
+    });
   }
 
   private restoreDraft(): void {

@@ -115,20 +115,20 @@
         <small class="field-error" *ngIf="screenshotErrorKey()">{{ screenshotErrorKey() | translate }}</small>
       </div>
 
-      <div class="error-message" *ngIf="errorMessageKey || backendErrors.length">
-        <p *ngIf="errorMessageKey">{{ errorMessageKey | translate }}</p>
-        <ul *ngIf="backendErrors.length">
-          <li *ngFor="let error of backendErrors">{{ error }}</li>
+      <div class="error-message" *ngIf="errorMessageKey() || backendErrors().length">
+        <p *ngIf="errorMessageKey()">{{ errorMessageKey() | translate }}</p>
+        <ul *ngIf="backendErrors().length">
+          <li *ngFor="let error of backendErrors()">{{ error }}</li>
         </ul>
       </div>
 
-      <button type="submit" [disabled]="isSubmitting">
-        {{ (isSubmitting ? 'contact.form.sending' : 'contact.form.submit') | translate }}
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ (isSubmitting() ? 'contact.form.sending' : 'contact.form.submit') | translate }}
       </button>
     </form>
   </section>
 
-  <div class="modal-backdrop" *ngIf="showSuccessModal">
+  <div class="modal-backdrop" *ngIf="showSuccessModal()">
     <section
       class="success-modal"
       role="dialog"
