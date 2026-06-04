@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, ElementRef, HostListener, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, HostListener, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, finalize, firstValueFrom, map, of, Subject, Subscription, switchMap, tap } from 'rxjs';
@@ -19,6 +19,7 @@ type LocationDropdown = 'division' | 'district' | 'upazila' | 'unionOrWard';
   imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './product-prices-page.component.html',
   styleUrl: './product-prices-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPricesPageComponent implements OnInit, OnDestroy {
   searchTerm = '';
