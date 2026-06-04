@@ -1,0 +1,1181 @@
+[
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Miniket Rice",
+    "nameBn": "মিনিকেট চাল",
+    "slug": "miniket-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Nazirshail Rice",
+    "nameBn": "নাজিরশাইল চাল",
+    "slug": "nazirshail-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "BRRI Rice",
+    "nameBn": "ব্রি চাল",
+    "slug": "brri-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Coarse Rice",
+    "nameBn": "মোটা চাল",
+    "slug": "coarse-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Atap Rice",
+    "nameBn": "আতপ চাল",
+    "slug": "atap-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Chinigura Rice",
+    "nameBn": "চিনিগুড়া চাল",
+    "slug": "chinigura-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Puffed Rice",
+    "nameBn": "মুড়ি",
+    "slug": "puffed-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "rice-grains",
+    "nameEn": "Flattened Rice",
+    "nameBn": "চিড়া",
+    "slug": "flattened-rice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Masoor Dal",
+    "nameBn": "মসুর ডাল",
+    "slug": "masoor-dal",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Moong Dal",
+    "nameBn": "মুগ ডাল",
+    "slug": "moong-dal",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Chhola",
+    "nameBn": "ছোলা",
+    "slug": "chhola",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Khesari Dal",
+    "nameBn": "খেসারি ডাল",
+    "slug": "khesari-dal",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Boot Dal",
+    "nameBn": "বুটের ডাল",
+    "slug": "boot-dal",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "lentils-pulses",
+    "nameEn": "Motor Dal",
+    "nameBn": "মটর ডাল",
+    "slug": "motor-dal",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Potato",
+    "nameBn": "আলু",
+    "slug": "potato",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Tomato",
+    "nameBn": "টমেটো",
+    "slug": "tomato",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Green Chili",
+    "nameBn": "কাঁচা মরিচ",
+    "slug": "green-chili",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Eggplant",
+    "nameBn": "বেগুন",
+    "slug": "eggplant",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Cauliflower",
+    "nameBn": "ফুলকপি",
+    "slug": "cauliflower",
+    "primaryUnit": "piece",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Cabbage",
+    "nameBn": "বাঁধাকপি",
+    "slug": "cabbage",
+    "primaryUnit": "piece",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Carrot",
+    "nameBn": "গাজর",
+    "slug": "carrot",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Cucumber",
+    "nameBn": "শসা",
+    "slug": "cucumber",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Pumpkin",
+    "nameBn": "মিষ্টি কুমড়া",
+    "slug": "pumpkin",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Bottle Gourd",
+    "nameBn": "লাউ",
+    "slug": "bottle-gourd",
+    "primaryUnit": "piece",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Bitter Gourd",
+    "nameBn": "করলা",
+    "slug": "bitter-gourd",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Okra",
+    "nameBn": "ঢেঁড়স",
+    "slug": "okra",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Green Papaya",
+    "nameBn": "কাঁচা পেঁপে",
+    "slug": "green-papaya",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Pointed Gourd",
+    "nameBn": "পটল",
+    "slug": "pointed-gourd",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Snake Gourd",
+    "nameBn": "চিচিঙ্গা",
+    "slug": "snake-gourd",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Ridge Gourd",
+    "nameBn": "ঝিঙ্গা",
+    "slug": "ridge-gourd",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "vegetables",
+    "nameEn": "Yardlong Bean",
+    "nameBn": "বরবটি",
+    "slug": "yardlong-bean",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Spinach",
+    "nameBn": "পালং শাক",
+    "slug": "spinach",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Red Amaranth",
+    "nameBn": "লাল শাক",
+    "slug": "red-amaranth",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Green Amaranth",
+    "nameBn": "ডাটা শাক",
+    "slug": "green-amaranth",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Malabar Spinach",
+    "nameBn": "পুঁই শাক",
+    "slug": "malabar-spinach",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Water Spinach",
+    "nameBn": "কলমি শাক",
+    "slug": "water-spinach",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Jute Leaf",
+    "nameBn": "পাট শাক",
+    "slug": "jute-leaf",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Coriander Leaf",
+    "nameBn": "ধনেপাতা",
+    "slug": "coriander-leaf",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "leafy-vegetables",
+    "nameEn": "Mint Leaf",
+    "nameBn": "পুদিনা পাতা",
+    "slug": "mint-leaf",
+    "primaryUnit": "bundle",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Banana",
+    "nameBn": "কলা",
+    "slug": "banana",
+    "primaryUnit": "hali",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Apple",
+    "nameBn": "আপেল",
+    "slug": "apple",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Orange",
+    "nameBn": "কমলা",
+    "slug": "orange",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Guava",
+    "nameBn": "পেয়ারা",
+    "slug": "guava",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Papaya",
+    "nameBn": "পেঁপে",
+    "slug": "papaya",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Watermelon",
+    "nameBn": "তরমুজ",
+    "slug": "watermelon",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Mango",
+    "nameBn": "আম",
+    "slug": "mango",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Pineapple",
+    "nameBn": "আনারস",
+    "slug": "pineapple",
+    "primaryUnit": "piece",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Lemon",
+    "nameBn": "লেবু",
+    "slug": "lemon",
+    "primaryUnit": "hali",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Coconut",
+    "nameBn": "নারকেল",
+    "slug": "coconut",
+    "primaryUnit": "piece",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fruits",
+    "nameEn": "Malta",
+    "nameBn": "মাল্টা",
+    "slug": "malta",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Rui Fish",
+    "nameBn": "রুই মাছ",
+    "slug": "rui-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Katla Fish",
+    "nameBn": "কাতলা মাছ",
+    "slug": "katla-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Pangas Fish",
+    "nameBn": "পাঙ্গাস মাছ",
+    "slug": "pangas-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Tilapia Fish",
+    "nameBn": "তেলাপিয়া মাছ",
+    "slug": "tilapia-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Hilsa Fish",
+    "nameBn": "ইলিশ মাছ",
+    "slug": "hilsa-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Shrimp",
+    "nameBn": "চিংড়ি",
+    "slug": "shrimp",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Koi Fish",
+    "nameBn": "কই মাছ",
+    "slug": "koi-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Pabda Fish",
+    "nameBn": "পাবদা মাছ",
+    "slug": "pabda-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Mrigel Fish",
+    "nameBn": "মৃগেল মাছ",
+    "slug": "mrigel-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "fish",
+    "nameEn": "Silver Carp Fish",
+    "nameBn": "সিলভার কার্প মাছ",
+    "slug": "silver-carp-fish",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Broiler Chicken",
+    "nameBn": "ব্রয়লার মুরগি",
+    "slug": "broiler-chicken",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Sonali Chicken",
+    "nameBn": "সোনালি মুরগি",
+    "slug": "sonali-chicken",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Local Chicken",
+    "nameBn": "দেশি মুরগি",
+    "slug": "local-chicken",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Beef",
+    "nameBn": "গরুর মাংস",
+    "slug": "beef",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Mutton",
+    "nameBn": "খাসির মাংস",
+    "slug": "mutton",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "meat-poultry",
+    "nameEn": "Duck",
+    "nameBn": "হাঁস",
+    "slug": "duck",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Chicken Egg",
+    "nameBn": "মুরগির ডিম",
+    "slug": "chicken-egg",
+    "primaryUnit": "dozen",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Duck Egg",
+    "nameBn": "হাঁসের ডিম",
+    "slug": "duck-egg",
+    "primaryUnit": "hali",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Liquid Milk",
+    "nameBn": "তরল দুধ",
+    "slug": "liquid-milk",
+    "primaryUnit": "liter",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Powder Milk",
+    "nameBn": "গুঁড়া দুধ",
+    "slug": "powder-milk",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Yogurt",
+    "nameBn": "দই",
+    "slug": "yogurt",
+    "primaryUnit": "kg",
+    "productState": "Processed",
+    "notes": null
+  },
+  {
+    "categorySlug": "eggs-dairy",
+    "nameEn": "Butter",
+    "nameBn": "মাখন",
+    "slug": "butter",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "cooking-oil-ghee",
+    "nameEn": "Soybean Oil",
+    "nameBn": "সয়াবিন তেল",
+    "slug": "soybean-oil",
+    "primaryUnit": "liter",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "cooking-oil-ghee",
+    "nameEn": "Mustard Oil",
+    "nameBn": "সরিষার তেল",
+    "slug": "mustard-oil",
+    "primaryUnit": "liter",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "cooking-oil-ghee",
+    "nameEn": "Palm Oil",
+    "nameBn": "পাম তেল",
+    "slug": "palm-oil",
+    "primaryUnit": "liter",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "cooking-oil-ghee",
+    "nameEn": "Ghee",
+    "nameBn": "ঘি",
+    "slug": "ghee",
+    "primaryUnit": "kg",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Turmeric Powder",
+    "nameBn": "হলুদ গুঁড়া",
+    "slug": "turmeric-powder",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Chili Powder",
+    "nameBn": "মরিচ গুঁড়া",
+    "slug": "chili-powder",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Coriander Powder",
+    "nameBn": "ধনে গুঁড়া",
+    "slug": "coriander-powder",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Cumin",
+    "nameBn": "জিরা",
+    "slug": "cumin",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Cumin Powder",
+    "nameBn": "জিরা গুঁড়া",
+    "slug": "cumin-powder",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Black Pepper",
+    "nameBn": "গোলমরিচ",
+    "slug": "black-pepper",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Cardamom",
+    "nameBn": "এলাচ",
+    "slug": "cardamom",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Cinnamon",
+    "nameBn": "দারুচিনি",
+    "slug": "cinnamon",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Bay Leaf",
+    "nameBn": "তেজপাতা",
+    "slug": "bay-leaf",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Clove",
+    "nameBn": "লবঙ্গ",
+    "slug": "clove",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "spices",
+    "nameEn": "Five Spice",
+    "nameBn": "পাঁচফোড়ন",
+    "slug": "five-spice",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "onion-garlic-ginger",
+    "nameEn": "Onion",
+    "nameBn": "পেঁয়াজ",
+    "slug": "onion",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "onion-garlic-ginger",
+    "nameEn": "Red Onion",
+    "nameBn": "লাল পেঁয়াজ",
+    "slug": "red-onion",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "onion-garlic-ginger",
+    "nameEn": "Garlic",
+    "nameBn": "রসুন",
+    "slug": "garlic",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "onion-garlic-ginger",
+    "nameEn": "Ginger",
+    "nameBn": "আদা",
+    "slug": "ginger",
+    "primaryUnit": "kg",
+    "productState": "Fresh",
+    "notes": null
+  },
+  {
+    "categorySlug": "salt-sugar-sweeteners",
+    "nameEn": "Salt",
+    "nameBn": "লবণ",
+    "slug": "salt",
+    "primaryUnit": "kg",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "salt-sugar-sweeteners",
+    "nameEn": "Sugar",
+    "nameBn": "চিনি",
+    "slug": "sugar",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "salt-sugar-sweeteners",
+    "nameEn": "Jaggery",
+    "nameBn": "গুড়",
+    "slug": "jaggery",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Atta",
+    "nameBn": "আটা",
+    "slug": "atta",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Maida",
+    "nameBn": "ময়দা",
+    "slug": "maida",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Suji",
+    "nameBn": "সুজি",
+    "slug": "suji",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Besan",
+    "nameBn": "বেসন",
+    "slug": "besan",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Bread",
+    "nameBn": "পাউরুটি",
+    "slug": "bread",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Biscuit",
+    "nameBn": "বিস্কুট",
+    "slug": "biscuit",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "flour-baking-staples",
+    "nameEn": "Baking Powder",
+    "nameBn": "বেকিং পাউডার",
+    "slug": "baking-powder",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "tea-beverages",
+    "nameEn": "Tea Leaf",
+    "nameBn": "চা পাতা",
+    "slug": "tea-leaf",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "tea-beverages",
+    "nameEn": "Green Tea",
+    "nameBn": "গ্রিন টি",
+    "slug": "green-tea",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "tea-beverages",
+    "nameEn": "Coffee",
+    "nameBn": "কফি",
+    "slug": "coffee",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "tea-beverages",
+    "nameEn": "Powder Drink",
+    "nameBn": "গুঁড়া পানীয়",
+    "slug": "powder-drink",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Noodles",
+    "nameBn": "নুডলস",
+    "slug": "noodles",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Semai",
+    "nameBn": "সেমাই",
+    "slug": "semai",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Chanachur",
+    "nameBn": "চানাচুর",
+    "slug": "chanachur",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Flattened Rice",
+    "nameBn": "চিড়া",
+    "slug": "flattened-rice-packaged",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": "Packaged chira; loose chira is listed under rice-grains."
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Puffed Rice",
+    "nameBn": "মুড়ি",
+    "slug": "puffed-rice-packaged",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": "Packaged muri; loose muri is listed under rice-grains."
+  },
+  {
+    "categorySlug": "packaged-foods",
+    "nameEn": "Toast Biscuit",
+    "nameBn": "টোস্ট বিস্কুট",
+    "slug": "toast-biscuit",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Peanut",
+    "nameBn": "চিনাবাদাম",
+    "slug": "peanut",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Cashew Nut",
+    "nameBn": "কাজুবাদাম",
+    "slug": "cashew-nut",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Almond",
+    "nameBn": "কাঠবাদাম",
+    "slug": "almond",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Raisin",
+    "nameBn": "কিশমিশ",
+    "slug": "raisin",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Date",
+    "nameBn": "খেজুর",
+    "slug": "date",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": null
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Flattened Rice",
+    "nameBn": "চিড়া",
+    "slug": "flattened-rice-dry",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": "Loose dry chira commonly sold by weight."
+  },
+  {
+    "categorySlug": "dry-foods-nuts",
+    "nameEn": "Puffed Rice",
+    "nameBn": "মুড়ি",
+    "slug": "puffed-rice-dry",
+    "primaryUnit": "kg",
+    "productState": "Dry",
+    "notes": "Loose dry muri commonly sold by weight."
+  },
+  {
+    "categorySlug": "baby-food",
+    "nameEn": "Baby Cereal",
+    "nameBn": "শিশুর সিরিয়াল",
+    "slug": "baby-cereal",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "baby-food",
+    "nameEn": "Baby Suji",
+    "nameBn": "শিশুর সুজি",
+    "slug": "baby-suji",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "baby-food",
+    "nameEn": "Infant Formula",
+    "nameBn": "শিশুর ফর্মুলা দুধ",
+    "slug": "infant-formula",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Bath Soap",
+    "nameBn": "গোসলের সাবান",
+    "slug": "bath-soap",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Laundry Soap",
+    "nameBn": "কাপড় ধোয়ার সাবান",
+    "slug": "laundry-soap",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Detergent Powder",
+    "nameBn": "ডিটারজেন্ট পাউডার",
+    "slug": "detergent-powder",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Dishwashing Bar",
+    "nameBn": "বাসন ধোয়ার বার",
+    "slug": "dishwashing-bar",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Dishwashing Liquid",
+    "nameBn": "বাসন ধোয়ার লিকুইড",
+    "slug": "dishwashing-liquid",
+    "primaryUnit": "liter",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Toilet Tissue",
+    "nameBn": "টয়লেট টিস্যু",
+    "slug": "toilet-tissue",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Facial Tissue",
+    "nameBn": "ফেসিয়াল টিস্যু",
+    "slug": "facial-tissue",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Matchbox",
+    "nameBn": "দেশলাই",
+    "slug": "matchbox",
+    "primaryUnit": "piece",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Floor Cleaner",
+    "nameBn": "ফ্লোর ক্লিনার",
+    "slug": "floor-cleaner",
+    "primaryUnit": "liter",
+    "productState": "Packaged",
+    "notes": null
+  },
+  {
+    "categorySlug": "household-essentials",
+    "nameEn": "Bleaching Powder",
+    "nameBn": "ব্লিচিং পাউডার",
+    "slug": "bleaching-powder",
+    "primaryUnit": "packet",
+    "productState": "Packaged",
+    "notes": null
+  }
+]

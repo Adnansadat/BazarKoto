@@ -81,20 +81,20 @@
             <button
               *ngFor="let category of miniCategories"
               type="button"
-              [class.active]="selectedCategory === category.value"
-              (click)="selectedCategory = category.value"
+              [class.active]="selectedCategory() === category.value"
+              (click)="selectCategory(category.value)"
             >
               {{ category.labelKey | translate }}
             </button>
           </div>
 
           <div class="mini-list">
-            <p *ngIf="isLoadingPrices">{{ 'home.prices.loading' | translate }}</p>
-            <p *ngIf="priceErrorMessageKey">{{ priceErrorMessageKey | translate }}</p>
-            <p *ngIf="!isLoadingPrices && !priceErrorMessageKey && phoneFilteredPrices.length === 0">
+            <p *ngIf="isLoadingPrices()">{{ 'home.prices.loading' | translate }}</p>
+            <p *ngIf="priceErrorMessageKey()">{{ priceErrorMessageKey() | translate }}</p>
+            <p *ngIf="!isLoadingPrices() && !priceErrorMessageKey() && phoneFilteredPrices().length === 0">
               {{ 'home.prices.empty' | translate }}
             </p>
-            <article *ngFor="let price of phoneFilteredPrices">
+            <article *ngFor="let price of phoneFilteredPrices()">
               <span class="product-dot"></span>
 
               <div>
@@ -151,8 +151,8 @@
         <button
           *ngFor="let category of categories"
           type="button"
-          [class.active]="selectedCategory === category.value"
-          (click)="selectedCategory = category.value"
+          [class.active]="selectedCategory() === category.value"
+          (click)="selectCategory(category.value)"
         >
           {{ category.labelKey | translate }}
         </button>
@@ -160,16 +160,16 @@
     </div>
 
     <div class="price-grid">
-      <p class="price-status" *ngIf="isLoadingPrices">{{ 'home.prices.loadingProductPrices' | translate }}</p>
-      <p class="price-status error" *ngIf="priceErrorMessageKey">{{ priceErrorMessageKey | translate }}</p>
+      <p class="price-status" *ngIf="isLoadingPrices()">{{ 'home.prices.loadingProductPrices' | translate }}</p>
+      <p class="price-status error" *ngIf="priceErrorMessageKey()">{{ priceErrorMessageKey() | translate }}</p>
       <p
         class="price-status"
-        *ngIf="!isLoadingPrices && !priceErrorMessageKey && productPrices.length === 0"
+        *ngIf="!isLoadingPrices() && !priceErrorMessageKey() && productPrices().length === 0"
       >
         {{ 'home.prices.emptyProductPrices' | translate }}
       </p>
 
-      <article class="price-card" *ngFor="let price of productPrices">
+      <article class="price-card" *ngFor="let price of productPrices()">
         <span class="price-icon" aria-hidden="true">
           {{ getProductInitial(price) }}
         </span>

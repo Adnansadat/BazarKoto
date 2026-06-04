@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Api } from '../../../../core/services/api';
@@ -54,13 +54,32 @@ interface FaqItem {
   standalone: true,
   imports: [CommonModule, RouterLink, TranslateModule],
   templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.scss']
+  styleUrls: ['./home-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent implements OnInit {
-  selectedCategory: PriceCategory = 'all';
-  isLoadingPrices = true;
-  priceErrorMessageKey = '';
-  averagePrices: AveragePrice[] = [];
+  readonly selectedCategory = signal<PriceCategory>('all');
+  readonly isLoadingPrices = signal(true);
+  readonly priceErrorMessageKey = signal('');
+  readonly averagePrices = signal<AveragePrice[]>([]);
+
+  readonly filteredPrices = computed(() => {
+    const selectedCategory = this.selectedCategory();
+
+    return this.averagePrices().filter((price) => {
+      return selectedCategory === 'all' || price.category === selectedCategory;
+    });
+  });
+
+  readonly productPrices = computed(() => this.filteredPrices().slice(0, 10));
+
+  readonly phoneFilteredPrices = computed(() => {
+    const selectedCategory = this.selectedCategory();
+
+    return this.phonePrices.filter((price) => {
+      return selectedCategory === 'all' || price.category === selectedCategory;
+    });
+  });
 
   constructor(
     private translate: TranslateService,
@@ -73,6 +92,10 @@ export class HomePageComponent implements OnInit {
 
   get currentLanguage(): string {
     return this.translate.currentLang || this.translate.defaultLang || 'en';
+  }
+
+  selectCategory(category: PriceCategory): void {
+    this.selectedCategory.set(category);
   }
 
   readonly categories: Array<{ labelKey: string; value: PriceCategory }> = [
@@ -229,22 +252,6 @@ export class HomePageComponent implements OnInit {
     }
   ];
 
-  get filteredPrices(): AveragePrice[] {
-    return this.averagePrices.filter((price) => {
-      return this.selectedCategory === 'all' || price.category === this.selectedCategory;
-    });
-  }
-
-  get productPrices(): AveragePrice[] {
-    return this.filteredPrices.slice(0, 10);
-  }
-
-  get phoneFilteredPrices(): AveragePrice[] {
-    return this.phonePrices.filter((price) => {
-      return this.selectedCategory === 'all' || price.category === this.selectedCategory;
-    });
-  }
-
   getProductInitial(price: AveragePrice): string {
     const name = this.getLocalizedProductName(price);
     return name ? name.charAt(0) : '';
@@ -274,17 +281,17 @@ export class HomePageComponent implements OnInit {
   }
 
   private loadPrices(): void {
-    this.isLoadingPrices = true;
-    this.priceErrorMessageKey = '';
+    this.isLoadingPrices.set(true);
+    this.priceErrorMessageKey.set('');
 
     this.api.get<PriceSubmissionResponse[]>('/Prices', { pageSize: 100 }).subscribe({
       next: prices => {
-        this.averagePrices = this.toAveragePrices(prices);
-        this.isLoadingPrices = false;
+        this.averagePrices.set(this.toAveragePrices(prices));
+        this.isLoadingPrices.set(false);
       },
       error: () => {
-        this.priceErrorMessageKey = 'home.prices.error';
-        this.isLoadingPrices = false;
+        this.priceErrorMessageKey.set('home.prices.error');
+        this.isLoadingPrices.set(false);
       },
     });
   }

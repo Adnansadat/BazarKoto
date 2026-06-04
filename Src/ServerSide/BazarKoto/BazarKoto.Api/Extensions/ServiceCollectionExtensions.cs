@@ -132,8 +132,8 @@ public static class ServiceCollectionExtensions
             {
                 policy.WithOrigins(origins)
                     .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .WithExposedHeaders("Content-Disposition");
+                    .AllowAnyMethod();
+                    //.WithExposedHeaders("Content-Disposition");
             });
         });
 

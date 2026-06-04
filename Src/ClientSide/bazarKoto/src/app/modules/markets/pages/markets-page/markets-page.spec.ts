@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 
-import {MarketsPageComponent } from './markets-page.component';
+import { MarketsPageComponent } from './markets-page.component';
 
 describe('MarketsPageComponent', () => {
   let component: MarketsPageComponent;
@@ -10,7 +12,11 @@ describe('MarketsPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MarketsPageComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
+      ],
     })
     .compileComponents();
 

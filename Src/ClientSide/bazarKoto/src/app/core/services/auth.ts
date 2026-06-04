@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
 
 import { Api } from './api';
@@ -21,6 +22,7 @@ export interface LoginResponse {
   providedIn: 'root',
 })
 export class Auth {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly accessTokenKey = 'bazarKoto.accessToken';
   private readonly refreshTokenKey = 'bazarKoto.refreshToken';
   private readonly emailKey = 'bazarKoto.email';
@@ -34,6 +36,10 @@ export class Auth {
   login(email: string, password: string): Observable<LoginResponse> {
     return this.api.post<LoginResponse>('/Auth/login', { email, password }).pipe(
       tap(response => {
+        if (!this.isBrowser) {
+          return;
+        }
+
         localStorage.setItem(this.accessTokenKey, response.accessToken);
         localStorage.setItem(this.refreshTokenKey, response.refreshToken);
         localStorage.setItem(this.emailKey, response.email);
@@ -45,6 +51,11 @@ export class Auth {
   }
 
   logout(): void {
+    if (!this.isBrowser) {
+      this.adminState.next(false);
+      return;
+    }
+
     localStorage.removeItem(this.accessTokenKey);
     localStorage.removeItem(this.refreshTokenKey);
     localStorage.removeItem(this.emailKey);
@@ -62,6 +73,10 @@ export class Auth {
   }
 
   isAuthenticated(): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+
     const token = this.getAccessToken();
     const expiresAt = localStorage.getItem(this.expiresAtKey);
 
@@ -73,14 +88,26 @@ export class Auth {
   }
 
   getAccessToken(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
     return localStorage.getItem(this.accessTokenKey);
   }
 
   getRefreshToken(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
     return localStorage.getItem(this.refreshTokenKey);
   }
 
   getCurrentUser(): CurrentUser | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
     const email = localStorage.getItem(this.emailKey);
     const role = localStorage.getItem(this.roleKey);
     const expiresAt = localStorage.getItem(this.expiresAtKey);
@@ -93,6 +120,10 @@ export class Auth {
   }
 
   hasRole(role: string): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+
     return localStorage.getItem(this.roleKey) === role;
   }
 

@@ -219,12 +219,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }
 
     if (this.document.activeElement !== element) {
-      this.resetScrollAndFocusPriceInput();
+      this.initialPriceInputFocusChecks = this.maxPostInitFocusChecks;
+      setTimeout(() => this.resetScrollAndFocusPriceInput());
       return;
     }
 
-    this.isPricePerUnitInputActive = true;
     this.initialPriceInputFocusChecks = this.maxPostInitFocusChecks;
+    setTimeout(() => {
+      this.isPricePerUnitInputActive = true;
+    });
   }
 
   ngOnDestroy(): void {

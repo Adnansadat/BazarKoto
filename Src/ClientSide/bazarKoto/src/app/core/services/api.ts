@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
@@ -26,6 +27,7 @@ export interface PagedResponse<T> {
   providedIn: 'root',
 })
 export class Api {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly baseUrl = environment.apiBaseUrl.replace(/\/$/, '');
 
   constructor(private readonly http: HttpClient) {}
@@ -124,6 +126,10 @@ export class Api {
   }
 
   private buildHeaders(): HttpHeaders {
+    if (!this.isBrowser) {
+      return new HttpHeaders();
+    }
+
     const token = localStorage.getItem('bazarKoto.accessToken');
 
     if (!token) {

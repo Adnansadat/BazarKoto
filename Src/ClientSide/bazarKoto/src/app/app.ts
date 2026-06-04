@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, PLATFORM_ID, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { Navbar } from "./shared/components/navbar/navbar";
@@ -16,6 +17,7 @@ export class App {
   private readonly language = inject(Language);
   private readonly router = inject(Router);
   private readonly api = inject(Api);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   constructor() {
     this.language.initialize();
@@ -23,6 +25,10 @@ export class App {
   }
 
   private trackPageVisits(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe(event => {

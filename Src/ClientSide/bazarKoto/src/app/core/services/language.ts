@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
@@ -6,6 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class Language {
   private readonly translate = inject(TranslateService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly supportedLanguages = ['en', 'bn'] as const;
 
   readonly defaultLanguage = 'en';
@@ -14,8 +16,8 @@ export class Language {
     this.translate.addLangs([...this.supportedLanguages]);
     this.translate.setFallbackLang(this.defaultLanguage);
 
-    const savedLanguage = localStorage.getItem('language');
-    const browserLanguage = this.translate.getBrowserLang();
+    const savedLanguage = this.isBrowser ? localStorage.getItem('language') : null;
+    const browserLanguage = this.isBrowser ? this.translate.getBrowserLang() : null;
     const initialLanguage =
       this.isSupported(savedLanguage) ? savedLanguage :
       this.isSupported(browserLanguage) ? browserLanguage :
@@ -29,7 +31,10 @@ export class Language {
       return;
     }
 
-    localStorage.setItem('language', language);
+    if (this.isBrowser) {
+      localStorage.setItem('language', language);
+    }
+
     this.translate.use(language);
   }
 
