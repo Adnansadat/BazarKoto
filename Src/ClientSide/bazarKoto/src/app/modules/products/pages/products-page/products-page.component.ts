@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -126,6 +126,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     private readonly api: Api,
     private readonly drafts: DraftService,
     @Inject(DOCUMENT) private readonly document: Document,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
   ) {}
 
   categories = signal<ProductCategory[]>([]);
@@ -216,10 +217,18 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     setTimeout(() => this.focusCategoryInputWithRetry());
   }
 
   ngAfterViewChecked(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (this.initialCategoryFocusChecks >= this.maxPostInitFocusChecks) {
       return;
     }
@@ -263,9 +272,18 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     this.persistDraftIfChanged();
   }
 
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
   focusProductNameInput(): void {
-    this.productNameInput?.nativeElement.focus();
-    this.productNameInput?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const element = this.productNameInput?.nativeElement;
+    this.focusElement(element);
+    this.scrollElementIntoView(element, { behavior: 'smooth', block: 'center' });
   }
 
   addProduct(): void {
@@ -280,13 +298,13 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       this.productErrorMessage.set(this.duplicateProductMessage);
       this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
       this.selectedProductId.set(duplicateProduct.id);
-      this.productNameInput?.nativeElement.focus();
+      this.focusElement(this.productNameInput?.nativeElement);
       return;
     }
 
     if (!this.isProductFormValid()) {
       this.productErrorMessage.set(this.requiredProductFieldsMessage);
-      this.productNameInput?.nativeElement.focus();
+      this.focusElement(this.productNameInput?.nativeElement);
       return;
     }
 
@@ -807,6 +825,10 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   private focusCategoryInputWithRetry(attempt = 0): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const element = this.categoryInput?.nativeElement;
 
     if (!element) {
@@ -820,8 +842,24 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       return;
     }
 
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.focus();
+    this.scrollElementIntoView(element, { behavior: 'smooth', block: 'center' });
+    this.focusElement(element);
     this.isCategoryInputActive.set(this.document.activeElement === element);
+  }
+
+  private focusElement(element?: HTMLElement): void {
+    if (!this.isBrowser || !element || typeof element.focus !== 'function') {
+      return;
+    }
+
+    element.focus();
+  }
+
+  private scrollElementIntoView(element: HTMLElement | undefined, options: ScrollIntoViewOptions): void {
+    if (!this.isBrowser || !element || typeof element.scrollIntoView !== 'function') {
+      return;
+    }
+
+    element.scrollIntoView(options);
   }
 }

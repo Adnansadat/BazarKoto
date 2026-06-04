@@ -32,7 +32,7 @@
       </div>
 
       <div class="form-grid">
-        <label [class.input-active]="isPricePerUnitInputActive">
+        <label [class.input-active]="isPricePerUnitInputActive()">
           <span>{{ 'prices.form.pricePerUnit' | translate }}</span>
           <input
             #pricePerUnitInput
@@ -142,9 +142,9 @@
         </a>
 
         <div class="form-status" aria-live="polite">
-          <span class="field-error" *ngIf="priceErrorMessage">{{ priceErrorMessage }}</span>
-          <span class="status-message" *ngIf="priceSuccessMessage">{{ priceSuccessMessage }}</span>
-          <span class="loading-message" *ngIf="isLoadingPrices">Loading markets, products, and prices...</span>
+          <span class="field-error" *ngIf="priceErrorMessage()">{{ priceErrorMessage() }}</span>
+          <span class="status-message" *ngIf="priceSuccessMessage()">{{ priceSuccessMessage() }}</span>
+          <span class="loading-message" *ngIf="isLoadingPrices()">Loading markets, products, and prices...</span>
           <span class="field-error" *ngIf="locationErrorMessage()">{{ locationErrorMessage() }}</span>
           <span class="field-error" *ngIf="productErrorMessage()">{{ productErrorMessage() }}</span>
         </div>
@@ -163,11 +163,11 @@
     </article>
   </section>
 
-  <div class="modal-backdrop update-backdrop" *ngIf="isThankYouOpen"></div>
+  <div class="modal-backdrop update-backdrop" *ngIf="isThankYouOpen()"></div>
 
   <section
     class="thank-you-modal update-success-modal"
-    *ngIf="isThankYouOpen"
+    *ngIf="isThankYouOpen()"
     role="dialog"
     aria-modal="true"
     aria-labelledby="thank-you-title"
@@ -175,7 +175,7 @@
     <h2 id="thank-you-title">Price Submitted</h2>
     <div class="modal-mark update-mark">✓</div>
     <p>
-      Your latest price for <strong>{{ modalProductName }}</strong> at <strong>{{ modalMarketName }}</strong> has been submitted successfully.
+      Your latest price for <strong>{{ modalProductName() }}</strong> at <strong>{{ modalMarketName() }}</strong> has been submitted successfully.
     </p>
     <div class="modal-actions update-modal-actions">
       <button type="button" (click)="closeModal()">
@@ -184,11 +184,11 @@
     </div>
   </section>
 
-  <div class="modal-backdrop update-backdrop" *ngIf="isUpdateSuccessOpen"></div>
+  <div class="modal-backdrop update-backdrop" *ngIf="isUpdateSuccessOpen()"></div>
 
   <section
     class="thank-you-modal update-success-modal"
-    *ngIf="isUpdateSuccessOpen"
+    *ngIf="isUpdateSuccessOpen()"
     role="dialog"
     aria-modal="true"
     aria-labelledby="price-update-success-title"
@@ -196,7 +196,7 @@
     <h2 id="price-update-success-title">Price Updated</h2>
     <div class="modal-mark update-mark">✓</div>
     <p>
-      Your latest price for <strong>{{ modalProductName }}</strong> at <strong>{{ modalMarketName }}</strong> has been updated successfully.
+      Your latest price for <strong>{{ modalProductName() }}</strong> at <strong>{{ modalMarketName() }}</strong> has been updated successfully.
     </p>
     <div class="modal-actions update-modal-actions">
       <button type="button" (click)="closeUpdateSuccessModal()">

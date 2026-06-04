@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
@@ -88,6 +88,7 @@ interface PriceSummaryResponse {
   standalone: true,
   templateUrl: './prices-page.component.html',
   styleUrl: './prices-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
   @ViewChild('marketInput') private marketInput?: ElementRef<HTMLInputElement>;
@@ -123,11 +124,11 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   priceSource = signal('Observed in market');
   quality = signal('Standard');
   notes = signal('');
-  isPricePerUnitInputActive = false;
-  isThankYouOpen = false;
-  isUpdateSuccessOpen = false;
+  isPricePerUnitInputActive = signal(false);
+  isThankYouOpen = signal(false);
+  isUpdateSuccessOpen = signal(false);
   showPriceValidation = signal(false);
-  isLoadingPrices = true;
+  isLoadingPrices = signal(true);
   isLoadingDivisions = signal(false);
   isLoadingDistricts = signal(false);
   isLoadingUpazilas = signal(false);
@@ -135,15 +136,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   isLoadingMarkets = signal(false);
   isLoadingCategories = signal(false);
   isLoadingProducts = signal(false);
-  isLoadingSummary = false;
-  isLoadingExistingPrice = false;
-  isSubmittingPrice = false;
-  priceErrorMessage = '';
-  priceSuccessMessage = '';
+  isLoadingSummary = signal(false);
+  isLoadingExistingPrice = signal(false);
+  isSubmittingPrice = signal(false);
+  priceErrorMessage = signal('');
+  priceSuccessMessage = signal('');
   locationErrorMessage = signal('');
   productErrorMessage = signal('');
-  modalProductName = '';
-  modalMarketName = '';
+  modalProductName = signal('');
+  modalMarketName = signal('');
   marketSearch = signal('');
   productSearch = signal('');
   divisions = signal<LocationResponse[]>([]);
@@ -153,8 +154,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   categories = signal<ProductCategoryResponse[]>([]);
   markets = signal<MarketResponse[]>([]);
   products = signal<ProductResponse[]>([]);
-  todayPrices: PriceSubmissionResponse[] = [];
-  priceSummary?: PriceSummaryResponse;
+  todayPrices = signal<PriceSubmissionResponse[]>([]);
+  priceSummary = signal<PriceSummaryResponse | undefined>(undefined);
 
   constructor(
     private readonly title: Title,
@@ -165,6 +166,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     private readonly drafts: DraftService,
     private readonly userTracking: UserTracking,
     @Inject(DOCUMENT) private readonly document: Document,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
   ) {}
 
   readonly units: SelectOption[] = [
@@ -203,10 +205,18 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     setTimeout(() => this.resetScrollAndFocusPriceInput());
   }
 
   ngAfterViewChecked(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (this.initialPriceInputFocusChecks >= this.maxPostInitFocusChecks) {
       return;
     }
@@ -226,7 +236,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
     this.initialPriceInputFocusChecks = this.maxPostInitFocusChecks;
     setTimeout(() => {
-      this.isPricePerUnitInputActive = true;
+      this.isPricePerUnitInputActive.set(true);
     });
   }
 
@@ -237,6 +247,10 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   ngDoCheck(): void {
     this.persistDraftIfChanged();
+  }
+
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
   }
 
   get totalPrice(): number {
@@ -276,12 +290,14 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       this.totalPrice > 0 ? `৳ ${this.totalPrice}` : '',
     ];
 
-    if (this.priceSummary) {
+    const priceSummary = this.priceSummary();
+
+    if (priceSummary) {
       segments.push(
-        `Avg ৳ ${this.priceSummary.averagePrice}/${this.priceSummary.unit || this.selectedUnit()}`,
-        `Min ৳ ${this.priceSummary.minimumPrice}`,
-        `Max ৳ ${this.priceSummary.maximumPrice}`,
-        `${this.priceSummary.submissionCount} submissions`,
+        `Avg ৳ ${priceSummary.averagePrice}/${priceSummary.unit || this.selectedUnit()}`,
+        `Min ৳ ${priceSummary.minimumPrice}`,
+        `Max ৳ ${priceSummary.maximumPrice}`,
+        `${priceSummary.submissionCount} submissions`,
       );
     }
 
@@ -329,7 +345,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   get canAttemptSubmitPrice(): boolean {
-    return !this.isSubmittingPrice && !this.isLoadingExistingPrice && (!this.hasLoadedExistingPrice || this.hasPriceChanged);
+    return !this.isSubmittingPrice() && !this.isLoadingExistingPrice() && (!this.hasLoadedExistingPrice || this.hasPriceChanged);
   }
 
   get canSubmitPrice(): boolean {
@@ -337,28 +353,36 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   focusSubmissionForm(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.focusPricePerUnitInput();
-    this.pricePerUnitInput?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    this.pricePerUnitInput?.nativeElement.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
   }
 
   onPricePerUnitInputFocus(): void {
-    this.isPricePerUnitInputActive = true;
+    this.isPricePerUnitInputActive.set(true);
   }
 
   onPricePerUnitInputBlur(): void {
-    this.isPricePerUnitInputActive = false;
+    this.isPricePerUnitInputActive.set(false);
   }
 
   private focusPricePerUnitInput(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const element = this.pricePerUnitInput?.nativeElement;
 
     if (!element) {
       return;
     }
 
-    element.scrollIntoView({ behavior: 'auto', block: 'center' });
-    element.focus();
-    this.isPricePerUnitInputActive = this.document.activeElement === element;
+    element.scrollIntoView?.({ behavior: 'auto', block: 'center' });
+    element.focus?.();
+    this.isPricePerUnitInputActive.set(this.document.activeElement === element);
   }
 
   private resetScrollAndFocusPriceInput(): void {
@@ -437,29 +461,29 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   submitPrice(allowMarketResolveRetry = true): void {
     this.showPriceValidation.set(true);
-    this.priceErrorMessage = '';
-    this.priceSuccessMessage = '';
+    this.priceErrorMessage.set('');
+    this.priceSuccessMessage.set('');
     this.applyCurrentSubmissionTime();
     this.resolveSelectedMarketIdFromLoadedMarkets();
 
     if (!this.hasSelectedMarketContext || !this.hasSelectedProductContext) {
-      this.priceErrorMessage = 'Complete market and product selection before submitting a price.';
+      this.priceErrorMessage.set('Complete market and product selection before submitting a price.');
       return;
     }
 
     if (!this.selectedMarketId() || !this.selectedProductId()) {
-      this.priceErrorMessage = 'Market and product are selected, but their database records could not be loaded. Please start the backend and reload this page before submitting.';
+      this.priceErrorMessage.set('Market and product are selected, but their database records could not be loaded. Please start the backend and reload this page before submitting.');
       return;
     }
 
     if (!this.isPriceFormValid()) {
-      this.priceErrorMessage = 'Please complete all required price fields.';
+      this.priceErrorMessage.set('Please complete all required price fields.');
       return;
     }
 
     if (!this.canAttemptSubmitPrice) {
       if (this.hasLoadedExistingPrice && !this.hasPriceChanged) {
-        this.priceErrorMessage = 'Change the price per unit before submitting an update.';
+        this.priceErrorMessage.set('Change the price per unit before submitting an update.');
       }
       return;
     }
@@ -469,7 +493,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    this.isSubmittingPrice = true;
+    this.isSubmittingPrice.set(true);
     const trackingContext = this.getSubmissionTrackingContext();
 
     this.api.post<PriceSubmissionResponse>('/Prices', {
@@ -490,26 +514,27 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       gpsLongitude: trackingContext.gpsLongitude,
       gpsAccuracyMeters: trackingContext.gpsAccuracyMeters,
       locationSource: trackingContext.locationSource,
-    }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
+    }).pipe(finalize(() => this.isSubmittingPrice.set(false))).subscribe({
       next: response => {
         this.userTracking.saveTrackingGuid(response.trackingGuid);
-        this.priceSuccessMessage = 'Price submitted successfully.';
+        this.priceSuccessMessage.set('Price submitted successfully.');
         this.showPriceValidation.set(false);
         this.captureSuccessModalContext();
-        this.isThankYouOpen = true;
+        this.isThankYouOpen.set(true);
         this.loadExistingPriceIfReady();
         this.clearSubmissionDrafts();
         this.loadTodayPrices();
       },
       error: error => {
-        this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to submit price.';
+        const errorMessage = error instanceof Error ? error.message : 'Unable to submit price.';
+        this.priceErrorMessage.set(errorMessage);
 
-        if (this.isExistingPriceError(this.priceErrorMessage)) {
+        if (this.isExistingPriceError(errorMessage)) {
           this.loadExistingPriceIfReady();
           return;
         }
 
-        if (allowMarketResolveRetry && this.isMissingMarketError(this.priceErrorMessage) && this.resolveSelectedMarketIdFromLoadedMarkets()) {
+        if (allowMarketResolveRetry && this.isMissingMarketError(errorMessage) && this.resolveSelectedMarketIdFromLoadedMarkets()) {
           this.submitPrice(false);
         }
       },
@@ -543,19 +568,19 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   loadExistingPrice(): void {
-    this.priceErrorMessage = '';
-    this.priceSuccessMessage = '';
+    this.priceErrorMessage.set('');
+    this.priceSuccessMessage.set('');
 
     if (!this.selectedMarketId() || !this.selectedProductId()) {
-      this.priceErrorMessage = 'Select an existing market and product before loading a price.';
+      this.priceErrorMessage.set('Select an existing market and product before loading a price.');
       return;
     }
 
-    this.isLoadingExistingPrice = true;
+    this.isLoadingExistingPrice.set(true);
     this.api.get<PriceSubmissionResponse>('/Prices/latest', {
       marketId: this.selectedMarketId(),
       productId: this.selectedProductId(),
-    }).pipe(finalize(() => this.isLoadingExistingPrice = false)).subscribe({
+    }).pipe(finalize(() => this.isLoadingExistingPrice.set(false))).subscribe({
       next: existingPrice => {
         this.existingPriceId = existingPrice.id;
         this.selectedUnit.set(existingPrice.unit || this.selectedUnit());
@@ -568,28 +593,28 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         this.quality.set(this.toDisplayQuality(existingPrice.qualityGrade));
         this.notes.set(existingPrice.notes ?? '');
         this.loadedExistingPricePerUnit = existingPrice.pricePerUnit;
-        this.priceSuccessMessage = 'Existing price loaded. Only the price per unit will be updated.';
+        this.priceSuccessMessage.set('Existing price loaded. Only the price per unit will be updated.');
       },
       error: () => {
         this.clearLoadedExistingPrice();
         this.price.set(0);
-        this.priceSuccessMessage = '';
+        this.priceSuccessMessage.set('');
       },
     });
   }
 
   private updateExistingPrice(): void {
     if (!this.existingPriceId) {
-      this.priceErrorMessage = 'Load the existing market product price before saving an update.';
+      this.priceErrorMessage.set('Load the existing market product price before saving an update.');
       return;
     }
 
     if (this.price() <= 0) {
-      this.priceErrorMessage = 'Price per unit must be greater than zero.';
+      this.priceErrorMessage.set('Price per unit must be greater than zero.');
       return;
     }
 
-    this.isSubmittingPrice = true;
+    this.isSubmittingPrice.set(true);
     this.api.put(`/Prices/${this.existingPriceId}`, {
       marketId: this.selectedMarketId(),
       productId: this.selectedProductId(),
@@ -602,19 +627,19 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       priceSource: this.priceSource() === 'Observed in market' ? 'ObservedInMarket' : this.priceSource() === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
       qualityGrade: this.quality() === 'Low grade' ? 'Low' : this.quality(),
       notes: this.notes() || null,
-    }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
+    }).pipe(finalize(() => this.isSubmittingPrice.set(false))).subscribe({
       next: () => {
-        this.priceSuccessMessage = '';
-        this.priceErrorMessage = '';
+        this.priceSuccessMessage.set('');
+        this.priceErrorMessage.set('');
         this.showPriceValidation.set(false);
         this.loadedExistingPricePerUnit = this.price();
         this.captureSuccessModalContext();
-        this.isUpdateSuccessOpen = true;
+        this.isUpdateSuccessOpen.set(true);
         this.loadTodayPrices();
         this.loadPriceSummary();
       },
       error: error => {
-        this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to update existing price.';
+        this.priceErrorMessage.set(error instanceof Error ? error.message : 'Unable to update existing price.');
       },
     });
   }
@@ -631,8 +656,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private captureSuccessModalContext(): void {
-    this.modalProductName = this.selectedProductName;
-    this.modalMarketName = this.selectedMarketName;
+    this.modalProductName.set(this.selectedProductName);
+    this.modalMarketName.set(this.selectedMarketName);
   }
 
   private isPriceFormValid(): boolean {
@@ -684,12 +709,12 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   closeModal(): void {
-    this.isThankYouOpen = false;
+    this.isThankYouOpen.set(false);
     this.router.navigate(['/home']);
   }
 
   closeUpdateSuccessModal(): void {
-    this.isUpdateSuccessOpen = false;
+    this.isUpdateSuccessOpen.set(false);
     this.clearSubmissionDrafts();
     this.router.navigate(['/home']);
   }
@@ -702,7 +727,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   saveDraft(): void {
     this.persistDraftIfChanged(true);
-    this.priceErrorMessage = '';
+    this.priceErrorMessage.set('');
   }
 
   private updateSeo(): void {
@@ -740,7 +765,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private loadPageData(): void {
-    this.priceErrorMessage = '';
+    this.priceErrorMessage.set('');
     this.loadDivisions();
     this.loadDistricts();
     this.loadUpazilas();
@@ -924,7 +949,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         this.markets.set(markets);
         this.applyStoredMarketSelection();
       },
-      error: error => this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to load markets.',
+      error: error => this.priceErrorMessage.set(error instanceof Error ? error.message : 'Unable to load markets.'),
     });
   }
 
@@ -1041,6 +1066,10 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private getStoredSelectedProduct(): ProductResponse | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
     const storedProductJson = localStorage.getItem('bazarKoto.selectedProduct');
 
     if (!storedProductJson) {
@@ -1113,7 +1142,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private loadTodayPrices(): void {
-    this.isLoadingPrices = true;
+    this.isLoadingPrices.set(true);
     this.api.get<PriceSubmissionResponse[]>('/Prices/today', {
       divisionId: this.selectedDivisionId(),
       districtId: this.selectedDistrictId(),
@@ -1122,18 +1151,18 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       marketId: this.selectedMarketId(),
       categoryId: this.selectedCategoryId(),
       productId: this.selectedProductId(),
-    }).pipe(finalize(() => this.isLoadingPrices = false)).subscribe({
+    }).pipe(finalize(() => this.isLoadingPrices.set(false))).subscribe({
       next: prices => {
-        this.todayPrices = prices;
+        this.todayPrices.set(prices);
       },
       error: error => {
-        this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to load prices.';
+        this.priceErrorMessage.set(error instanceof Error ? error.message : 'Unable to load prices.');
       },
     });
   }
 
   private loadPriceSummary(): void {
-    this.isLoadingSummary = true;
+    this.isLoadingSummary.set(true);
     this.api.get<PriceSummaryResponse>('/Prices/summary', {
       divisionId: this.selectedDivisionId(),
       districtId: this.selectedDistrictId(),
@@ -1142,9 +1171,9 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       marketId: this.selectedMarketId(),
       categoryId: this.selectedCategoryId(),
       productId: this.selectedProductId(),
-    }).pipe(finalize(() => this.isLoadingSummary = false)).subscribe({
-      next: summary => this.priceSummary = summary,
-      error: () => this.priceSummary = undefined,
+    }).pipe(finalize(() => this.isLoadingSummary.set(false))).subscribe({
+      next: summary => this.priceSummary.set(summary),
+      error: () => this.priceSummary.set(undefined),
     });
   }
 
