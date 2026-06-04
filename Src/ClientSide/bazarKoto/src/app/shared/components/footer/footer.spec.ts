@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 
@@ -11,7 +12,7 @@ describe('Footer', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Footer],
-      providers: [
+      providers: [provideZonelessChangeDetection(), 
         provideRouter([]),
         provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
       ],

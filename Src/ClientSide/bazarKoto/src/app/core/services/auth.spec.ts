@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 
 import { Auth } from './auth';
@@ -8,7 +9,7 @@ describe('Auth', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient()],
+      providers: [provideZonelessChangeDetection(), provideHttpClient()],
     });
     service = TestBed.inject(Auth);
   });

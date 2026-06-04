@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, PLATFORM_ID, inject } from '@angular/core';
+import { Component, DestroyRef, PLATFORM_ID, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { Navbar } from "./shared/components/navbar/navbar";
@@ -17,6 +18,7 @@ export class App {
   private readonly language = inject(Language);
   private readonly router = inject(Router);
   private readonly api = inject(Api);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   constructor() {
@@ -30,7 +32,10 @@ export class App {
     }
 
     this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(event => {
         this.api.post('/Analytics/page-visit', {
           path: event.urlAfterRedirects,
@@ -51,8 +56,16 @@ export class App {
       return existing;
     }
 
-    const visitorId = crypto.randomUUID();
+    const visitorId = globalThis.crypto?.randomUUID?.() ?? this.createVisitorId();
     localStorage.setItem(key, visitorId);
     return visitorId;
+  }
+
+  private createVisitorId(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, marker => {
+      const random = Math.random() * 16 | 0;
+      const value = marker === 'x' ? random : (random & 0x3) | 0x8;
+      return value.toString(16);
+    });
   }
 }

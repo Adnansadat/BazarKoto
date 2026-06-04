@@ -113,8 +113,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   selectedMarketId = signal('');
   selectedProductId = signal('');
   selectedCategoryId = signal('');
-  existingPriceId = '';
-  loadedExistingPricePerUnit: number | null = null;
+  existingPriceId = signal('');
+  loadedExistingPricePerUnit = signal<number | null>(null);
   selectedUnit = signal('kg');
   price = signal(0);
   quantity = signal(1);
@@ -305,15 +305,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   get isUpdateMode(): boolean {
-    return Boolean(this.existingPriceId);
+    return Boolean(this.existingPriceId());
   }
 
   get hasLoadedExistingPrice(): boolean {
-    return this.loadedExistingPricePerUnit !== null;
+    return this.loadedExistingPricePerUnit() !== null;
   }
 
   get hasPriceChanged(): boolean {
-    return this.hasLoadedExistingPrice && Number(this.price()) !== Number(this.loadedExistingPricePerUnit);
+    return this.hasLoadedExistingPrice && Number(this.price()) !== Number(this.loadedExistingPricePerUnit());
   }
 
   get marketContextInvalid(): boolean {
@@ -488,7 +488,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    if (this.existingPriceId) {
+    if (this.existingPriceId()) {
       this.updateExistingPrice();
       return;
     }
@@ -582,7 +582,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       productId: this.selectedProductId(),
     }).pipe(finalize(() => this.isLoadingExistingPrice.set(false))).subscribe({
       next: existingPrice => {
-        this.existingPriceId = existingPrice.id;
+        this.existingPriceId.set(existingPrice.id);
         this.selectedUnit.set(existingPrice.unit || this.selectedUnit());
         this.price.set(existingPrice.pricePerUnit);
         this.quantity.set(existingPrice.quantityChecked ?? this.quantity());
@@ -592,7 +592,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         this.priceSource.set(this.toDisplayPriceSource(existingPrice.priceSource));
         this.quality.set(this.toDisplayQuality(existingPrice.qualityGrade));
         this.notes.set(existingPrice.notes ?? '');
-        this.loadedExistingPricePerUnit = existingPrice.pricePerUnit;
+        this.loadedExistingPricePerUnit.set(existingPrice.pricePerUnit);
         this.priceSuccessMessage.set('Existing price loaded. Only the price per unit will be updated.');
       },
       error: () => {
@@ -604,7 +604,9 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private updateExistingPrice(): void {
-    if (!this.existingPriceId) {
+    const existingPriceId = this.existingPriceId();
+
+    if (!existingPriceId) {
       this.priceErrorMessage.set('Load the existing market product price before saving an update.');
       return;
     }
@@ -615,7 +617,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }
 
     this.isSubmittingPrice.set(true);
-    this.api.put(`/Prices/${this.existingPriceId}`, {
+    this.api.put(`/Prices/${existingPriceId}`, {
       marketId: this.selectedMarketId(),
       productId: this.selectedProductId(),
       unit: this.selectedUnit(),
@@ -632,7 +634,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         this.priceSuccessMessage.set('');
         this.priceErrorMessage.set('');
         this.showPriceValidation.set(false);
-        this.loadedExistingPricePerUnit = this.price();
+        this.loadedExistingPricePerUnit.set(this.price());
         this.captureSuccessModalContext();
         this.isUpdateSuccessOpen.set(true);
         this.loadTodayPrices();
@@ -651,8 +653,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private clearLoadedExistingPrice(): void {
-    this.existingPriceId = '';
-    this.loadedExistingPricePerUnit = null;
+    this.existingPriceId.set('');
+    this.loadedExistingPricePerUnit.set(null);
   }
 
   private captureSuccessModalContext(): void {

@@ -8,8 +8,8 @@
         price records that keep BazarKoto reliable.
       </p>
     </div>
-    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut">
-      {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut()">
+      {{ isLoggingOut() ? 'Logging out...' : 'Logout' }}
     </button>
   </section>
 
@@ -22,18 +22,18 @@
       <button
         type="button"
         (click)="exportTrafficIntelligenceReport()"
-        [disabled]="isExportingTrafficReport || isLoading">
-        {{ isExportingTrafficReport ? 'Exporting...' : 'Export report' }}
+        [disabled]="isExportingTrafficReport() || isLoading()">
+        {{ isExportingTrafficReport() ? 'Exporting...' : 'Export report' }}
       </button>
     </div>
 
-    <p class="dashboard-state" *ngIf="isLoading">Loading dashboard data...</p>
-    <p class="dashboard-state error" *ngIf="errorMessage">{{ errorMessage }}</p>
-    <p class="dashboard-state success" *ngIf="exportMessage">{{ exportMessage }}</p>
-    <p class="dashboard-state error" *ngIf="exportErrorMessage">{{ exportErrorMessage }}</p>
+    <p class="dashboard-state" *ngIf="isLoading()">Loading dashboard data...</p>
+    <p class="dashboard-state error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+    <p class="dashboard-state success" *ngIf="exportMessage()">{{ exportMessage() }}</p>
+    <p class="dashboard-state error" *ngIf="exportErrorMessage()">{{ exportErrorMessage() }}</p>
 
-    <div class="metric-grid" *ngIf="!isLoading && !errorMessage">
-      <article class="metric-card" *ngFor="let metric of trafficMetrics">
+    <div class="metric-grid" *ngIf="!isLoading() && !errorMessage()">
+      <article class="metric-card" *ngFor="let metric of trafficMetrics()">
         <span>{{ metric.label }}</span>
         <strong>{{ metric.value }}</strong>
         <p>{{ metric.helper }}</p>
@@ -51,46 +51,46 @@
         </div>
       </div>
 
-      <p class="dashboard-state" *ngIf="isLoading">Loading peak hours...</p>
+      <p class="dashboard-state" *ngIf="isLoading()">Loading peak hours...</p>
 
-      <div class="list-table" *ngIf="!isLoading && !errorMessage">
-        <div class="empty-row" *ngIf="peakHours.length === 0">
+      <div class="list-table" *ngIf="!isLoading() && !errorMessage()">
+        <div class="empty-row" *ngIf="peakHours().length === 0">
           <strong>0</strong>
           <span>visits</span>
           <em>No peak hour data yet</em>
         </div>
-        <div *ngFor="let hour of pagedPeakHours">
+        <div *ngFor="let hour of pagedPeakHours()">
           <strong>{{ hour.time }}</strong>
           <span>{{ hour.visits }} visits</span>
           <em>{{ hour.share }}</em>
         </div>
       </div>
 
-      <div class="peak-pagination" *ngIf="!isLoading && !errorMessage && shouldShowPeakHoursPagination">
-        <span>Page {{ formatNumber(peakHoursPage) }} of {{ formatNumber(peakHoursPageCount) }}</span>
+      <div class="peak-pagination" *ngIf="!isLoading() && !errorMessage() && shouldShowPeakHoursPagination()">
+        <span>Page {{ formatNumber(peakHoursPage()) }} of {{ formatNumber(peakHoursPageCount()) }}</span>
         <div>
           <button
             type="button"
             (click)="goToFirstPeakHoursPage()"
-            [disabled]="peakHoursPage === 1">
+            [disabled]="peakHoursPage() === 1">
             First
           </button>
           <button
             type="button"
             (click)="goToPreviousPeakHoursPage()"
-            [disabled]="peakHoursPage === 1">
+            [disabled]="peakHoursPage() === 1">
             Previous
           </button>
           <button
             type="button"
             (click)="goToNextPeakHoursPage()"
-            [disabled]="peakHoursPage === peakHoursPageCount">
+            [disabled]="peakHoursPage() === peakHoursPageCount()">
             Next
           </button>
           <button
             type="button"
             (click)="goToLastPeakHoursPage()"
-            [disabled]="peakHoursPage === peakHoursPageCount">
+            [disabled]="peakHoursPage() === peakHoursPageCount()">
             Last
           </button>
         </div>
@@ -105,12 +105,12 @@
         </div>
       </div>
 
-      <p class="dashboard-state" *ngIf="isLoading">Loading moderation queue...</p>
+      <p class="dashboard-state" *ngIf="isLoading()">Loading moderation queue...</p>
 
-      <div class="queue-list" *ngIf="!isLoading && !errorMessage">
+      <div class="queue-list" *ngIf="!isLoading() && !errorMessage()">
         <button
           type="button"
-          *ngFor="let item of moderationQueue"
+          *ngFor="let item of moderationQueue()"
           [class.clickable]="item.route"
           (click)="openQueueItem(item)">
           <span>{{ item.label }}</span>
@@ -119,7 +119,7 @@
         </button>
       </div>
 
-      <p class="dashboard-state" style="margin:auto 0 0;padding-top:18px;line-height:1.5" *ngIf="!isLoading && !errorMessage">
+      <p class="dashboard-state" style="margin:auto 0 0;padding-top:18px;line-height:1.5" *ngIf="!isLoading() && !errorMessage()">
         Moderation keeps market, product, price, and support data reliable for users.
       </p>
     </article>
@@ -133,8 +133,8 @@
       </div>
     </div>
 
-    <div class="metric-grid" *ngIf="!isLoading && !errorMessage">
-      <article class="metric-card" *ngFor="let metric of dataMetrics">
+    <div class="metric-grid" *ngIf="!isLoading() && !errorMessage()">
+      <article class="metric-card" *ngFor="let metric of dataMetrics()">
         <span>{{ metric.label }}</span>
         <strong>{{ metric.value }}</strong>
         <p>{{ metric.helper }}</p>
@@ -164,7 +164,7 @@
 
   <section
     class="price-management-modal"
-    *ngIf="isPriceManagementModalOpen"
+    *ngIf="isPriceManagementModalOpen()"
     role="dialog"
     aria-modal="true"
     aria-labelledby="price-management-modal-title">
@@ -195,8 +195,8 @@
               <span>Search</span>
               <input
                 type="search"
-                [(ngModel)]="priceManagementSearch"
-                (ngModelChange)="onPriceManagementFiltersChange()"
+                [ngModel]="priceManagementSearch()"
+                (ngModelChange)="priceManagementSearch.set($event); onPriceManagementFiltersChange()"
                 placeholder="Search product, market, location..."
                 autocomplete="off" />
             </label>
@@ -204,8 +204,8 @@
             <label>
               <span>Status</span>
               <select
-                [(ngModel)]="priceManagementStatus"
-                (ngModelChange)="onPriceManagementFiltersChange()">
+                [ngModel]="priceManagementStatus()"
+                (ngModelChange)="priceManagementStatus.set($event); onPriceManagementFiltersChange()">
                 <option value="">All statuses</option>
                 <option *ngFor="let status of priceManagementStatuses" [value]="status">{{ status }}</option>
               </select>
@@ -214,12 +214,12 @@
         </section>
 
         <section class="price-management-table-card" aria-label="Admin price records">
-          <p class="table-status" *ngIf="isLoadingPriceRecords">Loading price records...</p>
-          <p class="table-status error" *ngIf="priceRecordsErrorMessage">{{ priceRecordsErrorMessage }}</p>
-          <p class="table-status success" *ngIf="priceManagementMessage">{{ priceManagementMessage }}</p>
+          <p class="table-status" *ngIf="isLoadingPriceRecords()">Loading price records...</p>
+          <p class="table-status error" *ngIf="priceRecordsErrorMessage()">{{ priceRecordsErrorMessage() }}</p>
+          <p class="table-status success" *ngIf="priceManagementMessage()">{{ priceManagementMessage() }}</p>
           <p
             class="table-status"
-            *ngIf="!isLoadingPriceRecords && !priceRecordsErrorMessage && priceRecords.length === 0">
+            *ngIf="!isLoadingPriceRecords() && !priceRecordsErrorMessage() && priceRecords().length === 0">
             No price records found.
           </p>
 
@@ -238,7 +238,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let record of priceRecords">
+                <tr *ngFor="let record of priceRecords()">
                   <td>
                     <strong>{{ record.productName }}</strong>
                     <span *ngIf="record.productLocalName || record.alternateName">
@@ -264,26 +264,26 @@
             </table>
           </div>
 
-          <div class="pagination-bar" *ngIf="priceManagementTotalCount > 0">
+          <div class="pagination-bar" *ngIf="priceManagementTotalCount() > 0">
             <div class="page-summary">
               <span>
-                Showing {{ priceManagementPageStart }}-{{ priceManagementPageEnd }}
-                of {{ priceManagementTotalCount }} records
+                Showing {{ priceManagementPageStart() }}-{{ priceManagementPageEnd() }}
+                of {{ priceManagementTotalCount() }} records
               </span>
-              <strong>Page {{ priceManagementPage }} of {{ priceManagementPageCount }}</strong>
+              <strong>Page {{ priceManagementPage() }} of {{ priceManagementPageCount() }}</strong>
             </div>
 
             <div class="page-actions">
               <button
                 type="button"
                 (click)="previousPriceManagementPage()"
-                [disabled]="!priceManagementHasPreviousPage || isLoadingPriceRecords">
+                [disabled]="!priceManagementHasPreviousPage() || isLoadingPriceRecords()">
                 Previous
               </button>
               <button
                 type="button"
                 (click)="nextPriceManagementPage()"
-                [disabled]="!priceManagementHasNextPage || isLoadingPriceRecords">
+                [disabled]="!priceManagementHasNextPage() || isLoadingPriceRecords()">
                 Next
               </button>
             </div>
@@ -294,7 +294,7 @@
 
     <section
       class="price-edit-modal"
-      *ngIf="isPriceEditModalOpen && selectedPriceRecord"
+      *ngIf="isPriceEditModalOpen() && selectedPriceRecord() as selectedPriceRecord"
       role="dialog"
       aria-modal="true"
       aria-labelledby="price-edit-modal-title">
@@ -309,7 +309,7 @@
             class="price-edit-button"
             aria-label="Close edit modal"
             (click)="closePriceEditModal()"
-            [disabled]="isSavingPriceEdit">
+            [disabled]="isSavingPriceEdit()">
             Close
           </button>
         </header>
@@ -336,14 +336,16 @@
               name="priceEditPrice"
               min="0.01"
               step="0.01"
-              [(ngModel)]="priceEditForm.price" />
+              [ngModel]="priceEditForm().price"
+              (ngModelChange)="updatePriceEditForm('price', $event)" />
           </label>
 
           <label>
             <span>Unit</span>
             <select
               name="priceEditUnit"
-              [(ngModel)]="priceEditForm.unit">
+              [ngModel]="priceEditForm().unit"
+              (ngModelChange)="updatePriceEditForm('unit', $event)">
               <option value="">Select unit</option>
               <option *ngFor="let unit of unitOptions" [value]="unit.value">{{ unit.label }}</option>
             </select>
@@ -351,14 +353,20 @@
 
           <label>
             <span>Status</span>
-            <select name="priceEditStatus" [(ngModel)]="priceEditForm.status">
+            <select
+              name="priceEditStatus"
+              [ngModel]="priceEditForm().status"
+              (ngModelChange)="updatePriceEditForm('status', $event)">
               <option *ngFor="let status of priceManagementStatuses" [value]="status">{{ status }}</option>
             </select>
           </label>
 
           <label>
             <span>Source</span>
-            <select name="priceEditSource" [(ngModel)]="priceEditForm.source">
+            <select
+              name="priceEditSource"
+              [ngModel]="priceEditForm().source"
+              (ngModelChange)="updatePriceEditForm('source', $event)">
               <option *ngFor="let source of priceSourceOptions" [value]="source">{{ source }}</option>
             </select>
           </label>
@@ -369,18 +377,18 @@
           </label>
         </div>
 
-        <div class="price-edit-feedback" *ngIf="priceEditValidationErrors.length > 0 || priceEditErrorMessage || priceEditMessage">
-          <p class="table-status error" *ngFor="let error of priceEditValidationErrors">{{ error }}</p>
-          <p class="table-status error" *ngIf="priceEditErrorMessage">{{ priceEditErrorMessage }}</p>
-          <p class="table-status success" *ngIf="priceEditMessage">{{ priceEditMessage }}</p>
+        <div class="price-edit-feedback" *ngIf="priceEditValidationErrors().length > 0 || priceEditErrorMessage() || priceEditMessage()">
+          <p class="table-status error" *ngFor="let error of priceEditValidationErrors()">{{ error }}</p>
+          <p class="table-status error" *ngIf="priceEditErrorMessage()">{{ priceEditErrorMessage() }}</p>
+          <p class="table-status success" *ngIf="priceEditMessage()">{{ priceEditMessage() }}</p>
         </div>
 
         <footer>
-          <button type="button" class="price-edit-button" (click)="closePriceEditModal()" [disabled]="isSavingPriceEdit">
+          <button type="button" class="price-edit-button" (click)="closePriceEditModal()" [disabled]="isSavingPriceEdit()">
             Cancel
           </button>
-          <button type="submit" class="price-edit-button" [disabled]="isSavingPriceEdit">
-            {{ isSavingPriceEdit ? 'Saving...' : 'Save Changes' }}
+          <button type="submit" class="price-edit-button" [disabled]="isSavingPriceEdit()">
+            {{ isSavingPriceEdit() ? 'Saving...' : 'Save Changes' }}
           </button>
         </footer>
       </form>

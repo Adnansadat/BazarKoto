@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { provideTranslateService } from '@ngx-translate/core';
 
 import { Language } from './language';
@@ -8,7 +9,7 @@ describe('Language', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
+      providers: [provideZonelessChangeDetection(), provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
     });
     service = TestBed.inject(Language);
   });

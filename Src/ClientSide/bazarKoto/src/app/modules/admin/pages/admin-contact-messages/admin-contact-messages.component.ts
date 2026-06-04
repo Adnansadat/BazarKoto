@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -16,36 +16,38 @@ import { Auth } from '../../../../core/services/auth';
   standalone: true,
   templateUrl: './admin-contact-messages.component.html',
   styleUrl: './admin-contact-messages.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   readonly statuses = ['', 'New', 'Read', 'InProgress', 'Resolved', 'Spam'];
   readonly pageSize = 4;
-  search = '';
-  status = '';
-  dateFrom = '';
-  dateTo = '';
-  pageNumber = 1;
-  totalPages = 0;
-  totalCount = 0;
-  messages: AdminContactMessageListItem[] = [];
-  selectedMessage: AdminContactMessageDetail | null = null;
-  selectedStatus = '';
-  adminNote = '';
-  isLoadingList = false;
-  isLoadingDetail = false;
-  isSavingStatus = false;
-  isSavingNote = false;
-  isLoggingOut = false;
-  listError = '';
-  detailError = '';
-  statusMessage = '';
-  screenshotPreviewUrl: string | null = null;
-  screenshotError = '';
+  search = signal('');
+  status = signal('');
+  dateFrom = signal('');
+  dateTo = signal('');
+  pageNumber = signal(1);
+  totalPages = signal(0);
+  totalCount = signal(0);
+  messages = signal<AdminContactMessageListItem[]>([]);
+  selectedMessage = signal<AdminContactMessageDetail | null>(null);
+  selectedStatus = signal('');
+  adminNote = signal('');
+  isLoadingList = signal(false);
+  isLoadingDetail = signal(false);
+  isSavingStatus = signal(false);
+  isSavingNote = signal(false);
+  isLoggingOut = signal(false);
+  listError = signal('');
+  detailError = signal('');
+  statusMessage = signal('');
+  screenshotPreviewUrl = signal<string | null>(null);
+  screenshotError = signal('');
 
   constructor(
     private readonly contactMessages: AdminContactMessages,
     private readonly auth: Auth,
-    private readonly router: Router
+    private readonly router: Router,
+    @Inject(PLATFORM_ID) private readonly platformId: object
   ) {}
 
   ngOnInit(): void {
@@ -56,23 +58,23 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
     this.clearScreenshotPreview();
   }
 
-  loadMessages(pageNumber = this.pageNumber): void {
-    this.pageNumber = this.clampPage(pageNumber);
-    this.isLoadingList = true;
-    this.listError = '';
+  loadMessages(pageNumber = this.pageNumber()): void {
+    this.pageNumber.set(this.clampPage(pageNumber));
+    this.isLoadingList.set(true);
+    this.listError.set('');
 
     this.contactMessages.getMessages({
-      search: this.search.trim() || undefined,
-      status: this.status || undefined,
-      dateFrom: this.dateFrom || undefined,
-      dateTo: this.dateTo || undefined,
-      pageNumber: this.pageNumber,
+      search: this.search().trim() || undefined,
+      status: this.status() || undefined,
+      dateFrom: this.dateFrom() || undefined,
+      dateTo: this.dateTo() || undefined,
+      pageNumber: this.pageNumber(),
       pageSize: this.pageSize,
     }).subscribe({
       next: response => this.bindMessageList(response),
       error: error => {
-        this.listError = error instanceof Error ? error.message : 'Unable to load contact messages.';
-        this.isLoadingList = false;
+        this.listError.set(error instanceof Error ? error.message : 'Unable to load contact messages.');
+        this.isLoadingList.set(false);
       },
     });
   }
@@ -82,103 +84,109 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   }
 
   clearFilters(): void {
-    this.search = '';
-    this.status = '';
-    this.dateFrom = '';
-    this.dateTo = '';
+    this.search.set('');
+    this.status.set('');
+    this.dateFrom.set('');
+    this.dateTo.set('');
     this.loadMessages(1);
   }
 
   openMessage(message: AdminContactMessageListItem): void {
-    this.isLoadingDetail = true;
-    this.detailError = '';
-    this.statusMessage = '';
+    this.isLoadingDetail.set(true);
+    this.detailError.set('');
+    this.statusMessage.set('');
 
     this.contactMessages.getMessage(message.id).subscribe({
       next: detail => {
         this.bindDetail(detail);
-        this.isLoadingDetail = false;
-        this.loadMessages(this.pageNumber);
+        this.isLoadingDetail.set(false);
+        this.loadMessages(this.pageNumber());
       },
       error: error => {
-        this.detailError = error instanceof Error ? error.message : 'Unable to load contact message.';
-        this.isLoadingDetail = false;
+        this.detailError.set(error instanceof Error ? error.message : 'Unable to load contact message.');
+        this.isLoadingDetail.set(false);
       },
     });
   }
 
   saveStatus(): void {
-    if (!this.selectedMessage || !this.selectedStatus || this.isSavingStatus) {
+    const selectedMessage = this.selectedMessage();
+    const selectedStatus = this.selectedStatus();
+
+    if (!selectedMessage || !selectedStatus || this.isSavingStatus()) {
       return;
     }
 
-    this.isSavingStatus = true;
-    this.detailError = '';
-    this.statusMessage = '';
+    this.isSavingStatus.set(true);
+    this.detailError.set('');
+    this.statusMessage.set('');
 
-    this.contactMessages.updateStatus(this.selectedMessage.id, this.selectedStatus).subscribe({
+    this.contactMessages.updateStatus(selectedMessage.id, selectedStatus).subscribe({
       next: detail => {
         this.bindDetail(detail);
-        this.statusMessage = 'Status updated.';
-        this.isSavingStatus = false;
-        this.loadMessages(this.pageNumber);
+        this.statusMessage.set('Status updated.');
+        this.isSavingStatus.set(false);
+        this.loadMessages(this.pageNumber());
       },
       error: error => {
-        this.detailError = error instanceof Error ? error.message : 'Unable to update status.';
-        this.isSavingStatus = false;
+        this.detailError.set(error instanceof Error ? error.message : 'Unable to update status.');
+        this.isSavingStatus.set(false);
       },
     });
   }
 
   saveNote(): void {
-    if (!this.selectedMessage || this.isSavingNote || this.adminNote.length > 1000) {
+    const selectedMessage = this.selectedMessage();
+    const adminNote = this.adminNote();
+
+    if (!selectedMessage || this.isSavingNote() || adminNote.length > 1000) {
       return;
     }
 
-    this.isSavingNote = true;
-    this.detailError = '';
-    this.statusMessage = '';
+    this.isSavingNote.set(true);
+    this.detailError.set('');
+    this.statusMessage.set('');
 
-    this.contactMessages.updateNote(this.selectedMessage.id, this.adminNote).subscribe({
+    this.contactMessages.updateNote(selectedMessage.id, adminNote).subscribe({
       next: detail => {
         this.bindDetail(detail);
-        this.statusMessage = 'Admin note saved.';
-        this.isSavingNote = false;
-        this.loadMessages(this.pageNumber);
+        this.statusMessage.set('Admin note saved.');
+        this.isSavingNote.set(false);
+        this.loadMessages(this.pageNumber());
       },
       error: error => {
-        this.detailError = error instanceof Error ? error.message : 'Unable to save admin note.';
-        this.isSavingNote = false;
+        this.detailError.set(error instanceof Error ? error.message : 'Unable to save admin note.');
+        this.isSavingNote.set(false);
       },
     });
   }
 
   previousPage(): void {
-    if (this.pageNumber > 1) {
-      this.loadMessages(this.pageNumber - 1);
+    if (this.pageNumber() > 1) {
+      this.loadMessages(this.pageNumber() - 1);
     }
   }
 
   nextPage(): void {
-    if (this.pageNumber < this.totalPages) {
-      this.loadMessages(this.pageNumber + 1);
+    if (this.pageNumber() < this.totalPages()) {
+      this.loadMessages(this.pageNumber() + 1);
     }
   }
 
   firstPage(): void {
-    if (this.pageNumber > 1) {
+    if (this.pageNumber() > 1) {
       this.loadMessages(1);
     }
   }
 
   lastPage(): void {
-    if (this.totalPages > 1 && this.pageNumber < this.totalPages) {
-      this.loadMessages(this.totalPages);
+    if (this.totalPages() > 1 && this.pageNumber() < this.totalPages()) {
+      this.loadMessages(this.totalPages());
     }
   }
 
   screenshotUrl(message: AdminContactMessageDetail): string | null {
-    return message.screenshotUrl ? this.screenshotPreviewUrl : null;
+    return message.screenshotUrl ? this.screenshotPreviewUrl() : null;
   }
 
   replyUrl(message: AdminContactMessageDetail): string {
@@ -186,11 +194,11 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    if (this.isLoggingOut) {
+    if (this.isLoggingOut()) {
       return;
     }
 
-    this.isLoggingOut = true;
+    this.isLoggingOut.set(true);
     this.auth.logoutFromServer().subscribe({
       next: () => void this.router.navigate(['/admin']),
       error: () => {
@@ -225,47 +233,54 @@ export class AdminContactMessagesComponent implements OnInit, OnDestroy {
   }
 
   private bindMessageList(response: PagedResponse<AdminContactMessageListItem>): void {
-    this.messages = response.data;
-    this.totalPages = response.totalPages;
-    this.pageNumber = this.clampPage(response.pageNumber);
-    this.totalCount = response.totalCount;
-    this.isLoadingList = false;
+    this.messages.set(response.data);
+    this.totalPages.set(response.totalPages);
+    this.pageNumber.set(this.clampPage(response.pageNumber));
+    this.totalCount.set(response.totalCount);
+    this.isLoadingList.set(false);
   }
 
   private clampPage(pageNumber: number): number {
-    const maxPage = Math.max(1, this.totalPages || 1);
+    const maxPage = Math.max(1, this.totalPages() || 1);
     return Math.min(Math.max(1, pageNumber), maxPage);
   }
 
   private bindDetail(detail: AdminContactMessageDetail): void {
-    this.selectedMessage = detail;
-    this.selectedStatus = detail.status;
-    this.adminNote = detail.adminNote ?? '';
+    this.selectedMessage.set(detail);
+    this.selectedStatus.set(detail.status);
+    this.adminNote.set(detail.adminNote ?? '');
     this.loadScreenshotPreview(detail);
   }
 
   private loadScreenshotPreview(detail: AdminContactMessageDetail): void {
     this.clearScreenshotPreview();
-    this.screenshotError = '';
+    this.screenshotError.set('');
 
     if (!detail.screenshotUrl) {
       return;
     }
 
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.contactMessages.getScreenshot(detail.id).subscribe({
       next: blob => {
-        this.screenshotPreviewUrl = URL.createObjectURL(blob);
+        this.screenshotPreviewUrl.set(URL.createObjectURL(blob));
       },
       error: () => {
-        this.screenshotError = 'Unable to load image preview.';
+        this.screenshotError.set('Unable to load image preview.');
       },
     });
   }
 
   private clearScreenshotPreview(): void {
-    if (this.screenshotPreviewUrl) {
-      URL.revokeObjectURL(this.screenshotPreviewUrl);
-      this.screenshotPreviewUrl = null;
+    const screenshotPreviewUrl = this.screenshotPreviewUrl();
+
+    if (screenshotPreviewUrl && isPlatformBrowser(this.platformId)) {
+      URL.revokeObjectURL(screenshotPreviewUrl);
     }
+
+    this.screenshotPreviewUrl.set(null);
   }
 }

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 
 export interface BrowserGpsSnapshot {
   gpsPermissionStatus: 'granted' | 'denied' | 'prompt' | 'unavailable' | 'error' | 'unknown';
@@ -18,6 +19,7 @@ export interface LastKnownLocation {
   providedIn: 'root',
 })
 export class UserTracking {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly trackingGuidKey = 'bazarKoto.trackingGuid';
   private readonly gpsPermissionStatusKey = 'bazarKoto.gpsPermissionStatus';
   private readonly gpsLatitudeKey = 'bazarKoto.gpsLatitude';
@@ -64,7 +66,7 @@ export class UserTracking {
   }
 
   requestBrowserLocation(): Promise<BrowserGpsSnapshot> {
-    if (!navigator?.geolocation) {
+    if (!this.isBrowser || !navigator.geolocation) {
       const snapshot: BrowserGpsSnapshot = { gpsPermissionStatus: 'unavailable' };
       this.saveGpsSnapshot(snapshot);
       return Promise.resolve(snapshot);
@@ -122,8 +124,8 @@ export class UserTracking {
   }
 
   private createGuid(): string {
-    if (crypto?.randomUUID) {
-      return crypto.randomUUID();
+    if (globalThis.crypto?.randomUUID) {
+      return globalThis.crypto.randomUUID();
     }
 
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, marker => {
@@ -174,6 +176,10 @@ export class UserTracking {
   }
 
   private safeGet(key: string): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
     try {
       return localStorage.getItem(key);
     } catch {
@@ -182,6 +188,10 @@ export class UserTracking {
   }
 
   private safeSet(key: string, value: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     try {
       localStorage.setItem(key, value);
     } catch {
@@ -199,6 +209,10 @@ export class UserTracking {
   }
 
   private safeRemove(key: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     try {
       localStorage.removeItem(key);
     } catch {

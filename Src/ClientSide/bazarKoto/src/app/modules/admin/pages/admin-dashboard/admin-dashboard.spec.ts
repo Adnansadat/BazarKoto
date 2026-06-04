@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 
 import { AdminDashboardComponent } from './admin-dashboard.component';
@@ -10,7 +11,7 @@ describe('AdminDashboardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdminDashboardComponent],
-      providers: [provideHttpClient()],
+      providers: [provideZonelessChangeDetection(), provideHttpClient()],
     })
     .compileComponents();
 

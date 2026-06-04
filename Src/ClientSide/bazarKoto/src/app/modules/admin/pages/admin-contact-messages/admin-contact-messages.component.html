@@ -5,8 +5,8 @@
       <h1>Contact Messages</h1>
       <p>Review user reports, feedback, and support requests submitted from the public contact page.</p>
     </div>
-    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut">
-      {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+    <button type="button" class="admin-logout-button" (click)="logout()" [disabled]="isLoggingOut()">
+      {{ isLoggingOut() ? 'Logging out...' : 'Logout' }}
     </button>
   </section>
 
@@ -17,14 +17,15 @@
           <span>Search</span>
           <input
             type="search"
-            [(ngModel)]="search"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
             placeholder="Name, email, subject, or message"
             (keyup.enter)="applyFilters()" />
         </label>
 
         <label>
           <span>Status</span>
-          <select [(ngModel)]="status" (change)="applyFilters()">
+          <select [ngModel]="status()" (ngModelChange)="status.set($event); applyFilters()">
             <option *ngFor="let option of statuses" [value]="option">
               {{ option || 'All statuses' }}
             </option>
@@ -33,12 +34,12 @@
 
         <label>
           <span>From</span>
-          <input type="date" [(ngModel)]="dateFrom" (change)="applyFilters()" />
+          <input type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); applyFilters()" />
         </label>
 
         <label>
           <span>To</span>
-          <input type="date" [(ngModel)]="dateTo" (change)="applyFilters()" />
+          <input type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); applyFilters()" />
         </label>
 
         <div class="filter-actions">
@@ -47,15 +48,15 @@
         </div>
       </div>
 
-      <p class="state" *ngIf="isLoadingList">Loading contact messages...</p>
-      <p class="state error" *ngIf="listError">{{ listError }}</p>
+      <p class="state" *ngIf="isLoadingList()">Loading contact messages...</p>
+      <p class="state error" *ngIf="listError()">{{ listError() }}</p>
 
-      <div class="message-table" *ngIf="!isLoadingList && !listError">
+      <div class="message-table" *ngIf="!isLoadingList() && !listError()">
         <button
           type="button"
           class="message-row"
-          *ngFor="let message of messages"
-          [class.active]="selectedMessage?.id === message.id"
+          *ngFor="let message of messages()"
+          [class.active]="selectedMessage()?.id === message.id"
           (click)="openMessage(message)">
           <span class="message-created">{{ formatDate(message.createdAt) }}</span>
           <strong class="message-name">{{ message.name }}</strong>
@@ -66,26 +67,26 @@
           <span class="message-image">{{ message.hasScreenshot ? 'Image' : '-' }}</span>
         </button>
 
-        <p class="state" *ngIf="messages.length === 0">No contact messages found.</p>
+        <p class="state" *ngIf="messages().length === 0">No contact messages found.</p>
       </div>
 
-      <div class="pagination" *ngIf="!isLoadingList && !listError && totalPages > 1">
-        <span>Page {{ formatNumber(pageNumber) }} of {{ formatNumber(totalPages) }}</span>
+      <div class="pagination" *ngIf="!isLoadingList() && !listError() && totalPages() > 1">
+        <span>Page {{ formatNumber(pageNumber()) }} of {{ formatNumber(totalPages()) }}</span>
         <div>
-          <button type="button" (click)="firstPage()" [disabled]="pageNumber === 1">First</button>
-          <button type="button" (click)="previousPage()" [disabled]="pageNumber === 1">Previous</button>
-          <button type="button" (click)="nextPage()" [disabled]="pageNumber >= totalPages">Next</button>
-          <button type="button" (click)="lastPage()" [disabled]="pageNumber >= totalPages">Last</button>
+          <button type="button" (click)="firstPage()" [disabled]="pageNumber() === 1">First</button>
+          <button type="button" (click)="previousPage()" [disabled]="pageNumber() === 1">Previous</button>
+          <button type="button" (click)="nextPage()" [disabled]="pageNumber() >= totalPages()">Next</button>
+          <button type="button" (click)="lastPage()" [disabled]="pageNumber() >= totalPages()">Last</button>
         </div>
       </div>
     </article>
 
     <article class="detail-panel">
       <div class="detail-scroll">
-        <p class="state" *ngIf="isLoadingDetail">Loading message detail...</p>
-        <p class="state error" *ngIf="detailError">{{ detailError }}</p>
+        <p class="state" *ngIf="isLoadingDetail()">Loading message detail...</p>
+        <p class="state error" *ngIf="detailError()">{{ detailError() }}</p>
 
-        <ng-container *ngIf="selectedMessage; else emptyDetail">
+        <ng-container *ngIf="selectedMessage() as selectedMessage; else emptyDetail">
           <header>
             <span [ngClass]="selectedMessage.status.toLowerCase()">{{ selectedMessage.status }}</span>
             <h2>{{ selectedMessage.subject }}</h2>
@@ -107,28 +108,28 @@
             <span>{{ selectedMessage.screenshotContentType || '-' }}</span>
             <span>{{ formatBytes(selectedMessage.screenshotSizeBytes) }}</span>
           </div>
-          <p class="state error" *ngIf="screenshotError">{{ screenshotError }}</p>
+          <p class="state error" *ngIf="screenshotError()">{{ screenshotError() }}</p>
 
           <div class="detail-actions">
             <label>
               <span>Status</span>
-              <select [(ngModel)]="selectedStatus">
+              <select [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
                 <option *ngFor="let option of statuses.slice(1)" [value]="option">{{ option }}</option>
               </select>
             </label>
-            <button type="button" (click)="saveStatus()" [disabled]="isSavingStatus">
-              {{ isSavingStatus ? 'Saving...' : 'Save status' }}
+            <button type="button" (click)="saveStatus()" [disabled]="isSavingStatus()">
+              {{ isSavingStatus() ? 'Saving...' : 'Save status' }}
             </button>
             <a [href]="replyUrl(selectedMessage)">Reply</a>
           </div>
 
           <label class="note-field">
             <span>Admin note</span>
-            <textarea rows="5" maxlength="1000" [(ngModel)]="adminNote"></textarea>
-            <small>{{ adminNote.length }} / 1000</small>
+            <textarea rows="5" maxlength="1000" [ngModel]="adminNote()" (ngModelChange)="adminNote.set($event)"></textarea>
+            <small>{{ adminNote().length }} / 1000</small>
           </label>
-          <button type="button" (click)="saveNote()" [disabled]="isSavingNote || adminNote.length > 1000">
-            {{ isSavingNote ? 'Saving...' : 'Save note' }}
+          <button type="button" (click)="saveNote()" [disabled]="isSavingNote() || adminNote().length > 1000">
+            {{ isSavingNote() ? 'Saving...' : 'Save note' }}
           </button>
 
           <details class="metadata">
@@ -149,7 +150,7 @@
             </dl>
           </details>
 
-          <p class="state success" *ngIf="statusMessage">{{ statusMessage }}</p>
+          <p class="state success" *ngIf="statusMessage()">{{ statusMessage() }}</p>
         </ng-container>
 
         <ng-template #emptyDetail>

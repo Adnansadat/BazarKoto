@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -76,24 +76,25 @@ interface AdminDashboardResponse {
   standalone: true,
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly peakHoursPageSize = 5;
-  isLoading = true;
-  isLoggingOut = false;
-  isExportingTrafficReport = false;
-  isPriceManagementModalOpen = false;
-  errorMessage = '';
-  exportMessage = '';
-  exportErrorMessage = '';
-  priceManagementMessage = '';
-  priceManagementSearch = '';
-  priceManagementStatus = '';
-  priceManagementPage = 1;
-  priceManagementTotalCount = 0;
-  priceManagementTotalPages = 0;
-  priceManagementHasPreviousPage = false;
-  priceManagementHasNextPage = false;
+  isLoading = signal(true);
+  isLoggingOut = signal(false);
+  isExportingTrafficReport = signal(false);
+  isPriceManagementModalOpen = signal(false);
+  errorMessage = signal('');
+  exportMessage = signal('');
+  exportErrorMessage = signal('');
+  priceManagementMessage = signal('');
+  priceManagementSearch = signal('');
+  priceManagementStatus = signal('');
+  priceManagementPage = signal(1);
+  priceManagementTotalCount = signal(0);
+  priceManagementTotalPages = signal(0);
+  priceManagementHasPreviousPage = signal(false);
+  priceManagementHasNextPage = signal(false);
   readonly priceManagementPageSize = 10;
   readonly priceManagementStatuses = ['Approved', 'Pending', 'Flagged', 'Rejected'];
   readonly priceSourceOptions = ['ObservedInMarket', 'SellerProvided', 'Receipt', 'UserReported', 'OnlineListing', 'Other'];
@@ -105,26 +106,40 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     { value: 'litre', label: 'litre' },
     { value: 'packet', label: 'packet' },
   ];
-  isLoadingPriceRecords = false;
-  isPriceEditModalOpen = false;
-  isSavingPriceEdit = false;
-  priceRecordsErrorMessage = '';
-  priceEditMessage = '';
-  priceEditErrorMessage = '';
-  priceEditValidationErrors: string[] = [];
-  selectedPriceRecord: AdminPriceRecord | null = null;
-  priceEditForm: PriceEditForm = {
+  isLoadingPriceRecords = signal(false);
+  isPriceEditModalOpen = signal(false);
+  isSavingPriceEdit = signal(false);
+  priceRecordsErrorMessage = signal('');
+  priceEditMessage = signal('');
+  priceEditErrorMessage = signal('');
+  priceEditValidationErrors = signal<string[]>([]);
+  selectedPriceRecord = signal<AdminPriceRecord | null>(null);
+  priceEditForm = signal<PriceEditForm>({
     price: null,
     unit: '',
     status: '',
     source: '',
-  };
-  priceRecords: AdminPriceRecord[] = [];
-  trafficMetrics: DashboardMetric[] = [];
-  dataMetrics: DashboardMetric[] = [];
-  peakHours: PeakHour[] = [];
-  peakHoursPage = 1;
-  moderationQueue: AdminQueueItem[] = [];
+  });
+  priceRecords = signal<AdminPriceRecord[]>([]);
+  trafficMetrics = signal<DashboardMetric[]>([]);
+  dataMetrics = signal<DashboardMetric[]>([]);
+  peakHours = signal<PeakHour[]>([]);
+  peakHoursPage = signal(1);
+  moderationQueue = signal<AdminQueueItem[]>([]);
+  pagedPeakHours = computed(() => {
+    const page = this.clampPeakHoursPage(this.peakHoursPage());
+    const startIndex = (page - 1) * this.peakHoursPageSize;
+    return this.peakHours().slice(startIndex, startIndex + this.peakHoursPageSize);
+  });
+  peakHoursPageCount = computed(() => Math.max(1, Math.ceil(this.peakHours().length / this.peakHoursPageSize)));
+  shouldShowPeakHoursPagination = computed(() => this.peakHours().length > this.peakHoursPageSize);
+  priceManagementPageCount = computed(() => Math.max(1, this.priceManagementTotalPages()));
+  priceManagementPageStart = computed(() => this.priceManagementTotalCount() === 0
+    ? 0
+    : (this.priceManagementPage() - 1) * this.priceManagementPageSize + 1);
+  priceManagementPageEnd = computed(() =>
+    Math.min(this.priceManagementPage() * this.priceManagementPageSize, this.priceManagementTotalCount())
+  );
   private priceRecordsRequest?: Subscription;
   private priceRecordsRequestId = 0;
   private priceSearchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -156,13 +171,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadDashboard(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     this.api.get<AdminDashboardResponse>('/Admin/dashboard').subscribe({
       next: dashboard => {
         this.bindDashboard(dashboard);
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       error: error => {
         this.handleLoadError(error);
@@ -172,9 +187,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   private bindDashboard(dashboard: AdminDashboardResponse): void {
     const peakHour = dashboard.peakHours[0];
-    this.peakHoursPage = 1;
+    this.peakHoursPage.set(1);
 
-    this.trafficMetrics = [
+    this.trafficMetrics.set([
       {
         label: 'Total traffic',
         value: this.formatNumber(dashboard.traffic.totalVisits),
@@ -199,9 +214,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         helper: 'Tracked visits this week',
         trend: 'Live backend data',
       },
-    ];
+    ]);
 
-    this.dataMetrics = [
+    this.dataMetrics.set([
       {
         label: 'Markets',
         value: this.formatNumber(dashboard.records.totalMarkets),
@@ -226,15 +241,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         helper: 'Community submitters',
         trend: `${this.formatNumber(dashboard.records.totalCategories)} product categories`,
       },
-    ];
+    ]);
 
-    this.peakHours = dashboard.peakHours.map(hour => ({
+    this.peakHours.set(dashboard.peakHours.map(hour => ({
       time: this.formatHour(hour.hour),
       visits: this.formatNumber(hour.visitCount),
       share: 'Backend traffic data',
-    }));
+    })));
 
-    this.moderationQueue = [
+    this.moderationQueue.set([
       {
         label: 'User support messages',
         count: dashboard.moderation.pendingContactMessages,
@@ -256,7 +271,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         count: dashboard.moderation.flaggedPriceSubmissions,
         helper: 'Outlier prices needing validation',
       },
-    ];
+    ]);
   }
 
   openQueueItem(item: AdminQueueItem): void {
@@ -266,171 +281,168 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   openPriceManagementModal(): void {
-    this.isPriceManagementModalOpen = true;
-    this.priceManagementMessage = '';
-    this.priceManagementPage = 1;
+    this.isPriceManagementModalOpen.set(true);
+    this.priceManagementMessage.set('');
+    this.priceManagementPage.set(1);
     this.loadAdminPriceRecords();
   }
 
   closePriceManagementModal(): void {
-    if (this.isSavingPriceEdit) {
+    if (this.isSavingPriceEdit()) {
       return;
     }
 
     this.priceRecordsRequest?.unsubscribe();
     this.closePriceEditModal();
-    this.isPriceManagementModalOpen = false;
+    this.isPriceManagementModalOpen.set(false);
   }
 
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
-    if (this.isSavingPriceEdit) {
+    if (this.isSavingPriceEdit()) {
       return;
     }
 
-    if (this.isPriceEditModalOpen) {
+    if (this.isPriceEditModalOpen()) {
       this.closePriceEditModal();
       return;
     }
 
-    if (this.isPriceManagementModalOpen) {
+    if (this.isPriceManagementModalOpen()) {
       this.closePriceManagementModal();
     }
   }
 
-  get priceManagementPageCount(): number {
-    return Math.max(1, this.priceManagementTotalPages);
-  }
-
-  get priceManagementPageStart(): number {
-    return this.priceManagementTotalCount === 0
-      ? 0
-      : (this.priceManagementPage - 1) * this.priceManagementPageSize + 1;
-  }
-
-  get priceManagementPageEnd(): number {
-    return Math.min(this.priceManagementPage * this.priceManagementPageSize, this.priceManagementTotalCount);
-  }
-
   onPriceManagementFiltersChange(): void {
-    this.priceManagementPage = 1;
-    this.priceManagementMessage = '';
+    this.priceManagementPage.set(1);
+    this.priceManagementMessage.set('');
     this.loadAdminPriceRecords(true);
   }
 
   resetPriceManagementFilters(): void {
-    this.priceManagementSearch = '';
-    this.priceManagementStatus = '';
-    this.priceManagementPage = 1;
-    this.priceManagementMessage = '';
-    this.priceRecordsErrorMessage = '';
+    this.priceManagementSearch.set('');
+    this.priceManagementStatus.set('');
+    this.priceManagementPage.set(1);
+    this.priceManagementMessage.set('');
+    this.priceRecordsErrorMessage.set('');
     this.loadAdminPriceRecords();
   }
 
   previousPriceManagementPage(): void {
-    if (!this.priceManagementHasPreviousPage || this.isLoadingPriceRecords) {
+    if (!this.priceManagementHasPreviousPage() || this.isLoadingPriceRecords()) {
       return;
     }
 
-    this.priceManagementPage = Math.max(1, this.priceManagementPage - 1);
+    this.priceManagementPage.update(page => Math.max(1, page - 1));
     this.loadAdminPriceRecords();
   }
 
   nextPriceManagementPage(): void {
-    if (!this.priceManagementHasNextPage || this.isLoadingPriceRecords) {
+    if (!this.priceManagementHasNextPage() || this.isLoadingPriceRecords()) {
       return;
     }
 
-    this.priceManagementPage = Math.min(this.priceManagementPageCount, this.priceManagementPage + 1);
+    this.priceManagementPage.update(page => Math.min(this.priceManagementPageCount(), page + 1));
     this.loadAdminPriceRecords();
   }
 
   openPriceEditModal(record: AdminPriceRecord): void {
-    this.selectedPriceRecord = record;
+    this.selectedPriceRecord.set(record);
     this.initializePriceEditForm(record);
-    this.priceEditMessage = '';
-    this.priceEditErrorMessage = '';
-    this.priceEditValidationErrors = [];
-    this.isPriceEditModalOpen = true;
+    this.priceEditMessage.set('');
+    this.priceEditErrorMessage.set('');
+    this.priceEditValidationErrors.set([]);
+    this.isPriceEditModalOpen.set(true);
   }
 
   closePriceEditModal(): void {
-    if (this.isSavingPriceEdit) {
+    if (this.isSavingPriceEdit()) {
       return;
     }
 
-    this.isPriceEditModalOpen = false;
-    this.selectedPriceRecord = null;
-    this.priceEditMessage = '';
-    this.priceEditErrorMessage = '';
-    this.priceEditValidationErrors = [];
+    this.isPriceEditModalOpen.set(false);
+    this.selectedPriceRecord.set(null);
+    this.priceEditMessage.set('');
+    this.priceEditErrorMessage.set('');
+    this.priceEditValidationErrors.set([]);
   }
 
   initializePriceEditForm(record: AdminPriceRecord): void {
-    this.priceEditForm = {
+    this.priceEditForm.set({
       price: record.price,
       unit: record.unit,
       status: record.status,
       source: record.source,
-    };
+    });
+  }
+
+  updatePriceEditForm<K extends keyof PriceEditForm>(field: K, value: PriceEditForm[K]): void {
+    this.priceEditForm.update(form => ({
+      ...form,
+      [field]: value,
+    }));
   }
 
   savePriceEdit(): void {
-    if (this.isSavingPriceEdit || !this.selectedPriceRecord) {
+    const selectedPriceRecord = this.selectedPriceRecord();
+
+    if (this.isSavingPriceEdit() || !selectedPriceRecord) {
       return;
     }
 
-    this.priceEditValidationErrors = this.validatePriceEditForm();
-    this.priceEditErrorMessage = '';
+    this.priceEditValidationErrors.set(this.validatePriceEditForm());
+    this.priceEditErrorMessage.set('');
 
-    if (this.priceEditValidationErrors.length > 0) {
-      this.priceEditMessage = '';
+    if (this.priceEditValidationErrors().length > 0) {
+      this.priceEditMessage.set('');
       return;
     }
 
-    this.isSavingPriceEdit = true;
-    this.priceEditMessage = '';
+    this.isSavingPriceEdit.set(true);
+    this.priceEditMessage.set('');
+    const priceEditForm = this.priceEditForm();
 
-    this.adminPrices.updateAdminPrice(this.selectedPriceRecord.id, {
-      price: this.priceEditForm.price!,
-      unit: this.priceEditForm.unit.trim(),
-      status: this.priceEditForm.status,
-      source: this.priceEditForm.source,
+    this.adminPrices.updateAdminPrice(selectedPriceRecord.id, {
+      price: priceEditForm.price!,
+      unit: priceEditForm.unit.trim(),
+      status: priceEditForm.status,
+      source: priceEditForm.source,
     }).subscribe({
       next: updatedRecord => {
-        this.isSavingPriceEdit = false;
-        this.isPriceEditModalOpen = false;
-        this.selectedPriceRecord = null;
-        this.priceEditValidationErrors = [];
-        this.priceEditErrorMessage = '';
-        this.priceManagementMessage = 'Price record updated successfully.';
+        this.isSavingPriceEdit.set(false);
+        this.isPriceEditModalOpen.set(false);
+        this.selectedPriceRecord.set(null);
+        this.priceEditValidationErrors.set([]);
+        this.priceEditErrorMessage.set('');
+        this.priceManagementMessage.set('Price record updated successfully.');
         this.replaceVisiblePriceRecord(updatedRecord);
       },
       error: error => {
-        this.isSavingPriceEdit = false;
-        this.priceEditErrorMessage = this.getPriceEditErrorMessage(error);
+        this.isSavingPriceEdit.set(false);
+        this.priceEditErrorMessage.set(this.getPriceEditErrorMessage(error));
       },
     });
   }
 
   validatePriceEditForm(): string[] {
     const errors: string[] = [];
+    const priceEditForm = this.priceEditForm();
 
-    if (this.priceEditForm.price === null || this.priceEditForm.price === undefined) {
+    if (priceEditForm.price === null || priceEditForm.price === undefined) {
       errors.push('Price is required.');
-    } else if (this.priceEditForm.price <= 0) {
+    } else if (priceEditForm.price <= 0) {
       errors.push('Price must be greater than 0.');
     }
 
-    if (!this.priceEditForm.unit.trim()) {
+    if (!priceEditForm.unit.trim()) {
       errors.push('Unit is required.');
     }
 
-    if (!this.priceEditForm.status) {
+    if (!priceEditForm.status) {
       errors.push('Status is required.');
     }
 
-    if (!this.priceEditForm.source) {
+    if (!priceEditForm.source) {
       errors.push('Source is required.');
     }
 
@@ -458,58 +470,60 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private replaceVisiblePriceRecord(updatedRecord: AdminPriceRecord): void {
-    const normalizedStatus = this.priceManagementStatus.trim().toLowerCase();
+    const normalizedStatus = this.priceManagementStatus().trim().toLowerCase();
     const recordMatchesStatus = !normalizedStatus || updatedRecord.status.toLowerCase() === normalizedStatus;
 
     if (!recordMatchesStatus) {
-      this.priceRecords = this.priceRecords.filter(record => record.id !== updatedRecord.id);
-      this.priceManagementTotalCount = Math.max(0, this.priceManagementTotalCount - 1);
-      this.priceManagementTotalPages = Math.ceil(this.priceManagementTotalCount / this.priceManagementPageSize);
-      this.priceManagementHasNextPage = this.priceManagementPage < this.priceManagementPageCount;
-      this.priceManagementHasPreviousPage = this.priceManagementPage > 1 && this.priceManagementTotalPages > 0;
+      this.priceRecords.update(records => records.filter(record => record.id !== updatedRecord.id));
+      this.priceManagementTotalCount.update(totalCount => Math.max(0, totalCount - 1));
+      this.priceManagementTotalPages.set(Math.ceil(this.priceManagementTotalCount() / this.priceManagementPageSize));
+      this.priceManagementHasNextPage.set(this.priceManagementPage() < this.priceManagementPageCount());
+      this.priceManagementHasPreviousPage.set(this.priceManagementPage() > 1 && this.priceManagementTotalPages() > 0);
       return;
     }
 
-    this.priceRecords = this.priceRecords.map(record =>
+    this.priceRecords.update(records => records.map(record =>
       record.id === updatedRecord.id ? updatedRecord : record
-    );
+    ));
   }
 
   exportTrafficIntelligenceReport(): void {
-    if (this.isExportingTrafficReport) {
+    if (this.isExportingTrafficReport()) {
       return;
     }
 
-    this.isExportingTrafficReport = true;
-    this.exportMessage = '';
-    this.exportErrorMessage = '';
+    this.isExportingTrafficReport.set(true);
+    this.exportMessage.set('');
+    this.exportErrorMessage.set('');
 
     this.api.getBlobResponse('/Admin/traffic-intelligence/export-pdf').subscribe({
       next: response => {
         try {
           this.downloadReport(response);
-          this.exportMessage = 'Traffic report download started.';
+          this.exportMessage.set('Traffic report download started.');
         } catch (error) {
-          this.exportErrorMessage =
-            error instanceof Error ? error.message : 'Unable to export traffic report right now.';
+          this.exportErrorMessage.set(
+            error instanceof Error ? error.message : 'Unable to export traffic report right now.'
+          );
         } finally {
-          this.isExportingTrafficReport = false;
+          this.isExportingTrafficReport.set(false);
         }
       },
       error: error => {
-        this.exportErrorMessage =
-          error instanceof Error ? error.message : 'Unable to export traffic report right now.';
-        this.isExportingTrafficReport = false;
+        this.exportErrorMessage.set(
+          error instanceof Error ? error.message : 'Unable to export traffic report right now.'
+        );
+        this.isExportingTrafficReport.set(false);
       },
     });
   }
 
   logout(): void {
-    if (this.isLoggingOut) {
+    if (this.isLoggingOut()) {
       return;
     }
 
-    this.isLoggingOut = true;
+    this.isLoggingOut.set(true);
     this.auth.logoutFromServer().subscribe({
       next: () => void this.router.navigate(['/admin']),
       error: () => {
@@ -519,48 +533,33 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  get pagedPeakHours(): PeakHour[] {
-    const page = this.clampPeakHoursPage(this.peakHoursPage);
-    const startIndex = (page - 1) * this.peakHoursPageSize;
-    return this.peakHours.slice(startIndex, startIndex + this.peakHoursPageSize);
-  }
-
-  get peakHoursPageCount(): number {
-    return Math.max(1, Math.ceil(this.peakHours.length / this.peakHoursPageSize));
-  }
-
-  get shouldShowPeakHoursPagination(): boolean {
-    return this.peakHours.length > this.peakHoursPageSize;
-  }
-
   goToPreviousPeakHoursPage(): void {
-    this.peakHoursPage = this.clampPeakHoursPage(this.peakHoursPage - 1);
+    this.peakHoursPage.update(page => this.clampPeakHoursPage(page - 1));
   }
 
   goToNextPeakHoursPage(): void {
-    this.peakHoursPage = this.clampPeakHoursPage(this.peakHoursPage + 1);
+    this.peakHoursPage.update(page => this.clampPeakHoursPage(page + 1));
   }
 
   goToFirstPeakHoursPage(): void {
-    this.peakHoursPage = 1;
+    this.peakHoursPage.set(1);
   }
 
   goToLastPeakHoursPage(): void {
-    this.peakHoursPage = this.peakHoursPageCount;
+    this.peakHoursPage.set(this.peakHoursPageCount());
   }
 
   private handleLoadError(error: unknown): void {
-    this.isLoading = false;
+    this.isLoading.set(false);
 
     if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
       this.auth.logout();
-      this.errorMessage = 'Please login again.';
+      this.errorMessage.set('Please login again.');
       void this.router.navigate(['/admin']);
       return;
     }
 
-    this.errorMessage =
-      error instanceof Error ? error.message : 'Unable to load dashboard data.';
+    this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load dashboard data.');
   }
 
   private downloadReport(response: HttpResponse<Blob>): void {
@@ -613,13 +612,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const requestId = ++this.priceRecordsRequestId;
 
     this.priceRecordsRequest?.unsubscribe();
-    this.isLoadingPriceRecords = true;
-    this.priceRecordsErrorMessage = '';
+    this.isLoadingPriceRecords.set(true);
+    this.priceRecordsErrorMessage.set('');
 
     this.priceRecordsRequest = this.adminPrices.getAdminPrices({
-      search: this.priceManagementSearch.trim(),
-      status: this.priceManagementStatus,
-      pageNumber: this.priceManagementPage,
+      search: this.priceManagementSearch().trim(),
+      status: this.priceManagementStatus(),
+      pageNumber: this.priceManagementPage(),
       pageSize: this.priceManagementPageSize,
     }).subscribe({
       next: response => {
@@ -627,26 +626,26 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.priceRecords = response.data;
-        this.priceManagementPage = response.pageNumber;
-        this.priceManagementTotalCount = response.totalCount;
-        this.priceManagementTotalPages = response.totalPages;
-        this.priceManagementHasPreviousPage = response.hasPreviousPage;
-        this.priceManagementHasNextPage = response.hasNextPage;
-        this.isLoadingPriceRecords = false;
+        this.priceRecords.set(response.data);
+        this.priceManagementPage.set(response.pageNumber);
+        this.priceManagementTotalCount.set(response.totalCount);
+        this.priceManagementTotalPages.set(response.totalPages);
+        this.priceManagementHasPreviousPage.set(response.hasPreviousPage);
+        this.priceManagementHasNextPage.set(response.hasNextPage);
+        this.isLoadingPriceRecords.set(false);
       },
       error: () => {
         if (requestId !== this.priceRecordsRequestId) {
           return;
         }
 
-        this.priceRecords = [];
-        this.priceManagementTotalCount = 0;
-        this.priceManagementTotalPages = 0;
-        this.priceManagementHasPreviousPage = false;
-        this.priceManagementHasNextPage = false;
-        this.priceRecordsErrorMessage = 'Could not load price records. Please try again.';
-        this.isLoadingPriceRecords = false;
+        this.priceRecords.set([]);
+        this.priceManagementTotalCount.set(0);
+        this.priceManagementTotalPages.set(0);
+        this.priceManagementHasPreviousPage.set(false);
+        this.priceManagementHasNextPage.set(false);
+        this.priceRecordsErrorMessage.set('Could not load price records. Please try again.');
+        this.isLoadingPriceRecords.set(false);
       },
     });
   }
@@ -682,7 +681,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private clampPeakHoursPage(page: number): number {
-    return Math.min(Math.max(1, page), this.peakHoursPageCount);
+    return Math.min(Math.max(1, page), this.peakHoursPageCount());
   }
 
   private formatHour(hour: number): string {
