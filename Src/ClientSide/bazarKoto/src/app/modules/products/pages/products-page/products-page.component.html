@@ -37,7 +37,7 @@
           <div
             class="clearable-field select-clearable"
             [class.has-clear-value]="selectedCategoryId()"
-            [class.input-active]="isCategoryInputActive"
+            [class.input-active]="isCategoryInputActive()"
           >
             <select
               #categoryInput
@@ -179,12 +179,12 @@
       </div>
 
       <div class="form-actions">
-        <span class="field-error" *ngIf="productErrorMessage">{{ productErrorMessage }}</span>
-        <span class="status-message" *ngIf="productSuccessMessage">{{ productSuccessMessage }}</span>
+        <span class="field-error" *ngIf="productErrorMessage()">{{ productErrorMessage() }}</span>
+        <span class="status-message" *ngIf="productSuccessMessage()">{{ productSuccessMessage() }}</span>
         <button
           type="button"
           (click)="addProduct()"
-          [disabled]="isSubmittingProduct"
+          [disabled]="isSubmittingProduct()"
           [attr.aria-label]="'products.actions.addProductAria' | translate"
         >
           {{ 'products.actions.addProduct' | translate }}

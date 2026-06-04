@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -77,6 +77,7 @@ interface SelectOption {
   imports: [CommonModule, FormsModule, RouterLink, TranslateModule],
   templateUrl: './products-page.component.html',
   styleUrl: './products-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
   @ViewChild('categoryInput') private categoryInput?: ElementRef<HTMLSelectElement>;
@@ -108,12 +109,12 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   showProductValidation = signal(false);
   isLoadingProducts = signal(true);
   isLoadingCategories = signal(true);
-  isSubmittingProduct = false;
-  isCategoryInputActive = false;
+  isSubmittingProduct = signal(false);
+  isCategoryInputActive = signal(false);
   categoryErrorMessage = signal('');
-  productErrorMessage = '';
+  productErrorMessage = signal('');
   productListErrorMessage = signal('');
-  productSuccessMessage = '';
+  productSuccessMessage = signal('');
   products = signal<Product[]>([]);
   productSuggestions = signal<ProductResponse[]>([]);
 
@@ -235,7 +236,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       return;
     }
 
-    this.isCategoryInputActive = true;
+    this.isCategoryInputActive.set(true);
     this.initialCategoryFocusChecks = this.maxPostInitFocusChecks;
   }
 
@@ -245,17 +246,17 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   ngDoCheck(): void {
-    if (this.productErrorMessage === this.requiredProductFieldsMessage && this.isProductFormValid()) {
-      this.productErrorMessage = '';
+    if (this.productErrorMessage() === this.requiredProductFieldsMessage && this.isProductFormValid()) {
+      this.productErrorMessage.set('');
     }
 
     if (
-      this.productErrorMessage === this.duplicateProductMessage &&
+      this.productErrorMessage() === this.duplicateProductMessage &&
       this.duplicateProductFingerprint &&
       this.getDuplicateProductFingerprint() !== this.duplicateProductFingerprint &&
       !this.hasDuplicateProduct()
     ) {
-      this.productErrorMessage = '';
+      this.productErrorMessage.set('');
       this.duplicateProductFingerprint = '';
     }
 
@@ -269,14 +270,14 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
   addProduct(): void {
     this.showProductValidation.set(true);
-    this.productErrorMessage = '';
-    this.productSuccessMessage = '';
+    this.productErrorMessage.set('');
+    this.productSuccessMessage.set('');
     this.duplicateProductFingerprint = '';
 
     const duplicateProduct = this.getDuplicateProduct();
 
     if (duplicateProduct) {
-      this.productErrorMessage = this.duplicateProductMessage;
+      this.productErrorMessage.set(this.duplicateProductMessage);
       this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
       this.selectedProductId.set(duplicateProduct.id);
       this.productNameInput?.nativeElement.focus();
@@ -284,28 +285,28 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     }
 
     if (!this.isProductFormValid()) {
-      this.productErrorMessage = this.requiredProductFieldsMessage;
+      this.productErrorMessage.set(this.requiredProductFieldsMessage);
       this.productNameInput?.nativeElement.focus();
       return;
     }
 
-    this.isSubmittingProduct = true;
+    this.isSubmittingProduct.set(true);
 
     this.api.post<ProductResponse>('/Products', this.getCreateProductPayload())
-      .pipe(finalize(() => this.isSubmittingProduct = false))
+      .pipe(finalize(() => this.isSubmittingProduct.set(false)))
       .subscribe({
         next: product => {
           this.storeSelectedProduct(product);
-          this.productSuccessMessage = 'Product submitted successfully.';
+          this.productSuccessMessage.set('Product submitted successfully.');
           this.showProductValidation.set(false);
           this.clearDraft(false);
           this.loadProducts();
           this.router.navigate(['/prices']);
         },
         error: error => {
-          this.productErrorMessage = error instanceof Error ? error.message : 'Unable to submit product.';
+          this.productErrorMessage.set(error instanceof Error ? error.message : 'Unable to submit product.');
 
-          if (this.productErrorMessage === this.duplicateProductMessage) {
+          if (this.productErrorMessage() === this.duplicateProductMessage) {
             this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
           }
         },
@@ -340,7 +341,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       this.productName.set('');
     }
 
-    this.productSuccessMessage = '';
+    this.productSuccessMessage.set('');
     this.clearProductValidationIfReady();
   }
 
@@ -350,10 +351,10 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
   continueToPrices(): void {
     this.showProductValidation.set(true);
-    this.productSuccessMessage = '';
+    this.productSuccessMessage.set('');
 
     if (!this.isProductFormValid()) {
-      this.productErrorMessage = this.requiredProductFieldsMessage;
+      this.productErrorMessage.set(this.requiredProductFieldsMessage);
       this.duplicateProductFingerprint = '';
       this.focusCategoryInputWithRetry();
       return;
@@ -362,7 +363,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     const duplicateProduct = this.getDuplicateProduct();
 
     if (duplicateProduct) {
-      this.productErrorMessage = this.duplicateProductMessage;
+      this.productErrorMessage.set(this.duplicateProductMessage);
       this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
       this.selectedProductId.set(duplicateProduct.id);
       this.storeSelectedProduct(duplicateProduct);
@@ -385,20 +386,20 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   clearProductSelection(): void {
     this.selectedProductId.set('');
     this.productName.set('');
-    this.productSuccessMessage = '';
+    this.productSuccessMessage.set('');
     this.clearProductValidationIfReady();
   }
 
   saveDraft(): void {
     this.persistDraftIfChanged(true);
-    this.productErrorMessage = '';
+    this.productErrorMessage.set('');
   }
 
   clearDraft(showMessage = true): void {
     this.drafts.clearDraft(this.draftStorageKey);
 
     if (showMessage) {
-      this.productSuccessMessage = '';
+      this.productSuccessMessage.set('');
     }
   }
 
@@ -553,7 +554,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
     if (this.isProductFormValid() && !this.hasDuplicateProduct()) {
       this.showProductValidation.set(false);
-      this.productErrorMessage = '';
+      this.productErrorMessage.set('');
     }
   }
 
@@ -798,11 +799,11 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   onCategoryInputFocus(): void {
-    this.isCategoryInputActive = true;
+    this.isCategoryInputActive.set(true);
   }
 
   onCategoryInputBlur(): void {
-    this.isCategoryInputActive = false;
+    this.isCategoryInputActive.set(false);
   }
 
   private focusCategoryInputWithRetry(attempt = 0): void {
@@ -821,6 +822,6 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     element.focus();
-    this.isCategoryInputActive = this.document.activeElement === element;
+    this.isCategoryInputActive.set(this.document.activeElement === element);
   }
 }
