@@ -37,7 +37,8 @@
           <input
             #pricePerUnitInput
             type="number"
-            [(ngModel)]="price"
+            [ngModel]="price()"
+            (ngModelChange)="price.set($event)"
             min="0"
             (focus)="onPricePerUnitInputFocus()"
             (blur)="onPricePerUnitInputBlur()"
@@ -50,7 +51,7 @@
 
         <label>
           <span>{{ 'prices.form.quantityChecked' | translate }}</span>
-          <input type="number" [(ngModel)]="quantity" min="1" [disabled]="isUpdateMode" [attr.aria-invalid]="quantityInvalid" />
+          <input type="number" [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" min="1" [disabled]="isUpdateMode" [attr.aria-invalid]="quantityInvalid" />
           <em class="field-error validation-slot" [class.is-visible]="quantityInvalid">
             Quantity checked must be greater than zero.
           </em>
@@ -58,7 +59,7 @@
 
         <label>
           <span>{{ 'prices.form.sellerType' | translate }}</span>
-          <select [(ngModel)]="sellerType" [disabled]="isUpdateMode" [attr.aria-invalid]="sellerTypeInvalid">
+          <select [ngModel]="sellerType()" (ngModelChange)="sellerType.set($event)" [disabled]="isUpdateMode" [attr.aria-invalid]="sellerTypeInvalid">
             <option *ngFor="let type of sellerTypes" [value]="type.value">
               {{ type.labelKey | translate }}
             </option>
@@ -70,7 +71,7 @@
 
         <label>
           <span>{{ 'prices.form.priceSource' | translate }}</span>
-          <select [(ngModel)]="priceSource" [disabled]="isUpdateMode" [attr.aria-invalid]="priceSourceInvalid">
+          <select [ngModel]="priceSource()" (ngModelChange)="priceSource.set($event)" [disabled]="isUpdateMode" [attr.aria-invalid]="priceSourceInvalid">
             <option *ngFor="let source of sources" [value]="source.value">
               {{ source.labelKey | translate }}
             </option>
@@ -82,7 +83,7 @@
 
         <label>
           <span>{{ 'prices.form.quality' | translate }}</span>
-          <select [(ngModel)]="quality" [disabled]="isUpdateMode" [attr.aria-invalid]="qualityInvalid">
+          <select [ngModel]="quality()" (ngModelChange)="quality.set($event)" [disabled]="isUpdateMode" [attr.aria-invalid]="qualityInvalid">
             <option *ngFor="let item of qualities" [value]="item.value">
               {{ item.labelKey | translate }}
             </option>
@@ -95,7 +96,8 @@
         <label class="notes-field">
           <span>{{ 'prices.form.notes' | translate }}</span>
           <textarea
-            [(ngModel)]="notes"
+            [ngModel]="notes()"
+            (ngModelChange)="notes.set($event)"
             rows="4"
             [placeholder]="'prices.form.notesPlaceholder' | translate"
             [disabled]="isUpdateMode"

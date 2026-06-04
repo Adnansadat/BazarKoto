@@ -114,19 +114,19 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   selectedCategoryId = signal('');
   existingPriceId = '';
   loadedExistingPricePerUnit: number | null = null;
-  selectedUnit = 'kg';
-  price = 0;
-  quantity = 1;
-  priceDate = new Date().toISOString().slice(0, 10);
-  priceTime = '09:30';
-  sellerType = 'Retail';
-  priceSource = 'Observed in market';
-  quality = 'Standard';
-  notes = '';
+  selectedUnit = signal('kg');
+  price = signal(0);
+  quantity = signal(1);
+  priceDate = signal(new Date().toISOString().slice(0, 10));
+  priceTime = signal('09:30');
+  sellerType = signal('Retail');
+  priceSource = signal('Observed in market');
+  quality = signal('Standard');
+  notes = signal('');
   isPricePerUnitInputActive = false;
   isThankYouOpen = false;
   isUpdateSuccessOpen = false;
-  showPriceValidation = false;
+  showPriceValidation = signal(false);
   isLoadingPrices = true;
   isLoadingDivisions = signal(false);
   isLoadingDistricts = signal(false);
@@ -240,11 +240,11 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   get totalPrice(): number {
-    return this.price * this.quantity;
+    return this.price() * this.quantity();
   }
 
   get selectedUnitLabelKey(): string {
-    return this.units.find((unit) => unit.value === this.selectedUnit)?.labelKey ?? '';
+    return this.units.find((unit) => unit.value === this.selectedUnit())?.labelKey ?? '';
   }
 
   get currentLanguage(): string {
@@ -271,14 +271,14 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     const segments = [
       this.selectedMarketName,
       this.selectedProductName,
-      this.price > 0 ? `৳ ${this.price}/${this.selectedUnit}` : '',
-      this.quantity ? `${this.quantity} ${this.selectedUnit}` : '',
+      this.price() > 0 ? `৳ ${this.price()}/${this.selectedUnit()}` : '',
+      this.quantity() ? `${this.quantity()} ${this.selectedUnit()}` : '',
       this.totalPrice > 0 ? `৳ ${this.totalPrice}` : '',
     ];
 
     if (this.priceSummary) {
       segments.push(
-        `Avg ৳ ${this.priceSummary.averagePrice}/${this.priceSummary.unit || this.selectedUnit}`,
+        `Avg ৳ ${this.priceSummary.averagePrice}/${this.priceSummary.unit || this.selectedUnit()}`,
         `Min ৳ ${this.priceSummary.minimumPrice}`,
         `Max ৳ ${this.priceSummary.maximumPrice}`,
         `${this.priceSummary.submissionCount} submissions`,
@@ -297,35 +297,35 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   get hasPriceChanged(): boolean {
-    return this.hasLoadedExistingPrice && Number(this.price) !== Number(this.loadedExistingPricePerUnit);
+    return this.hasLoadedExistingPrice && Number(this.price()) !== Number(this.loadedExistingPricePerUnit);
   }
 
   get marketContextInvalid(): boolean {
-    return this.showPriceValidation && !this.hasSelectedMarketContext;
+    return this.showPriceValidation() && !this.hasSelectedMarketContext;
   }
 
   get productContextInvalid(): boolean {
-    return this.showPriceValidation && !this.hasSelectedProductContext;
+    return this.showPriceValidation() && !this.hasSelectedProductContext;
   }
 
   get priceInvalid(): boolean {
-    return Number(this.price) <= 0;
+    return Number(this.price()) <= 0;
   }
 
   get quantityInvalid(): boolean {
-    return this.showPriceValidation && this.quantity <= 0;
+    return this.showPriceValidation() && this.quantity() <= 0;
   }
 
   get sellerTypeInvalid(): boolean {
-    return this.showPriceValidation && !this.sellerType;
+    return this.showPriceValidation() && !this.sellerType();
   }
 
   get priceSourceInvalid(): boolean {
-    return this.showPriceValidation && !this.priceSource;
+    return this.showPriceValidation() && !this.priceSource();
   }
 
   get qualityInvalid(): boolean {
-    return this.showPriceValidation && !this.quality;
+    return this.showPriceValidation() && !this.quality();
   }
 
   get canAttemptSubmitPrice(): boolean {
@@ -428,7 +428,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   onProductChange(): void {
     const product = this.products().find(item => item.id === this.selectedProductId());
-    this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
+    this.selectedUnit.set(product?.primaryUnit ?? this.selectedUnit());
     this.clearLoadedExistingPrice();
     this.loadTodayPrices();
     this.loadPriceSummary();
@@ -436,7 +436,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   submitPrice(allowMarketResolveRetry = true): void {
-    this.showPriceValidation = true;
+    this.showPriceValidation.set(true);
     this.priceErrorMessage = '';
     this.priceSuccessMessage = '';
     this.applyCurrentSubmissionTime();
@@ -475,15 +475,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     this.api.post<PriceSubmissionResponse>('/Prices', {
       marketId: this.selectedMarketId(),
       productId: this.selectedProductId(),
-      unit: this.selectedUnit,
-      pricePerUnit: this.price,
-      quantityChecked: this.quantity,
-      priceDate: this.priceDate,
-      priceTime: this.priceTime ? `${this.priceTime}:00` : null,
-      sellerType: this.sellerType === 'Street vendor' ? 'StreetVendor' : this.sellerType,
-      priceSource: this.priceSource === 'Observed in market' ? 'ObservedInMarket' : this.priceSource === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
-      qualityGrade: this.quality === 'Low grade' ? 'Low' : this.quality,
-      notes: this.notes || null,
+      unit: this.selectedUnit(),
+      pricePerUnit: this.price(),
+      quantityChecked: this.quantity(),
+      priceDate: this.priceDate(),
+      priceTime: this.priceTime() ? `${this.priceTime()}:00` : null,
+      sellerType: this.sellerType() === 'Street vendor' ? 'StreetVendor' : this.sellerType(),
+      priceSource: this.priceSource() === 'Observed in market' ? 'ObservedInMarket' : this.priceSource() === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
+      qualityGrade: this.quality() === 'Low grade' ? 'Low' : this.quality(),
+      notes: this.notes() || null,
       trackingGuid: trackingContext.trackingGuid,
       gpsPermissionStatus: trackingContext.gpsPermissionStatus,
       gpsLatitude: trackingContext.gpsLatitude,
@@ -494,7 +494,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       next: response => {
         this.userTracking.saveTrackingGuid(response.trackingGuid);
         this.priceSuccessMessage = 'Price submitted successfully.';
-        this.showPriceValidation = false;
+        this.showPriceValidation.set(false);
         this.captureSuccessModalContext();
         this.isThankYouOpen = true;
         this.loadExistingPriceIfReady();
@@ -558,21 +558,21 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }).pipe(finalize(() => this.isLoadingExistingPrice = false)).subscribe({
       next: existingPrice => {
         this.existingPriceId = existingPrice.id;
-        this.selectedUnit = existingPrice.unit || this.selectedUnit;
-        this.price = existingPrice.pricePerUnit;
-        this.quantity = existingPrice.quantityChecked ?? this.quantity;
-        this.priceDate = existingPrice.priceDate || this.priceDate;
-        this.priceTime = existingPrice.priceTime ? existingPrice.priceTime.slice(0, 5) : this.priceTime;
-        this.sellerType = this.toDisplaySellerType(existingPrice.sellerType);
-        this.priceSource = this.toDisplayPriceSource(existingPrice.priceSource);
-        this.quality = this.toDisplayQuality(existingPrice.qualityGrade);
-        this.notes = existingPrice.notes ?? '';
+        this.selectedUnit.set(existingPrice.unit || this.selectedUnit());
+        this.price.set(existingPrice.pricePerUnit);
+        this.quantity.set(existingPrice.quantityChecked ?? this.quantity());
+        this.priceDate.set(existingPrice.priceDate || this.priceDate());
+        this.priceTime.set(existingPrice.priceTime ? existingPrice.priceTime.slice(0, 5) : this.priceTime());
+        this.sellerType.set(this.toDisplaySellerType(existingPrice.sellerType));
+        this.priceSource.set(this.toDisplayPriceSource(existingPrice.priceSource));
+        this.quality.set(this.toDisplayQuality(existingPrice.qualityGrade));
+        this.notes.set(existingPrice.notes ?? '');
         this.loadedExistingPricePerUnit = existingPrice.pricePerUnit;
         this.priceSuccessMessage = 'Existing price loaded. Only the price per unit will be updated.';
       },
       error: () => {
         this.clearLoadedExistingPrice();
-        this.price = 0;
+        this.price.set(0);
         this.priceSuccessMessage = '';
       },
     });
@@ -584,7 +584,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    if (this.price <= 0) {
+    if (this.price() <= 0) {
       this.priceErrorMessage = 'Price per unit must be greater than zero.';
       return;
     }
@@ -593,21 +593,21 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     this.api.put(`/Prices/${this.existingPriceId}`, {
       marketId: this.selectedMarketId(),
       productId: this.selectedProductId(),
-      unit: this.selectedUnit,
-      pricePerUnit: this.price,
-      quantityChecked: this.quantity,
-      priceDate: this.priceDate,
-      priceTime: this.priceTime ? `${this.priceTime}:00` : null,
-      sellerType: this.sellerType === 'Street vendor' ? 'StreetVendor' : this.sellerType,
-      priceSource: this.priceSource === 'Observed in market' ? 'ObservedInMarket' : this.priceSource === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
-      qualityGrade: this.quality === 'Low grade' ? 'Low' : this.quality,
-      notes: this.notes || null,
+      unit: this.selectedUnit(),
+      pricePerUnit: this.price(),
+      quantityChecked: this.quantity(),
+      priceDate: this.priceDate(),
+      priceTime: this.priceTime() ? `${this.priceTime()}:00` : null,
+      sellerType: this.sellerType() === 'Street vendor' ? 'StreetVendor' : this.sellerType(),
+      priceSource: this.priceSource() === 'Observed in market' ? 'ObservedInMarket' : this.priceSource() === 'Seller quoted' ? 'SellerProvided' : 'UserReported',
+      qualityGrade: this.quality() === 'Low grade' ? 'Low' : this.quality(),
+      notes: this.notes() || null,
     }).pipe(finalize(() => this.isSubmittingPrice = false)).subscribe({
       next: () => {
         this.priceSuccessMessage = '';
         this.priceErrorMessage = '';
-        this.showPriceValidation = false;
-        this.loadedExistingPricePerUnit = this.price;
+        this.showPriceValidation.set(false);
+        this.loadedExistingPricePerUnit = this.price();
         this.captureSuccessModalContext();
         this.isUpdateSuccessOpen = true;
         this.loadTodayPrices();
@@ -639,11 +639,11 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     return Boolean(
       this.hasSelectedMarketContext &&
       this.hasSelectedProductContext &&
-      this.price > 0 &&
-      this.quantity > 0 &&
-      this.sellerType &&
-      this.priceSource &&
-      this.quality
+      this.price() > 0 &&
+      this.quantity() > 0 &&
+      this.sellerType() &&
+      this.priceSource() &&
+      this.quality()
     );
   }
 
@@ -784,15 +784,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     this.selectedMarketId.set(draft.selectedMarketId ?? '');
     this.selectedProductId.set(draft.selectedProductId ?? '');
     this.selectedCategoryId.set(draft.selectedCategoryId ?? '');
-    this.selectedUnit = draft.selectedUnit ?? 'kg';
-    this.price = draft.price ?? 0;
-    this.quantity = draft.quantity ?? 1;
-    this.priceDate = draft.priceDate ?? new Date().toISOString().slice(0, 10);
-    this.priceTime = draft.priceTime ?? '09:30';
-    this.sellerType = draft.sellerType ?? 'Retail';
-    this.priceSource = draft.priceSource ?? 'Observed in market';
-    this.quality = draft.quality ?? 'Standard';
-    this.notes = draft.notes ?? '';
+    this.selectedUnit.set(draft.selectedUnit ?? 'kg');
+    this.price.set(draft.price ?? 0);
+    this.quantity.set(draft.quantity ?? 1);
+    this.priceDate.set(draft.priceDate ?? new Date().toISOString().slice(0, 10));
+    this.priceTime.set(draft.priceTime ?? '09:30');
+    this.sellerType.set(draft.sellerType ?? 'Retail');
+    this.priceSource.set(draft.priceSource ?? 'Observed in market');
+    this.quality.set(draft.quality ?? 'Standard');
+    this.notes.set(draft.notes ?? '');
     this.marketSearch.set(draft.marketSearch ?? '');
     this.productSearch.set(draft.productSearch ?? '');
     this.lastDraftJson = JSON.stringify(this.getDraftData());
@@ -843,15 +843,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       selectedMarketId: this.selectedMarketId(),
       selectedProductId: this.selectedProductId(),
       selectedCategoryId: this.selectedCategoryId(),
-      selectedUnit: this.selectedUnit,
-      price: this.price,
-      quantity: this.quantity,
-      priceDate: this.priceDate,
-      priceTime: this.priceTime,
-      sellerType: this.sellerType,
-      priceSource: this.priceSource,
-      quality: this.quality,
-      notes: this.notes,
+      selectedUnit: this.selectedUnit(),
+      price: this.price(),
+      quantity: this.quantity(),
+      priceDate: this.priceDate(),
+      priceTime: this.priceTime(),
+      sellerType: this.sellerType(),
+      priceSource: this.priceSource(),
+      quality: this.quality(),
+      notes: this.notes(),
       marketSearch: this.marketSearch(),
       productSearch: this.productSearch(),
     };
@@ -1032,7 +1032,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
           this.selectedProductId.set(this.products()[0]?.id ?? '');
         }
         const product = this.products().find(item => item.id === this.selectedProductId());
-        this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
+        this.selectedUnit.set(product?.primaryUnit ?? this.selectedUnit());
         this.loadPriceSummary();
         this.loadExistingPriceIfReady();
       },
@@ -1062,7 +1062,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
         nameEn: storedProduct.nameEn,
         nameBn: storedProduct.nameBn,
         localName: storedProduct.localName,
-        primaryUnit: storedProduct.primaryUnit ?? this.selectedUnit,
+        primaryUnit: storedProduct.primaryUnit ?? this.selectedUnit(),
         productState: storedProduct.productState ?? 'Fresh',
         notes: storedProduct.notes,
         status: storedProduct.status,
@@ -1170,8 +1170,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   private applyCurrentSubmissionTime(): void {
     const now = new Date();
-    this.priceDate = this.formatDateInput(now);
-    this.priceTime = this.formatTimeInput(now);
+    this.priceDate.set(this.formatDateInput(now));
+    this.priceTime.set(this.formatTimeInput(now));
   }
 
   private formatDateInput(date: Date): string {
