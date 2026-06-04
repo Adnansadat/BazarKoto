@@ -26,22 +26,22 @@
           <span>{{ 'markets.form.division' | translate }}</span>
           <div
             class="clearable-field select-clearable"
-            [class.has-clear-value]="selectedDivisionId"
+            [class.has-clear-value]="selectedDivisionId()"
             [class.input-active]="isDivisionInputActive"
           >
             <select
               #divisionSelect
-              [(ngModel)]="selectedDivisionId"
-              (ngModelChange)="onDivisionChange()"
+              [ngModel]="selectedDivisionId()"
+              (ngModelChange)="selectedDivisionId.set($event); onDivisionChange()"
               (focus)="onDivisionInputFocus()"
               (blur)="onDivisionInputBlur()"
-              [disabled]="isLoadingDivisions"
+              [disabled]="isLoadingDivisions()"
             >
               <option value="">Select division</option>
-              <option *ngFor="let division of divisions" [value]="division.id">{{ getLocationName(division) }}</option>
+              <option *ngFor="let division of divisions()" [value]="division.id">{{ getLocationName(division) }}</option>
             </select>
             <button
-              *ngIf="selectedDivisionId"
+              *ngIf="selectedDivisionId()"
               type="button"
               class="clear-field-button"
               (click)="clearDivisionSelection()"
@@ -50,25 +50,25 @@
               &times;
             </button>
           </div>
-          <small *ngIf="isLoadingDivisions">Loading divisions...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDivisionId">
+          <small *ngIf="isLoadingDivisions()">Loading divisions...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDivisionId()">
             Division is required.
           </em>
         </label>
 
         <label>
           <span>{{ 'markets.form.district' | translate }}</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedDistrictId">
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedDistrictId()">
             <select
-              [(ngModel)]="selectedDistrictId"
-              (ngModelChange)="onDistrictChange()"
-              [disabled]="!selectedDivisionId || isLoadingDistricts"
+              [ngModel]="selectedDistrictId()"
+              (ngModelChange)="selectedDistrictId.set($event); onDistrictChange()"
+              [disabled]="!selectedDivisionId() || isLoadingDistricts()"
             >
               <option value="">Select district</option>
-              <option *ngFor="let district of districts" [value]="district.id">{{ getLocationName(district) }}</option>
+              <option *ngFor="let district of districts()" [value]="district.id">{{ getLocationName(district) }}</option>
             </select>
             <button
-              *ngIf="selectedDistrictId"
+              *ngIf="selectedDistrictId()"
               type="button"
               class="clear-field-button"
               (click)="clearDistrictSelection()"
@@ -77,25 +77,25 @@
               &times;
             </button>
           </div>
-          <small *ngIf="isLoadingDistricts">Loading districts...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDistrictId">
+          <small *ngIf="isLoadingDistricts()">Loading districts...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDistrictId()">
             District is required.
           </em>
         </label>
 
         <label>
           <span>Upazila / City Corporation</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUpazilaId">
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUpazilaId()">
             <select
-              [(ngModel)]="selectedUpazilaId"
-              (ngModelChange)="onUpazilaChange()"
-              [disabled]="!selectedDistrictId || isLoadingUpazilas"
+              [ngModel]="selectedUpazilaId()"
+              (ngModelChange)="selectedUpazilaId.set($event); onUpazilaChange()"
+              [disabled]="!selectedDistrictId() || isLoadingUpazilas()"
             >
               <option value="">Select upazila</option>
-              <option *ngFor="let upazila of upazilas" [value]="upazila.id">{{ getLocationName(upazila) }}</option>
+              <option *ngFor="let upazila of upazilas()" [value]="upazila.id">{{ getLocationName(upazila) }}</option>
             </select>
             <button
-              *ngIf="selectedUpazilaId"
+              *ngIf="selectedUpazilaId()"
               type="button"
               class="clear-field-button"
               (click)="clearUpazilaSelection()"
@@ -104,25 +104,25 @@
               &times;
             </button>
           </div>
-          <small *ngIf="isLoadingUpazilas">Loading upazilas...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUpazilaId">
+          <small *ngIf="isLoadingUpazilas()">Loading upazilas...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUpazilaId()">
             Upazila / City Corporation is required.
           </em>
         </label>
 
         <label>
           <span>Ward / Union</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUnionOrWardId">
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedUnionOrWardId()">
             <select
-              [(ngModel)]="selectedUnionOrWardId"
-              (ngModelChange)="onUnionOrWardChange()"
-              [disabled]="!selectedUpazilaId || isLoadingUnionOrWards"
+              [ngModel]="selectedUnionOrWardId()"
+              (ngModelChange)="selectedUnionOrWardId.set($event); onUnionOrWardChange()"
+              [disabled]="!selectedUpazilaId() || isLoadingUnionOrWards()"
             >
               <option value="">Select ward / union</option>
-              <option *ngFor="let unionOrWard of unionOrWards" [value]="unionOrWard.id">{{ getLocationName(unionOrWard) }}</option>
+              <option *ngFor="let unionOrWard of unionOrWards()" [value]="unionOrWard.id">{{ getLocationName(unionOrWard) }}</option>
             </select>
             <button
-              *ngIf="selectedUnionOrWardId"
+              *ngIf="selectedUnionOrWardId()"
               type="button"
               class="clear-field-button"
               (click)="clearUnionOrWardSelection()"
@@ -131,8 +131,8 @@
               &times;
             </button>
           </div>
-          <small *ngIf="isLoadingUnionOrWards">Loading unions/wards...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUnionOrWardId">
+          <small *ngIf="isLoadingUnionOrWards()">Loading unions/wards...</small>
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUnionOrWardId()">
             Ward / Union is required.
           </em>
         </label>
@@ -254,7 +254,7 @@
       </div>
 
       <div class="form-actions">
-        <span class="field-error" *ngIf="locationErrorMessage">{{ locationErrorMessage }}</span>
+        <span class="field-error" *ngIf="locationErrorMessage()">{{ locationErrorMessage() }}</span>
         <span class="field-error" *ngIf="marketErrorMessage">{{ marketErrorMessage }}</span>
         <span class="status-message" *ngIf="marketSuccessMessage">{{ marketSuccessMessage }}</span>
         <button

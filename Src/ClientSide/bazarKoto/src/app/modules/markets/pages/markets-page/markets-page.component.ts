@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -74,10 +74,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   private langChangeSubscription?: Subscription;
   private initialDivisionFocusChecks = 0;
 
-  selectedDivisionId = '';
-  selectedDistrictId = '';
-  selectedUpazilaId = '';
-  selectedUnionOrWardId = '';
+  selectedDivisionId = signal('');
+  selectedDistrictId = signal('');
+  selectedUpazilaId = signal('');
+  selectedUnionOrWardId = signal('');
   selectedArea = '';
   selectedMarketId = '';
   selectedMarket = '';
@@ -88,12 +88,12 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   notes = '';
   showMarketValidation = false;
   isLoadingMarkets = true;
-  isLoadingDivisions = false;
-  isLoadingDistricts = false;
-  isLoadingUpazilas = false;
-  isLoadingUnionOrWards = false;
+  isLoadingDivisions = signal(false);
+  isLoadingDistricts = signal(false);
+  isLoadingUpazilas = signal(false);
+  isLoadingUnionOrWards = signal(false);
   isSubmittingMarket = false;
-  locationErrorMessage = '';
+  locationErrorMessage = signal('');
   marketErrorMessage = '';
   marketSuccessMessage = '';
   divisionSearch = '';
@@ -102,10 +102,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   unionOrWardSearch = '';
   marketSearch = '';
   isDivisionInputActive = false;
-  divisions: LocationResponse[] = [];
-  districts: LocationResponse[] = [];
-  upazilas: LocationResponse[] = [];
-  unionOrWards: LocationResponse[] = [];
+  divisions = signal<LocationResponse[]>([]);
+  districts = signal<LocationResponse[]>([]);
+  upazilas = signal<LocationResponse[]>([]);
+  unionOrWards = signal<LocationResponse[]>([]);
   nearbyMarkets: Market[] = [];
 
   constructor(
@@ -139,25 +139,25 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   get selectedDivisionName(): string {
-    return this.getLocationName(this.divisions.find(item => item.id === this.selectedDivisionId));
+    return this.getLocationName(this.divisions().find(item => item.id === this.selectedDivisionId()));
   }
 
   get selectedDistrictName(): string {
-    return this.getLocationName(this.districts.find(item => item.id === this.selectedDistrictId));
+    return this.getLocationName(this.districts().find(item => item.id === this.selectedDistrictId()));
   }
 
   get selectedUpazilaName(): string {
-    return this.getLocationName(this.upazilas.find(item => item.id === this.selectedUpazilaId));
+    return this.getLocationName(this.upazilas().find(item => item.id === this.selectedUpazilaId()));
   }
 
   get selectedUnionOrWardName(): string {
-    return this.getLocationName(this.unionOrWards.find(item => item.id === this.selectedUnionOrWardId));
+    return this.getLocationName(this.unionOrWards().find(item => item.id === this.selectedUnionOrWardId()));
   }
 
   get matchingMarkets(): Market[] {
     return this.nearbyMarkets.filter(
       (market) =>
-        market.districtId === this.selectedDistrictId &&
+        market.districtId === this.selectedDistrictId() &&
         market.area === this.selectedArea,
     );
   }
@@ -187,14 +187,14 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.districtSearch = '';
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
-    this.selectedDistrictId = '';
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
+    this.selectedDistrictId.set('');
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
     this.selectedMarketId = '';
     this.selectedMarket = '';
-    this.districts = [];
-    this.upazilas = [];
-    this.unionOrWards = [];
+    this.districts.set([]);
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
     this.loadDistricts();
     this.loadMarkets();
   }
@@ -203,10 +203,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.districtSearch = this.selectedDistrictName;
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
-    this.upazilas = [];
-    this.unionOrWards = [];
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
     this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadUpazilas();
@@ -216,8 +216,8 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   onUpazilaChange(): void {
     this.upazilaSearch = this.selectedUpazilaName;
     this.unionOrWardSearch = '';
-    this.selectedUnionOrWardId = '';
-    this.unionOrWards = [];
+    this.selectedUnionOrWardId.set('');
+    this.unionOrWards.set([]);
     this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadUnionOrWards();
@@ -236,49 +236,49 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   clearDivisionSelection(): void {
-    this.selectedDivisionId = '';
+    this.selectedDivisionId.set('');
     this.divisionSearch = '';
-    this.selectedDistrictId = '';
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
+    this.selectedDistrictId.set('');
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
     this.districtSearch = '';
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
-    this.districts = [];
-    this.upazilas = [];
-    this.unionOrWards = [];
+    this.districts.set([]);
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
     this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadMarkets();
   }
 
   clearDistrictSelection(): void {
-    this.selectedDistrictId = '';
+    this.selectedDistrictId.set('');
     this.districtSearch = '';
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
     this.upazilaSearch = '';
     this.unionOrWardSearch = '';
-    this.upazilas = [];
-    this.unionOrWards = [];
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
     this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadMarkets();
   }
 
   clearUpazilaSelection(): void {
-    this.selectedUpazilaId = '';
+    this.selectedUpazilaId.set('');
     this.upazilaSearch = '';
-    this.selectedUnionOrWardId = '';
+    this.selectedUnionOrWardId.set('');
     this.unionOrWardSearch = '';
-    this.unionOrWards = [];
+    this.unionOrWards.set([]);
     this.selectedMarketId = '';
     this.selectedMarket = '';
     this.loadMarkets();
   }
 
   clearUnionOrWardSelection(): void {
-    this.selectedUnionOrWardId = '';
+    this.selectedUnionOrWardId.set('');
     this.unionOrWardSearch = '';
     this.selectedMarketId = '';
     this.selectedMarket = '';
@@ -303,10 +303,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   selectNearbyMarket(market: Market): void {
-    this.selectedDivisionId = market.divisionId;
-    this.selectedDistrictId = market.districtId;
-    this.selectedUpazilaId = market.upazilaId;
-    this.selectedUnionOrWardId = market.unionOrWardId ?? '';
+    this.selectedDivisionId.set(market.divisionId);
+    this.selectedDistrictId.set(market.districtId);
+    this.selectedUpazilaId.set(market.upazilaId);
+    this.selectedUnionOrWardId.set(market.unionOrWardId ?? '');
     this.divisionSearch = this.selectedDivisionName;
     this.districtSearch = market.district;
     this.upazilaSearch = this.selectedUpazilaName;
@@ -330,7 +330,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.initialDivisionFocusChecks += 1;
 
     const divisionElement = this.divisionSelect?.nativeElement;
-    if (!divisionElement || this.isLoadingDivisions || divisionElement.disabled) {
+    if (!divisionElement || this.isLoadingDivisions() || divisionElement.disabled) {
       return;
     }
 
@@ -408,10 +408,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
     this.isSubmittingMarket = true;
     this.api.postResponse<MarketResponse>('/Markets', {
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId || null,
+      divisionId: this.selectedDivisionId(),
+      districtId: this.selectedDistrictId(),
+      upazilaId: this.selectedUpazilaId(),
+      unionOrWardId: this.selectedUnionOrWardId() || null,
       area: this.selectedArea,
       marketName: this.selectedMarket,
       villageOrMoholla: this.villageOrMoholla,
@@ -485,79 +485,82 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   loadDivisions(): void {
-    this.isLoadingDivisions = true;
-    this.locationErrorMessage = '';
+    this.isLoadingDivisions.set(true);
+    this.locationErrorMessage.set('');
 
     this.api.get<LocationResponse[]>('/locations/divisions')
-      .pipe(finalize(() => this.isLoadingDivisions = false))
+      .pipe(finalize(() => this.isLoadingDivisions.set(false)))
       .subscribe({
         next: divisions => {
-          this.divisions = divisions;
+          this.divisions.set(divisions);
           this.initialDivisionFocusChecks = 0;
           this.focusDivisionInputWithRetry();
         },
         error: error => {
-          this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load divisions.';
+          this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load divisions.');
         },
       });
   }
 
   loadDistricts(): void {
-    if (!this.selectedDivisionId) {
+    const selectedDivisionId = this.selectedDivisionId();
+    if (!selectedDivisionId) {
       return;
     }
 
-    this.isLoadingDistricts = true;
-    this.locationErrorMessage = '';
+    this.isLoadingDistricts.set(true);
+    this.locationErrorMessage.set('');
 
     this.api.get<LocationResponse[]>('/locations/districts', {
-      divisionId: this.selectedDivisionId,
-    }).pipe(finalize(() => this.isLoadingDistricts = false)).subscribe({
+      divisionId: selectedDivisionId,
+    }).pipe(finalize(() => this.isLoadingDistricts.set(false))).subscribe({
       next: districts => {
-        this.districts = districts;
+        this.districts.set(districts);
       },
       error: error => {
-        this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load districts.';
+        this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load districts.');
       },
     });
   }
 
   loadUpazilas(): void {
-    if (!this.selectedDistrictId) {
+    const selectedDistrictId = this.selectedDistrictId();
+    if (!selectedDistrictId) {
       return;
     }
 
-    this.isLoadingUpazilas = true;
-    this.locationErrorMessage = '';
+    this.isLoadingUpazilas.set(true);
+    this.locationErrorMessage.set('');
 
     this.api.get<LocationResponse[]>('/locations/upazilas', {
-      districtId: this.selectedDistrictId,
-    }).pipe(finalize(() => this.isLoadingUpazilas = false)).subscribe({
+      districtId: selectedDistrictId,
+    }).pipe(finalize(() => this.isLoadingUpazilas.set(false))).subscribe({
       next: upazilas => {
-        this.upazilas = upazilas;
+        this.upazilas.set(upazilas);
       },
       error: error => {
-        this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load upazilas.';
+        this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load upazilas.');
       },
     });
   }
 
   loadUnionOrWards(): void {
-    if (!this.selectedUpazilaId) {
+    const selectedUpazilaId = this.selectedUpazilaId();
+    if (!selectedUpazilaId) {
       return;
     }
 
-    this.isLoadingUnionOrWards = true;
-    this.locationErrorMessage = '';
+    this.isLoadingUnionOrWards.set(true);
+    this.locationErrorMessage.set('');
 
     this.api.get<LocationResponse[]>('/locations/unions-or-wards', {
-      upazilaId: this.selectedUpazilaId,
-    }).pipe(finalize(() => this.isLoadingUnionOrWards = false)).subscribe({
+      upazilaId: selectedUpazilaId,
+    }).pipe(finalize(() => this.isLoadingUnionOrWards.set(false))).subscribe({
       next: unionOrWards => {
-        this.unionOrWards = unionOrWards;
+        this.unionOrWards.set(unionOrWards);
       },
       error: error => {
-        this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load unions or wards.';
+        this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load unions or wards.');
       },
     });
   }
@@ -566,10 +569,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.isLoadingMarkets = true;
 
     this.api.get<MarketResponse[]>('/Markets', {
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId,
+      divisionId: this.selectedDivisionId(),
+      districtId: this.selectedDistrictId(),
+      upazilaId: this.selectedUpazilaId(),
+      unionOrWardId: this.selectedUnionOrWardId(),
       search: this.marketSearch,
       pageNumber: 1,
       pageSize: 10,
@@ -638,10 +641,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       return;
     }
 
-    this.selectedDivisionId = draft.selectedDivisionId ?? '';
-    this.selectedDistrictId = draft.selectedDistrictId ?? '';
-    this.selectedUpazilaId = draft.selectedUpazilaId ?? '';
-    this.selectedUnionOrWardId = draft.selectedUnionOrWardId ?? '';
+    this.selectedDivisionId.set(draft.selectedDivisionId ?? '');
+    this.selectedDistrictId.set(draft.selectedDistrictId ?? '');
+    this.selectedUpazilaId.set(draft.selectedUpazilaId ?? '');
+    this.selectedUnionOrWardId.set(draft.selectedUnionOrWardId ?? '');
     this.selectedArea = draft.selectedArea ?? '';
     this.selectedMarketId = draft.selectedMarketId ?? '';
     this.selectedMarket = draft.selectedMarket ?? '';
@@ -660,10 +663,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   private isMarketFormValid(): boolean {
     return Boolean(
-      this.selectedDivisionId &&
-      this.selectedDistrictId &&
-      this.selectedUpazilaId &&
-      this.selectedUnionOrWardId &&
+      this.selectedDivisionId() &&
+      this.selectedDistrictId() &&
+      this.selectedUpazilaId() &&
+      this.selectedUnionOrWardId() &&
       this.selectedArea.trim() &&
       this.selectedMarket.trim() &&
       this.marketType &&
@@ -692,10 +695,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     const normalizedMarketName = this.normalizeComparableText(this.selectedMarket);
 
     return this.nearbyMarkets.find(market =>
-      market.divisionId === this.selectedDivisionId &&
-      market.districtId === this.selectedDistrictId &&
-      market.upazilaId === this.selectedUpazilaId &&
-      (market.unionOrWardId ?? '') === this.selectedUnionOrWardId &&
+      market.divisionId === this.selectedDivisionId() &&
+      market.districtId === this.selectedDistrictId() &&
+      market.upazilaId === this.selectedUpazilaId() &&
+      (market.unionOrWardId ?? '') === this.selectedUnionOrWardId() &&
       this.areComparableTextsSimilar(this.normalizeComparableText(market.name), normalizedMarketName)
     );
   }
@@ -765,10 +768,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   private getDuplicateMarketFingerprint(): string {
     return [
-      this.selectedDivisionId,
-      this.selectedDistrictId,
-      this.selectedUpazilaId,
-      this.selectedUnionOrWardId,
+      this.selectedDivisionId(),
+      this.selectedDistrictId(),
+      this.selectedUpazilaId(),
+      this.selectedUnionOrWardId(),
       this.normalizeComparableText(this.selectedArea),
       this.normalizeComparableText(this.selectedMarket),
     ].join('|');
@@ -788,10 +791,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   private getDraftData(): object {
     return {
-      selectedDivisionId: this.selectedDivisionId,
-      selectedDistrictId: this.selectedDistrictId,
-      selectedUpazilaId: this.selectedUpazilaId,
-      selectedUnionOrWardId: this.selectedUnionOrWardId,
+      selectedDivisionId: this.selectedDivisionId(),
+      selectedDistrictId: this.selectedDistrictId(),
+      selectedUpazilaId: this.selectedUpazilaId(),
+      selectedUnionOrWardId: this.selectedUnionOrWardId(),
       selectedArea: this.selectedArea,
       selectedMarketId: this.selectedMarketId,
       selectedMarket: this.selectedMarket,
@@ -931,7 +934,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       return;
     }
 
-    if (this.isLoadingDivisions || element.disabled) {
+    if (this.isLoadingDivisions() || element.disabled) {
       if (attempt < this.maxDivisionFocusRetries) {
         setTimeout(() => this.focusDivisionInputWithRetry(attempt + 1), 80);
       }
