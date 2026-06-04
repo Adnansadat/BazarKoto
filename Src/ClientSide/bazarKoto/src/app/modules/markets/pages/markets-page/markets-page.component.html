@@ -27,7 +27,7 @@
           <div
             class="clearable-field select-clearable"
             [class.has-clear-value]="selectedDivisionId()"
-            [class.input-active]="isDivisionInputActive"
+            [class.input-active]="isDivisionInputActive()"
           >
             <select
               #divisionSelect
@@ -180,7 +180,7 @@
             {{ 'markets.form.marketRequired' | translate }}
           </em>
           <em class="field-error validation-slot" id="market-duplicate-error" [class.visible]="shouldShowDuplicateMarketError">
-            {{ marketErrorMessage }}
+            {{ marketErrorMessage() }}
           </em>
         </label>
 
@@ -259,12 +259,12 @@
 
       <div class="form-actions">
         <span class="field-error" *ngIf="locationErrorMessage()">{{ locationErrorMessage() }}</span>
-        <span class="field-error" *ngIf="marketErrorMessage">{{ marketErrorMessage }}</span>
-        <span class="status-message" *ngIf="marketSuccessMessage">{{ marketSuccessMessage }}</span>
+        <span class="field-error" *ngIf="marketErrorMessage()">{{ marketErrorMessage() }}</span>
+        <span class="status-message" *ngIf="marketSuccessMessage()">{{ marketSuccessMessage() }}</span>
         <button
           type="button"
           (click)="addMarket()"
-          [disabled]="isSubmittingMarket"
+          [disabled]="isSubmittingMarket()"
           [attr.aria-label]="'markets.actions.addMarketAria' | translate"
         >
           {{ 'markets.actions.addMarket' | translate }}
@@ -295,8 +295,8 @@
 
     <div class="market-list">
       <p *ngIf="isLoadingMarkets()">Loading markets...</p>
-      <p *ngIf="!isLoadingMarkets() && marketErrorMessage">{{ marketErrorMessage }}</p>
-      <p *ngIf="!isLoadingMarkets() && !marketErrorMessage && nearbyMarkets().length === 0">No markets found yet.</p>
+      <p *ngIf="!isLoadingMarkets() && marketErrorMessage()">{{ marketErrorMessage() }}</p>
+      <p *ngIf="!isLoadingMarkets() && !marketErrorMessage() && nearbyMarkets().length === 0">No markets found yet.</p>
       <button
         class="market-card"
         *ngFor="let market of nearbyMarkets()"

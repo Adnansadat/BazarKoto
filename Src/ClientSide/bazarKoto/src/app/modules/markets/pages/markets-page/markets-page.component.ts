@@ -1,5 +1,17 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DoCheck,
+  ElementRef,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -55,6 +67,7 @@ interface MarketResponse {
   standalone: true,
   templateUrl: './markets-page.component.html',
   styleUrl: './markets-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, OnInit, OnDestroy, DoCheck {
   @ViewChild('divisionSelect') private divisionSelect?: ElementRef<HTMLSelectElement>;
@@ -92,16 +105,16 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   isLoadingDistricts = signal(false);
   isLoadingUpazilas = signal(false);
   isLoadingUnionOrWards = signal(false);
-  isSubmittingMarket = false;
+  isSubmittingMarket = signal(false);
   locationErrorMessage = signal('');
-  marketErrorMessage = '';
-  marketSuccessMessage = '';
+  marketErrorMessage = signal('');
+  marketSuccessMessage = signal('');
   divisionSearch = signal('');
   districtSearch = signal('');
   upazilaSearch = signal('');
   unionOrWardSearch = signal('');
   marketSearch = signal('');
-  isDivisionInputActive = false;
+  isDivisionInputActive = signal(false);
   divisions = signal<LocationResponse[]>([]);
   districts = signal<LocationResponse[]>([]);
   upazilas = signal<LocationResponse[]>([]);
@@ -163,7 +176,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   get shouldShowDuplicateMarketError(): boolean {
-    return this.marketErrorMessage === this.duplicateMarketMessage;
+    return this.marketErrorMessage() === this.duplicateMarketMessage;
   }
 
   get selectedLocationSummary(): string {
@@ -295,11 +308,11 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   onDivisionInputFocus(): void {
-    this.isDivisionInputActive = true;
+    this.isDivisionInputActive.set(true);
   }
 
   onDivisionInputBlur(): void {
-    this.isDivisionInputActive = false;
+    this.isDivisionInputActive.set(false);
   }
 
   selectNearbyMarket(market: Market): void {
@@ -339,7 +352,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       return;
     }
 
-    this.isDivisionInputActive = true;
+    this.isDivisionInputActive.set(true);
     this.initialDivisionFocusChecks = this.maxPostInitFocusChecks;
   }
 
@@ -360,8 +373,8 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   ngDoCheck(): void {
-    if (this.marketErrorMessage === this.requiredMarketFieldsMessage && this.isMarketFormValid()) {
-      this.marketErrorMessage = '';
+    if (this.marketErrorMessage() === this.requiredMarketFieldsMessage && this.isMarketFormValid()) {
+      this.marketErrorMessage.set('');
     }
 
     if (
@@ -370,7 +383,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       this.getDuplicateMarketFingerprint() !== this.duplicateMarketFingerprint &&
       !this.hasDuplicateMarket()
     ) {
-      this.marketErrorMessage = '';
+      this.marketErrorMessage.set('');
       this.duplicateMarketFingerprint = '';
     }
 
@@ -387,12 +400,12 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   private submitMarket(navigateWhenExisting: boolean): void {
     this.showMarketValidation.set(true);
-    this.marketSuccessMessage = '';
-    this.marketErrorMessage = '';
+    this.marketSuccessMessage.set('');
+    this.marketErrorMessage.set('');
     this.duplicateMarketFingerprint = '';
 
     if (!this.isMarketFormValid()) {
-      this.marketErrorMessage = this.requiredMarketFieldsMessage;
+      this.marketErrorMessage.set(this.requiredMarketFieldsMessage);
       return;
     }
 
@@ -400,13 +413,13 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
     if (duplicateMarket) {
       this.selectedMarketId.set(duplicateMarket.id);
-      this.marketErrorMessage = this.duplicateMarketMessage;
+      this.marketErrorMessage.set(this.duplicateMarketMessage);
       this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
       this.persistDraftIfChanged(true);
       return;
     }
 
-    this.isSubmittingMarket = true;
+    this.isSubmittingMarket.set(true);
     this.api.postResponse<MarketResponse>('/Markets', {
       divisionId: this.selectedDivisionId(),
       districtId: this.selectedDistrictId(),
@@ -419,10 +432,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       notes: this.notes().trim() || null,
       marketType: this.mapMarketType(this.marketType()),
       operatingSchedule: this.mapSchedule(this.operatingDays()),
-    }).pipe(finalize(() => this.isSubmittingMarket = false)).subscribe({
+    }).pipe(finalize(() => this.isSubmittingMarket.set(false))).subscribe({
       next: response => {
         if (!response.success || !response.data) {
-          this.marketErrorMessage = response.errors?.join(', ') || response.message || 'Unable to submit market.';
+          this.marketErrorMessage.set(response.errors?.join(', ') || response.message || 'Unable to submit market.');
           return;
         }
 
@@ -431,17 +444,17 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
         this.persistDraftIfChanged(true);
 
         if (isExistingMarket && !navigateWhenExisting) {
-          this.marketErrorMessage = this.duplicateMarketMessage;
+          this.marketErrorMessage.set(this.duplicateMarketMessage);
           this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
           return;
         }
 
-        this.marketSuccessMessage = 'Market submitted successfully.';
+        this.marketSuccessMessage.set('Market submitted successfully.');
         this.showMarketValidation.set(false);
         this.router.navigate(['/products']);
       },
       error: error => {
-        this.marketErrorMessage = error instanceof Error ? error.message : 'Unable to submit market.';
+        this.marketErrorMessage.set(error instanceof Error ? error.message : 'Unable to submit market.');
 
         if (this.shouldShowDuplicateMarketError) {
           this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
@@ -452,16 +465,16 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   continueToProducts(): void {
     this.showMarketValidation.set(true);
-    this.marketSuccessMessage = '';
+    this.marketSuccessMessage.set('');
 
     if (!this.isMarketFormValid()) {
-      this.marketErrorMessage = this.requiredMarketFieldsMessage;
+      this.marketErrorMessage.set(this.requiredMarketFieldsMessage);
       this.duplicateMarketFingerprint = '';
       this.focusDivisionInput();
       return;
     }
 
-    this.marketErrorMessage = '';
+    this.marketErrorMessage.set('');
     this.duplicateMarketFingerprint = '';
 
     const duplicateMarket = this.findSelectedNearbyMarket();
@@ -594,7 +607,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
         this.isLoadingMarkets.set(false);
       },
       error: error => {
-        this.marketErrorMessage = error instanceof Error ? error.message : 'Unable to load markets.';
+        this.marketErrorMessage.set(error instanceof Error ? error.message : 'Unable to load markets.');
         this.isLoadingMarkets.set(false);
       },
     });
@@ -942,6 +955,6 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     }
 
     element.focus();
-    this.isDivisionInputActive = this.document.activeElement === element;
+    this.isDivisionInputActive.set(this.document.activeElement === element);
   }
 }
