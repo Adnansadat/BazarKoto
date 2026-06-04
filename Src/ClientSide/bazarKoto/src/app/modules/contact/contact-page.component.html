@@ -86,7 +86,7 @@
         </small>
       </label>
 
-      <div class="screenshot-field" [class.has-file]="selectedScreenshot">
+      <div class="screenshot-field" [class.has-file]="selectedScreenshot()">
         <input
           #screenshotInput
           type="file"
@@ -97,7 +97,7 @@
           <div class="attachment-copy">
             <span>{{ 'contact.form.screenshot.label' | translate }}</span>
             <small class="field-helper">{{ 'contact.form.screenshot.helper' | translate }}</small>
-            <small class="selected-file" *ngIf="selectedScreenshot">{{ selectedScreenshot.name }}</small>
+            <small class="selected-file" *ngIf="selectedScreenshot()">{{ selectedScreenshot()?.name }}</small>
           </div>
           <div class="screenshot-actions">
             <button class="secondary-button" type="button" (click)="screenshotInput.click()">
@@ -106,13 +106,13 @@
             <button
               class="secondary-button muted"
               type="button"
-              *ngIf="selectedScreenshot"
+              *ngIf="selectedScreenshot()"
               (click)="removeScreenshot(screenshotInput)">
               {{ 'contact.form.screenshot.remove' | translate }}
             </button>
           </div>
         </div>
-        <small class="field-error" *ngIf="screenshotErrorKey">{{ screenshotErrorKey | translate }}</small>
+        <small class="field-error" *ngIf="screenshotErrorKey()">{{ screenshotErrorKey() | translate }}</small>
       </div>
 
       <div class="error-message" *ngIf="errorMessageKey || backendErrors.length">

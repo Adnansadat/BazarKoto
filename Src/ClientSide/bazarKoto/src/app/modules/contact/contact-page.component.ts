@@ -35,8 +35,8 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   email = signal('');
   subject = signal('');
   message = signal('');
-  selectedScreenshot: File | null = null;
-  screenshotErrorKey = '';
+  selectedScreenshot = signal<File | null>(null);
+  screenshotErrorKey = signal('');
   backendErrors: string[] = [];
   isSubmitting = false;
   errorMessageKey = '';
@@ -150,37 +150,37 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
     const files = input.files;
     const file = files?.[0] ?? null;
 
-    this.screenshotErrorKey = '';
-    this.selectedScreenshot = null;
+    this.screenshotErrorKey.set('');
+    this.selectedScreenshot.set(null);
 
     if (!file) {
       return;
     }
 
     if ((files?.length ?? 0) > 1) {
-      this.screenshotErrorKey = 'contact.validation.screenshot.single';
+      this.screenshotErrorKey.set('contact.validation.screenshot.single');
       input.value = '';
       return;
     }
 
     if (!this.allowedScreenshotTypes.has(file.type)) {
-      this.screenshotErrorKey = 'contact.validation.screenshot.type';
+      this.screenshotErrorKey.set('contact.validation.screenshot.type');
       input.value = '';
       return;
     }
 
     if (file.size > this.maxScreenshotSizeBytes) {
-      this.screenshotErrorKey = 'contact.validation.screenshot.max';
+      this.screenshotErrorKey.set('contact.validation.screenshot.max');
       input.value = '';
       return;
     }
 
-    this.selectedScreenshot = file;
+    this.selectedScreenshot.set(file);
   }
 
   removeScreenshot(input: HTMLInputElement): void {
-    this.selectedScreenshot = null;
-    this.screenshotErrorKey = '';
+    this.selectedScreenshot.set(null);
+    this.screenshotErrorKey.set('');
     input.value = '';
   }
 
@@ -195,8 +195,9 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
     formData.append('subject', this.subject().trim());
     formData.append('message', this.message().trim());
 
-    if (this.selectedScreenshot) {
-      formData.append('screenshot', this.selectedScreenshot);
+    const selectedScreenshot = this.selectedScreenshot();
+    if (selectedScreenshot) {
+      formData.append('screenshot', selectedScreenshot);
     }
 
     return formData;
@@ -205,7 +206,7 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
   private isFormValid(): boolean {
     return (Object.keys(this.touched) as ContactField[])
       .every(field => this.getValidationKeys(field).length === 0)
-      && !this.screenshotErrorKey;
+      && !this.screenshotErrorKey();
   }
 
   private markAllTouched(): void {
@@ -222,8 +223,8 @@ export class ContactPageComponent implements AfterViewInit, OnDestroy {
     this.email.set('');
     this.subject.set('');
     this.message.set('');
-    this.selectedScreenshot = null;
-    this.screenshotErrorKey = '';
+    this.selectedScreenshot.set(null);
+    this.screenshotErrorKey.set('');
     this.backendErrors = [];
     this.errorMessageKey = '';
     this.clearScreenshotInput();
