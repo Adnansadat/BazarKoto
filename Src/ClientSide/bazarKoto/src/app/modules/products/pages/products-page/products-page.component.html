@@ -36,23 +36,23 @@
           <span>{{ 'products.form.category' | translate }}</span>
           <div
             class="clearable-field select-clearable"
-            [class.has-clear-value]="selectedCategoryId"
+            [class.has-clear-value]="selectedCategoryId()"
             [class.input-active]="isCategoryInputActive"
           >
             <select
               #categoryInput
-              [(ngModel)]="selectedCategoryId"
-              (ngModelChange)="onCategoryChange()"
+              [ngModel]="selectedCategoryId()"
+              (ngModelChange)="selectedCategoryId.set($event); onCategoryChange()"
               (focus)="onCategoryInputFocus()"
               (blur)="onCategoryInputBlur()"
-              [disabled]="isLoadingCategories"
+              [disabled]="isLoadingCategories()"
               [attr.aria-invalid]="categoryInvalid"
             >
               <option value="">{{ 'products.form.categoryPlaceholder' | translate }}</option>
-              <option *ngFor="let category of categories" [value]="category.id">{{ getCategoryName(category) }}</option>
+              <option *ngFor="let category of categories()" [value]="category.id">{{ getCategoryName(category) }}</option>
             </select>
             <button
-              *ngIf="selectedCategoryId"
+              *ngIf="selectedCategoryId()"
               type="button"
               class="clear-field-button"
               (click)="clearCategorySelection()"
@@ -63,35 +63,35 @@
           </div>
           <em
             class="field-error validation-slot"
-            [class.is-visible]="categoryInvalid || categoryErrorMessage || isLoadingCategories"
+            [class.is-visible]="categoryInvalid || categoryErrorMessage() || isLoadingCategories()"
           >
-            <ng-container *ngIf="isLoadingCategories; else categoryFeedback">
+            <ng-container *ngIf="isLoadingCategories(); else categoryFeedback">
               Loading categories...
             </ng-container>
             <ng-template #categoryFeedback>
-              {{ categoryErrorMessage || ('products.form.categoryRequired' | translate) }}
+              {{ categoryErrorMessage() || ('products.form.categoryRequired' | translate) }}
             </ng-template>
           </em>
         </label>
 
         <label>
           <span>{{ 'products.form.name' | translate }}</span>
-          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedProductId">
+          <div class="clearable-field select-clearable" [class.has-clear-value]="selectedProductId()">
             <select
               #productNameInput
-              [(ngModel)]="selectedProductId"
-              (ngModelChange)="onProductSelectionChange()"
-              [disabled]="!selectedCategoryId"
+              [ngModel]="selectedProductId()"
+              (ngModelChange)="selectedProductId.set($event); onProductSelectionChange()"
+              [disabled]="!selectedCategoryId()"
               [attr.aria-describedby]="productNameInvalid ? 'product-name-error' : 'share-product-helper'"
               [attr.aria-invalid]="productNameInvalid"
             >
               <option value="" disabled hidden>{{ 'products.form.namePlaceholder' | translate }}</option>
-              <option *ngFor="let product of productSuggestions" [value]="product.id">
+              <option *ngFor="let product of productSuggestions()" [value]="product.id">
                 {{ getProductOptionLabel(product) }}
               </option>
             </select>
             <button
-              *ngIf="selectedProductId"
+              *ngIf="selectedProductId()"
               type="button"
               class="clear-field-button"
               (click)="clearProductSelection()"
@@ -109,8 +109,8 @@
           <span>{{ 'products.form.localName' | translate }}</span>
           <input
             type="text"
-            [(ngModel)]="localName"
-            (ngModelChange)="onRequiredFieldChange()"
+            [ngModel]="localName()"
+            (ngModelChange)="localName.set($event); onRequiredFieldChange()"
             [placeholder]="'products.form.localNamePlaceholder' | translate"
             spellcheck="false"
           />
@@ -122,7 +122,7 @@
         <label>
           <span>{{ 'products.form.unit' | translate }}</span>
           <div class="clearable-field select-field">
-            <select [(ngModel)]="selectedUnit" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="unitInvalid">
+            <select [ngModel]="selectedUnit()" (ngModelChange)="selectedUnit.set($event); onRequiredFieldChange()" [attr.aria-invalid]="unitInvalid">
               <option value="">{{ 'products.form.unit' | translate }}</option>
               <option *ngFor="let unit of units" [value]="unit.value">{{ unit.labelKey | translate }}</option>
             </select>
@@ -135,7 +135,7 @@
         <label>
           <span>{{ 'products.form.state' | translate }}</span>
           <div class="clearable-field select-field">
-            <select [(ngModel)]="selectedState" (ngModelChange)="onRequiredFieldChange()" [attr.aria-invalid]="stateInvalid">
+            <select [ngModel]="selectedState()" (ngModelChange)="selectedState.set($event); onRequiredFieldChange()" [attr.aria-invalid]="stateInvalid">
               <option value="">{{ 'products.form.state' | translate }}</option>
               <option *ngFor="let state of states" [value]="state.value">{{ state.labelKey | translate }}</option>
             </select>
@@ -148,7 +148,8 @@
         <label class="notes-field">
           <span>{{ 'products.form.notes' | translate }}</span>
           <textarea
-            [(ngModel)]="notes"
+            [ngModel]="notes()"
+            (ngModelChange)="notes.set($event)"
             rows="4"
             [placeholder]="'products.form.notesPlaceholder' | translate"
           ></textarea>
@@ -219,17 +220,17 @@
         <span>{{ 'products.search.label' | translate }}</span>
         <input
           type="search"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="loadProducts()"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event); loadProducts()"
           [placeholder]="'products.search.placeholder' | translate"
           [attr.aria-label]="'products.search.ariaLabel' | translate"
         />
       </label>
     </div>
 
-    <p *ngIf="isLoadingProducts">Loading products...</p>
-    <p *ngIf="!isLoadingProducts && productListErrorMessage">{{ productListErrorMessage }}</p>
-    <p *ngIf="!isLoadingProducts && !productListErrorMessage && visibleProducts.length === 0">No products found yet.</p>
+    <p *ngIf="isLoadingProducts()">Loading products...</p>
+    <p *ngIf="!isLoadingProducts() && productListErrorMessage()">{{ productListErrorMessage() }}</p>
+    <p *ngIf="!isLoadingProducts() && !productListErrorMessage() && visibleProducts.length === 0">No products found yet.</p>
 
     <div class="product-grid">
       <article

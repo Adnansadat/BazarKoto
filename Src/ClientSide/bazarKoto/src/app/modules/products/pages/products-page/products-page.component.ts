@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -96,26 +96,26 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   private langChangeSubscription?: Subscription;
   private initialCategoryFocusChecks = 0;
 
-  selectedCategoryId = '';
-  categorySearch = '';
-  productName = '';
-  localName = '';
-  selectedUnit = 'kg';
-  selectedState = 'Fresh';
-  selectedProductId = '';
-  notes = '';
-  searchTerm = '';
-  showProductValidation = false;
-  isLoadingProducts = true;
-  isLoadingCategories = true;
+  selectedCategoryId = signal('');
+  categorySearch = signal('');
+  productName = signal('');
+  localName = signal('');
+  selectedUnit = signal('kg');
+  selectedState = signal('Fresh');
+  selectedProductId = signal('');
+  notes = signal('');
+  searchTerm = signal('');
+  showProductValidation = signal(false);
+  isLoadingProducts = signal(true);
+  isLoadingCategories = signal(true);
   isSubmittingProduct = false;
   isCategoryInputActive = false;
-  categoryErrorMessage = '';
+  categoryErrorMessage = signal('');
   productErrorMessage = '';
-  productListErrorMessage = '';
+  productListErrorMessage = signal('');
   productSuccessMessage = '';
-  products: Product[] = [];
-  productSuggestions: ProductResponse[] = [];
+  products = signal<Product[]>([]);
+  productSuggestions = signal<ProductResponse[]>([]);
 
   constructor(
     private readonly router: Router,
@@ -127,7 +127,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     @Inject(DOCUMENT) private readonly document: Document,
   ) {}
 
-  categories: ProductCategory[] = [];
+  categories = signal<ProductCategory[]>([]);
 
   readonly units: SelectOption[] = [
     { value: 'kg', labelKey: 'products.unit.kg' },
@@ -149,7 +149,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   ];
 
   get visibleProducts(): Product[] {
-    return this.products;
+    return this.products();
   }
 
   get currentLanguage(): string {
@@ -157,24 +157,24 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   get selectedCategoryName(): string {
-    return this.getCategoryName(this.categories.find(category => category.id === this.selectedCategoryId));
+    return this.getCategoryName(this.categories().find(category => category.id === this.selectedCategoryId()));
   }
 
   get selectedProductSegments(): string[] {
     return [
       this.selectedCategoryName,
-      this.productName.trim(),
-      this.selectedUnit,
-      this.selectedState,
+      this.productName().trim(),
+      this.selectedUnit(),
+      this.selectedState(),
     ].filter(Boolean);
   }
 
   get categoryInvalid(): boolean {
-    return this.showProductValidation && !this.selectedCategoryId;
+    return this.showProductValidation() && !this.selectedCategoryId();
   }
 
   get productNameInvalid(): boolean {
-    return this.showProductValidation && !this.productName.trim();
+    return this.showProductValidation() && !this.productName().trim();
   }
 
   get productNameErrorKey(): string {
@@ -182,15 +182,15 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   get localNameInvalid(): boolean {
-    return this.showProductValidation && !this.localName.trim();
+    return this.showProductValidation() && !this.localName().trim();
   }
 
   get unitInvalid(): boolean {
-    return this.showProductValidation && !this.selectedUnit;
+    return this.showProductValidation() && !this.selectedUnit();
   }
 
   get stateInvalid(): boolean {
-    return this.showProductValidation && !this.selectedState;
+    return this.showProductValidation() && !this.selectedState();
   }
 
   get hasDuplicateSelection(): boolean {
@@ -226,7 +226,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     this.initialCategoryFocusChecks += 1;
 
     const element = this.categoryInput?.nativeElement;
-    if (!element || this.isLoadingCategories || element.disabled) {
+    if (!element || this.isLoadingCategories() || element.disabled) {
       return;
     }
 
@@ -268,7 +268,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   addProduct(): void {
-    this.showProductValidation = true;
+    this.showProductValidation.set(true);
     this.productErrorMessage = '';
     this.productSuccessMessage = '';
     this.duplicateProductFingerprint = '';
@@ -278,7 +278,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     if (duplicateProduct) {
       this.productErrorMessage = this.duplicateProductMessage;
       this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
-      this.selectedProductId = duplicateProduct.id;
+      this.selectedProductId.set(duplicateProduct.id);
       this.productNameInput?.nativeElement.focus();
       return;
     }
@@ -297,7 +297,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
         next: product => {
           this.storeSelectedProduct(product);
           this.productSuccessMessage = 'Product submitted successfully.';
-          this.showProductValidation = false;
+          this.showProductValidation.set(false);
           this.clearDraft(false);
           this.loadProducts();
           this.router.navigate(['/prices']);
@@ -313,11 +313,11 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   onCategoryChange(): void {
-    this.categorySearch = this.selectedCategoryName;
-    this.selectedProductId = '';
-    this.productName = '';
-    this.localName = '';
-    this.productSuggestions = [];
+    this.categorySearch.set(this.selectedCategoryName);
+    this.selectedProductId.set('');
+    this.productName.set('');
+    this.localName.set('');
+    this.productSuggestions.set([]);
     this.clearProductValidationIfReady();
     this.loadProducts();
     this.loadProductSuggestions();
@@ -331,13 +331,13 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     const selectedProduct = this.getSelectedProduct();
 
     if (selectedProduct) {
-      this.productName = selectedProduct.nameEn;
-      this.localName = selectedProduct.localName || selectedProduct.nameBn || '';
-      this.selectedUnit = selectedProduct.primaryUnit;
-      this.selectedState = selectedProduct.productState;
-      this.notes = selectedProduct.notes || this.notes;
+      this.productName.set(selectedProduct.nameEn);
+      this.localName.set(selectedProduct.localName || selectedProduct.nameBn || '');
+      this.selectedUnit.set(selectedProduct.primaryUnit);
+      this.selectedState.set(selectedProduct.productState);
+      this.notes.set(selectedProduct.notes || this.notes());
     } else {
-      this.productName = '';
+      this.productName.set('');
     }
 
     this.productSuccessMessage = '';
@@ -349,7 +349,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   continueToPrices(): void {
-    this.showProductValidation = true;
+    this.showProductValidation.set(true);
     this.productSuccessMessage = '';
 
     if (!this.isProductFormValid()) {
@@ -364,7 +364,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
     if (duplicateProduct) {
       this.productErrorMessage = this.duplicateProductMessage;
       this.duplicateProductFingerprint = this.getDuplicateProductFingerprint();
-      this.selectedProductId = duplicateProduct.id;
+      this.selectedProductId.set(duplicateProduct.id);
       this.storeSelectedProduct(duplicateProduct);
       this.router.navigate(['/prices']);
       return;
@@ -374,17 +374,17 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   clearCategorySelection(): void {
-    this.selectedCategoryId = '';
-    this.categorySearch = '';
-    this.productSuggestions = [];
+    this.selectedCategoryId.set('');
+    this.categorySearch.set('');
+    this.productSuggestions.set([]);
     this.clearProductSelection();
     this.loadProducts();
     this.clearProductValidationIfReady();
   }
 
   clearProductSelection(): void {
-    this.selectedProductId = '';
-    this.productName = '';
+    this.selectedProductId.set('');
+    this.productName.set('');
     this.productSuccessMessage = '';
     this.clearProductValidationIfReady();
   }
@@ -403,33 +403,33 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   loadProducts(): void {
-    this.isLoadingProducts = true;
-    this.productListErrorMessage = '';
+    this.isLoadingProducts.set(true);
+    this.productListErrorMessage.set('');
 
     this.api.get<ProductResponse[]>('/Products', {
-      categoryId: this.selectedCategoryId,
-      search: this.searchTerm,
+      categoryId: this.selectedCategoryId(),
+      search: this.searchTerm(),
       pageNumber: 1,
       pageSize: 18,
-    }).pipe(finalize(() => this.isLoadingProducts = false)).subscribe({
+    }).pipe(finalize(() => this.isLoadingProducts.set(false))).subscribe({
       next: products => {
-        this.products = this.mapProducts(products.slice(0, 18));
+        this.products.set(this.mapProducts(products.slice(0, 18)));
       },
       error: error => {
-        this.productListErrorMessage = error instanceof Error ? error.message : 'Unable to load products.';
+        this.productListErrorMessage.set(error instanceof Error ? error.message : 'Unable to load products.');
       },
     });
   }
 
   private loadCategories(): void {
-    this.isLoadingCategories = true;
-    this.categoryErrorMessage = '';
+    this.isLoadingCategories.set(true);
+    this.categoryErrorMessage.set('');
 
     this.api.get<ProductCategoryResponse[]>('/product-categories')
-      .pipe(finalize(() => this.isLoadingCategories = false))
+      .pipe(finalize(() => this.isLoadingCategories.set(false)))
       .subscribe({
         next: categories => {
-          this.categories = categories.map(category => ({
+          this.categories.set(categories.map(category => ({
             id: category.id,
             nameEn: category.nameEn,
             nameBn: category.nameBn,
@@ -438,9 +438,9 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
             descriptionBn: category.descriptionBn,
             sortOrder: category.sortOrder,
             isActive: category.isActive,
-          }));
-          if (this.selectedCategoryId) {
-            this.categorySearch = this.selectedCategoryName;
+          })));
+          if (this.selectedCategoryId()) {
+            this.categorySearch.set(this.selectedCategoryName);
           }
           this.initialCategoryFocusChecks = 0;
           this.focusCategoryInputWithRetry();
@@ -448,7 +448,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
           this.loadProductSuggestions();
         },
         error: error => {
-          this.categoryErrorMessage = error instanceof Error ? error.message : 'Unable to load product categories.';
+          this.categoryErrorMessage.set(error instanceof Error ? error.message : 'Unable to load product categories.');
           this.loadProducts();
         },
       });
@@ -463,28 +463,28 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   private loadProductSuggestions(): void {
-    if (!this.selectedCategoryId) {
-      this.productSuggestions = [];
+    if (!this.selectedCategoryId()) {
+      this.productSuggestions.set([]);
       return;
     }
 
     this.api.get<ProductResponse[]>('/Products', {
-      categoryId: this.selectedCategoryId,
+      categoryId: this.selectedCategoryId(),
       pageNumber: 1,
       pageSize: 100,
     }).subscribe({
       next: products => {
-        this.productSuggestions = products;
-        this.selectedProductId = this.selectedProductId || (this.findProductByName(products, this.productName)?.id ?? '');
+        this.productSuggestions.set(products);
+        this.selectedProductId.set(this.selectedProductId() || (this.findProductByName(products, this.productName())?.id ?? ''));
 
-        if (this.selectedProductId) {
+        if (this.selectedProductId()) {
           this.onProductSelectionChange();
         }
 
         this.clearProductValidationIfReady();
       },
       error: () => {
-        this.productSuggestions = [];
+        this.productSuggestions.set([]);
       },
     });
   }
@@ -505,14 +505,14 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       return;
     }
 
-    this.selectedCategoryId = draft.selectedCategoryId ?? '';
-    this.categorySearch = draft.categorySearch ?? '';
-    this.productName = draft.productName ?? '';
-    this.localName = draft.localName ?? '';
-    this.selectedUnit = draft.selectedUnit ?? 'kg';
-    this.selectedState = draft.selectedState ?? 'Fresh';
-    this.selectedProductId = draft.selectedProductId ?? '';
-    this.notes = draft.notes ?? '';
+    this.selectedCategoryId.set(draft.selectedCategoryId ?? '');
+    this.categorySearch.set(draft.categorySearch ?? '');
+    this.productName.set(draft.productName ?? '');
+    this.localName.set(draft.localName ?? '');
+    this.selectedUnit.set(draft.selectedUnit ?? 'kg');
+    this.selectedState.set(draft.selectedState ?? 'Fresh');
+    this.selectedProductId.set(draft.selectedProductId ?? '');
+    this.notes.set(draft.notes ?? '');
     this.lastDraftJson = JSON.stringify(this.getDraftData());
   }
 
@@ -530,29 +530,29 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
   private getDraftData(): object {
     return {
-      selectedCategoryId: this.selectedCategoryId,
-      categorySearch: this.categorySearch,
-      productName: this.productName,
-      localName: this.localName,
-      selectedUnit: this.selectedUnit,
-      selectedState: this.selectedState,
-      selectedProductId: this.selectedProductId,
-      notes: this.notes,
+      selectedCategoryId: this.selectedCategoryId(),
+      categorySearch: this.categorySearch(),
+      productName: this.productName(),
+      localName: this.localName(),
+      selectedUnit: this.selectedUnit(),
+      selectedState: this.selectedState(),
+      selectedProductId: this.selectedProductId(),
+      notes: this.notes(),
     };
   }
 
   private getSelectedProduct(): ProductResponse | undefined {
-    return this.productSuggestions.find(product => product.id === this.selectedProductId)
-      ?? this.findProductByName(this.productSuggestions, this.productName);
+    return this.productSuggestions().find(product => product.id === this.selectedProductId())
+      ?? this.findProductByName(this.productSuggestions(), this.productName());
   }
 
   private clearProductValidationIfReady(): void {
-    if (!this.showProductValidation) {
+    if (!this.showProductValidation()) {
       return;
     }
 
     if (this.isProductFormValid() && !this.hasDuplicateProduct()) {
-      this.showProductValidation = false;
+      this.showProductValidation.set(false);
       this.productErrorMessage = '';
     }
   }
@@ -589,25 +589,25 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
 
   private isProductFormValid(): boolean {
     return Boolean(
-      this.selectedCategoryId &&
-      this.productName.trim() &&
-      this.localName.trim() &&
-      this.selectedUnit &&
-      this.selectedState
+      this.selectedCategoryId() &&
+      this.productName().trim() &&
+      this.localName().trim() &&
+      this.selectedUnit() &&
+      this.selectedState()
     );
   }
 
   private getCreateProductPayload(): CreateProductRequest {
-    const localOrAlternateName = this.localName.trim();
+    const localOrAlternateName = this.localName().trim();
 
     return {
-      categoryId: this.selectedCategoryId,
-      nameEn: this.productName.trim(),
+      categoryId: this.selectedCategoryId(),
+      nameEn: this.productName().trim(),
       nameBn: localOrAlternateName,
       localName: localOrAlternateName,
-      primaryUnit: this.selectedUnit,
-      productState: this.selectedState,
-      notes: this.notes.trim() || null,
+      primaryUnit: this.selectedUnit(),
+      productState: this.selectedState(),
+      notes: this.notes().trim() || null,
     };
   }
 
@@ -616,20 +616,20 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
   }
 
   private getDuplicateProduct(): ProductResponse | undefined {
-    const slug = this.slugify(this.productName);
+    const slug = this.slugify(this.productName());
 
     if (!slug) {
       return undefined;
     }
 
-    return this.productSuggestions.find(product =>
-      product.categoryId === this.selectedCategoryId &&
+    return this.productSuggestions().find(product =>
+      product.categoryId === this.selectedCategoryId() &&
       this.slugify(product.nameEn || product.slug) === slug
     );
   }
 
   private getDuplicateProductFingerprint(): string {
-    return `${this.selectedCategoryId}|${this.slugify(this.productName)}`;
+    return `${this.selectedCategoryId()}|${this.slugify(this.productName())}`;
   }
 
   private slugify(value: string): string {
@@ -764,7 +764,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
           '@type': 'ItemList',
           '@id': `${this.pageUrl}#product-categories`,
           name: this.translate.instant('products.schema.categoryListName'),
-          itemListElement: this.categories.map((category, index) => ({
+          itemListElement: this.categories().map((category, index) => ({
             '@type': 'ListItem',
             position: index + 1,
             name: this.getCategoryName(category),
@@ -812,7 +812,7 @@ export class ProductsPageComponent implements AfterViewInit, AfterViewChecked, O
       return;
     }
 
-    if (this.isLoadingCategories || element.disabled) {
+    if (this.isLoadingCategories() || element.disabled) {
       if (attempt < this.maxCategoryFocusRetries) {
         setTimeout(() => this.focusCategoryInputWithRetry(attempt + 1), 80);
       }
