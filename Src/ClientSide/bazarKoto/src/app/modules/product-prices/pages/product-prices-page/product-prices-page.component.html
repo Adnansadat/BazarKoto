@@ -337,18 +337,18 @@
     </section>
 
     <div class="table-card">
-      <p class="table-status" *ngIf="isLoading">{{ 'productPrices.loading.prices' | translate }}</p>
+      <p class="table-status" *ngIf="isLoading()">{{ 'productPrices.loading.prices' | translate }}</p>
       <p class="table-status error" *ngIf="hasErrorMessage()">
         {{ errorMessageKey() | translate }}
       </p>
-      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage() && !hasPriceScope()">
+      <p class="table-status safe-empty" *ngIf="!isLoading() && !hasErrorMessage() && !hasPriceScope()">
         {{ emptyStateMessageKey | translate }}
       </p>
-      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length === 0">
+      <p class="table-status" *ngIf="!isLoading() && !hasErrorMessage() && hasPriceScope() && filteredRows().length === 0">
         {{ emptyStateMessageKey | translate }}
       </p>
 
-      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length > 0">
+      <div class="price-table-wrap" *ngIf="!isLoading() && !hasErrorMessage() && hasPriceScope() && filteredRows().length > 0">
         <table>
           <thead>
             <tr>
@@ -361,7 +361,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of pagedRows">
+            <tr *ngFor="let row of pagedRows()">
               <td>
                 <strong>{{ row.productNameEn }}</strong>
                 <span class="bn-name" *ngIf="row.productNameBn">{{ row.productNameBn }}</span>
@@ -378,8 +378,8 @@
         </table>
       </div>
 
-      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length > 0">
-        <article class="mobile-price-card" *ngFor="let row of pagedRows">
+      <div class="price-card-list" *ngIf="!isLoading() && !hasErrorMessage() && hasPriceScope() && filteredRows().length > 0">
+        <article class="mobile-price-card" *ngFor="let row of pagedRows()">
           <div>
             <span class="category-pill">{{ row.categoryNameEn }}</span>
             <h3>{{ row.productNameEn }}</h3>
@@ -401,13 +401,13 @@
         </article>
       </div>
 
-      <div class="pagination-bar" *ngIf="hasPriceScope() && filteredRows.length > 0">
-        <span>{{ 'productPrices.pagination.showing' | translate }} {{ pageStart }}-{{ pageEnd }} {{ 'productPrices.pagination.of' | translate }} {{ totalCount }} {{ 'productPrices.pagination.results' | translate }}</span>
+      <div class="pagination-bar" *ngIf="hasPriceScope() && filteredRows().length > 0">
+        <span>{{ 'productPrices.pagination.showing' | translate }} {{ pageStart() }}-{{ pageEnd() }} {{ 'productPrices.pagination.of' | translate }} {{ totalCount() }} {{ 'productPrices.pagination.results' | translate }}</span>
 
         <div>
-          <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">{{ 'productPrices.pagination.previous' | translate }}</button>
-          <strong>{{ 'productPrices.pagination.page' | translate }} {{ currentPage }} {{ 'productPrices.pagination.of' | translate }} {{ totalPages }}</strong>
-          <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">{{ 'productPrices.pagination.next' | translate }}</button>
+          <button type="button" (click)="previousPage()" [disabled]="currentPage() === 1">{{ 'productPrices.pagination.previous' | translate }}</button>
+          <strong>{{ 'productPrices.pagination.page' | translate }} {{ currentPage() }} {{ 'productPrices.pagination.of' | translate }} {{ totalPages() }}</strong>
+          <button type="button" (click)="nextPage()" [disabled]="currentPage() === totalPages()">{{ 'productPrices.pagination.next' | translate }}</button>
         </div>
       </div>
     </div>

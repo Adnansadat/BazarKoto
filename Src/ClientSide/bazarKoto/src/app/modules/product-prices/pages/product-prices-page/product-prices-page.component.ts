@@ -33,11 +33,11 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   selectedProduct = signal<ProductOptionResponse | null>(null);
   marketSearchText = signal('');
   productSearchText = signal('');
-  currentPage = 1;
-  readonly pageSize = 20;
-  totalCount = 0;
-  serverTotalPages = 1;
-  isLoading = false;
+  currentPage = signal(1);
+  readonly pageSize = signal(20);
+  totalCount = signal(0);
+  serverTotalPages = signal(1);
+  isLoading = signal(false);
   errorMessageKey = signal('');
   locationStatusMessageKey = signal('');
   locationErrorMessageKey = signal('');
@@ -46,7 +46,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   productErrorMessageKey = signal('');
   gpsStatusMessageKey = signal('');
   isRequestingGps = signal(false);
-  priceRows: PublicProductPriceResponse[] = [];
+  priceRows = signal<PublicProductPriceResponse[]>([]);
   divisionOptions = signal<LocationResponse[]>([]);
   districtOptions = signal<LocationResponse[]>([]);
   upazilaOptions = signal<LocationResponse[]>([]);
@@ -87,7 +87,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.userTracking.getOrCreateTrackingGuid();
-    this.priceRows = [];
+    this.priceRows.set([]);
     this.loadDivisions();
     this.registerMarketSearch();
     this.registerProductSearch();
@@ -101,25 +101,11 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   readonly hasPriceScope = computed(() => this.hasSelectedUnionOrWard() || this.selectedMarketId() !== null);
   readonly canSearchProducts = computed(() => this.hasPriceScope());
 
-  get filteredRows(): PublicProductPriceResponse[] {
-    return this.priceRows;
-  }
-
-  get pagedRows(): PublicProductPriceResponse[] {
-    return this.filteredRows;
-  }
-
-  get totalPages(): number {
-    return this.serverTotalPages;
-  }
-
-  get pageStart(): number {
-    return this.totalCount === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
-  }
-
-  get pageEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.totalCount);
-  }
+  readonly filteredRows = computed(() => this.priceRows());
+  readonly pagedRows = computed(() => this.filteredRows());
+  readonly totalPages = computed(() => this.serverTotalPages());
+  readonly pageStart = computed(() => this.totalCount() === 0 ? 0 : (this.currentPage() - 1) * this.pageSize() + 1);
+  readonly pageEnd = computed(() => Math.min(this.currentPage() * this.pageSize(), this.totalCount()));
 
   readonly hasErrorMessage = computed(() => Boolean(this.errorMessageKey()));
 
@@ -141,28 +127,28 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   setCategory(category: PriceCategory): void {
     this.selectedCategory.set(category);
-    this.currentPage = 1;
+    this.currentPage.set(1);
   }
 
   onSearchChange(): void {
-    this.currentPage = 1;
+    this.currentPage.set(1);
   }
 
   previousPage(): void {
-    if (this.currentPage === 1) {
+    if (this.currentPage() === 1) {
       return;
     }
 
-    this.currentPage -= 1;
+    this.currentPage.update(page => page - 1);
     this.loadPublicPrices();
   }
 
   nextPage(): void {
-    if (this.currentPage >= this.totalPages) {
+    if (this.currentPage() >= this.totalPages()) {
       return;
     }
 
-    this.currentPage += 1;
+    this.currentPage.update(page => page + 1);
     this.loadPublicPrices();
   }
 
@@ -610,10 +596,10 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private clearResults(): void {
-    this.priceRows = [];
-    this.currentPage = 1;
-    this.totalCount = 0;
-    this.serverTotalPages = 1;
+    this.priceRows.set([]);
+    this.currentPage.set(1);
+    this.totalCount.set(0);
+    this.serverTotalPages.set(1);
     this.errorMessageKey.set('');
   }
 
@@ -753,28 +739,28 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.errorMessageKey.set('');
 
     this.productPrices.getPublicProductPrices({
       unionOrWardId: this.selectedUnionOrWardId() ?? undefined,
       marketId: this.selectedMarketId() ?? undefined,
       productId: this.selectedProductId() ?? undefined,
-      pageNumber: this.currentPage,
-      pageSize: this.pageSize,
+      pageNumber: this.currentPage(),
+      pageSize: this.pageSize(),
     }).subscribe({
       next: response => {
-        this.priceRows = response.data;
-        this.totalCount = response.totalCount;
-        this.serverTotalPages = Math.max(1, response.totalPages);
-        this.isLoading = false;
+        this.priceRows.set(response.data);
+        this.totalCount.set(response.totalCount);
+        this.serverTotalPages.set(Math.max(1, response.totalPages));
+        this.isLoading.set(false);
       },
       error: error => {
-        this.priceRows = [];
-        this.totalCount = 0;
-        this.serverTotalPages = 1;
+        this.priceRows.set([]);
+        this.totalCount.set(0);
+        this.serverTotalPages.set(1);
         this.errorMessageKey.set('productPrices.errors.loadPrices');
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
     });
   }
