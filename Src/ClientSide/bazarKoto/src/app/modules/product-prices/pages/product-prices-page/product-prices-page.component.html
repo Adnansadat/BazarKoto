@@ -15,8 +15,8 @@
           <h2>{{ 'productPrices.filters.title' | translate }}</h2>
           <p>{{ 'productPrices.filters.helper' | translate }}</p>
         </div>
-        <button type="button" class="gps-action" (click)="useMyLocation()" [disabled]="isRequestingGps">
-          {{ (isRequestingGps ? 'productPrices.gps.checking' : 'productPrices.gps.useMyLocation') | translate }}
+        <button type="button" class="gps-action" (click)="useMyLocation()" [disabled]="isRequestingGps()">
+          {{ (isRequestingGps() ? 'productPrices.gps.checking' : 'productPrices.gps.useMyLocation') | translate }}
         </button>
       </div>
 
@@ -29,8 +29,8 @@
               class="combo-select select-trigger"
               aria-labelledby="division-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('division')"
-              [disabled]="isLoadingDivisions"
-              (click)="toggleLocationDropdown('division', isLoadingDivisions)"
+              [disabled]="isLoadingDivisions()"
+              (click)="toggleLocationDropdown('division', isLoadingDivisions())"
             >
               <span>{{ selectedDivisionId() ? selectedDivisionName() : ('productPrices.location.selectDivision' | translate) }}</span>
             </button>
@@ -49,7 +49,7 @@
                 <strong>{{ 'productPrices.location.selectDivision' | translate }}</strong>
               </button>
               <button
-                *ngFor="let division of divisionOptions"
+                *ngFor="let division of divisionOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -60,7 +60,7 @@
               </button>
             </div>
           </div>
-          <small *ngIf="isLoadingDivisions">{{ 'productPrices.loading.divisions' | translate }}</small>
+          <small *ngIf="isLoadingDivisions()">{{ 'productPrices.loading.divisions' | translate }}</small>
         </div>
 
         <div class="filter-control">
@@ -71,8 +71,8 @@
               class="combo-select select-trigger"
               aria-labelledby="district-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('district')"
-              [disabled]="!selectedDivisionId() || isLoadingDistricts"
-              (click)="toggleLocationDropdown('district', !selectedDivisionId() || isLoadingDistricts)"
+              [disabled]="!selectedDivisionId() || isLoadingDistricts()"
+              (click)="toggleLocationDropdown('district', !selectedDivisionId() || isLoadingDistricts())"
             >
               <span>{{ selectedDistrictId() ? selectedDistrictName() : ('productPrices.location.selectDistrict' | translate) }}</span>
             </button>
@@ -91,7 +91,7 @@
                 <strong>{{ 'productPrices.location.selectDistrict' | translate }}</strong>
               </button>
               <button
-                *ngFor="let district of districtOptions"
+                *ngFor="let district of districtOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -102,7 +102,7 @@
               </button>
             </div>
           </div>
-          <small *ngIf="isLoadingDistricts">{{ 'productPrices.loading.districts' | translate }}</small>
+          <small *ngIf="isLoadingDistricts()">{{ 'productPrices.loading.districts' | translate }}</small>
         </div>
 
         <div class="filter-control">
@@ -113,8 +113,8 @@
               class="combo-select select-trigger"
               aria-labelledby="upazila-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('upazila')"
-              [disabled]="!selectedDistrictId() || isLoadingUpazilas"
-              (click)="toggleLocationDropdown('upazila', !selectedDistrictId() || isLoadingUpazilas)"
+              [disabled]="!selectedDistrictId() || isLoadingUpazilas()"
+              (click)="toggleLocationDropdown('upazila', !selectedDistrictId() || isLoadingUpazilas())"
             >
               <span>{{ selectedUpazilaId() ? selectedUpazilaName() : ('productPrices.location.selectUpazila' | translate) }}</span>
             </button>
@@ -133,7 +133,7 @@
                 <strong>{{ 'productPrices.location.selectUpazila' | translate }}</strong>
               </button>
               <button
-                *ngFor="let upazila of upazilaOptions"
+                *ngFor="let upazila of upazilaOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -144,7 +144,7 @@
               </button>
             </div>
           </div>
-          <small *ngIf="isLoadingUpazilas">{{ 'productPrices.loading.upazilas' | translate }}</small>
+          <small *ngIf="isLoadingUpazilas()">{{ 'productPrices.loading.upazilas' | translate }}</small>
         </div>
 
         <div class="filter-control">
@@ -155,8 +155,8 @@
               class="combo-select select-trigger"
               aria-labelledby="union-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('unionOrWard')"
-              [disabled]="!selectedUpazilaId() || isLoadingUnionOrWards"
-              (click)="toggleLocationDropdown('unionOrWard', !selectedUpazilaId() || isLoadingUnionOrWards)"
+              [disabled]="!selectedUpazilaId() || isLoadingUnionOrWards()"
+              (click)="toggleLocationDropdown('unionOrWard', !selectedUpazilaId() || isLoadingUnionOrWards())"
             >
               <span>{{ selectedUnionOrWardId() ? selectedUnionOrWardName() : ('productPrices.location.selectUnionOrWard' | translate) }}</span>
             </button>
@@ -175,7 +175,7 @@
                 <strong>{{ 'productPrices.location.selectUnionOrWard' | translate }}</strong>
               </button>
               <button
-                *ngFor="let unionOrWard of unionOrWardOptions"
+                *ngFor="let unionOrWard of unionOrWardOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -186,7 +186,7 @@
               </button>
             </div>
           </div>
-          <small *ngIf="isLoadingUnionOrWards">{{ 'productPrices.loading.unions' | translate }}</small>
+          <small *ngIf="isLoadingUnionOrWards()">{{ 'productPrices.loading.unions' | translate }}</small>
         </div>
 
         <label class="filter-control">
@@ -227,16 +227,16 @@
             </button>
 
             <div class="options-panel" role="listbox" *ngIf="isMarketDropdownOpen()">
-              <p class="option-status" *ngIf="isLoadingMarkets">{{ 'productPrices.loading.markets' | translate }}</p>
-              <p class="option-status error" *ngIf="marketErrorMessageKey">{{ marketErrorMessageKey | translate }}</p>
+              <p class="option-status" *ngIf="isLoadingMarkets()">{{ 'productPrices.loading.markets' | translate }}</p>
+              <p class="option-status error" *ngIf="marketErrorMessageKey()">{{ marketErrorMessageKey() | translate }}</p>
               <p
                 class="option-status"
-                *ngIf="!isLoadingMarkets && !marketErrorMessageKey && marketOptions.length === 0"
+                *ngIf="!isLoadingMarkets() && !marketErrorMessageKey() && marketOptions().length === 0"
               >
                 {{ 'productPrices.market.noResults' | translate }}
               </p>
               <button
-                *ngFor="let market of marketOptions"
+                *ngFor="let market of marketOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -289,16 +289,16 @@
             </button>
 
             <div class="options-panel" role="listbox" *ngIf="isProductDropdownOpen() && canSearchProducts()">
-              <p class="option-status" *ngIf="isLoadingProducts">{{ 'productPrices.loading.products' | translate }}</p>
-              <p class="option-status error" *ngIf="productErrorMessageKey">{{ productErrorMessageKey | translate }}</p>
+              <p class="option-status" *ngIf="isLoadingProducts()">{{ 'productPrices.loading.products' | translate }}</p>
+              <p class="option-status error" *ngIf="productErrorMessageKey()">{{ productErrorMessageKey() | translate }}</p>
               <p
                 class="option-status"
-                *ngIf="!isLoadingProducts && !productErrorMessageKey && productOptions.length === 0"
+                *ngIf="!isLoadingProducts() && !productErrorMessageKey() && productOptions().length === 0"
               >
                 {{ 'productPrices.product.noResults' | translate }}
               </p>
               <button
-                *ngFor="let product of productOptions"
+                *ngFor="let product of productOptions()"
                 type="button"
                 class="option-row"
                 role="option"
@@ -322,33 +322,33 @@
       <p class="filter-note" *ngIf="!canSearchProducts()">
         {{ 'productPrices.filters.selectUnionFirst' | translate }}
       </p>
-      <p class="filter-note success" *ngIf="locationStatusMessageKey">
-        {{ locationStatusMessageKey | translate }}
+      <p class="filter-note success" *ngIf="locationStatusMessageKey()">
+        {{ locationStatusMessageKey() | translate }}
       </p>
-      <p class="filter-note error" *ngIf="locationErrorMessageKey">
-        {{ locationErrorMessageKey | translate }}
+      <p class="filter-note error" *ngIf="locationErrorMessageKey()">
+        {{ locationErrorMessageKey() | translate }}
       </p>
-      <p class="filter-note" *ngIf="gpsStatusMessageKey">
-        {{ gpsStatusMessageKey | translate }}
+      <p class="filter-note" *ngIf="gpsStatusMessageKey()">
+        {{ gpsStatusMessageKey() | translate }}
       </p>
-      <p class="filter-note success" *ngIf="productStatusMessageKey">
-        {{ productStatusMessageKey | translate }}
+      <p class="filter-note success" *ngIf="productStatusMessageKey()">
+        {{ productStatusMessageKey() | translate }}
       </p>
     </section>
 
     <div class="table-card">
       <p class="table-status" *ngIf="isLoading">{{ 'productPrices.loading.prices' | translate }}</p>
-      <p class="table-status error" *ngIf="hasErrorMessage">
-        {{ errorMessageKey | translate }}
+      <p class="table-status error" *ngIf="hasErrorMessage()">
+        {{ errorMessageKey() | translate }}
       </p>
-      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage && !hasPriceScope()">
+      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage() && !hasPriceScope()">
         {{ emptyStateMessageKey | translate }}
       </p>
-      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length === 0">
+      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length === 0">
         {{ emptyStateMessageKey | translate }}
       </p>
 
-      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length > 0">
+      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length > 0">
         <table>
           <thead>
             <tr>
@@ -378,7 +378,7 @@
         </table>
       </div>
 
-      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length > 0">
+      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage() && hasPriceScope() && filteredRows.length > 0">
         <article class="mobile-price-card" *ngFor="let row of pagedRows">
           <div>
             <span class="category-pill">{{ row.categoryNameEn }}</span>

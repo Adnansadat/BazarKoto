@@ -38,29 +38,29 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   totalCount = 0;
   serverTotalPages = 1;
   isLoading = false;
-  errorMessageKey = '';
-  locationStatusMessageKey = '';
-  locationErrorMessageKey = '';
-  marketErrorMessageKey = '';
-  productStatusMessageKey = '';
-  productErrorMessageKey = '';
-  gpsStatusMessageKey = '';
-  isRequestingGps = false;
+  errorMessageKey = signal('');
+  locationStatusMessageKey = signal('');
+  locationErrorMessageKey = signal('');
+  marketErrorMessageKey = signal('');
+  productStatusMessageKey = signal('');
+  productErrorMessageKey = signal('');
+  gpsStatusMessageKey = signal('');
+  isRequestingGps = signal(false);
   priceRows: PublicProductPriceResponse[] = [];
-  divisionOptions: LocationResponse[] = [];
-  districtOptions: LocationResponse[] = [];
-  upazilaOptions: LocationResponse[] = [];
-  unionOrWardOptions: LocationResponse[] = [];
-  isLoadingDivisions = false;
-  isLoadingDistricts = false;
-  isLoadingUpazilas = false;
-  isLoadingUnionOrWards = false;
-  isLoadingMarkets = false;
+  divisionOptions = signal<LocationResponse[]>([]);
+  districtOptions = signal<LocationResponse[]>([]);
+  upazilaOptions = signal<LocationResponse[]>([]);
+  unionOrWardOptions = signal<LocationResponse[]>([]);
+  isLoadingDivisions = signal(false);
+  isLoadingDistricts = signal(false);
+  isLoadingUpazilas = signal(false);
+  isLoadingUnionOrWards = signal(false);
+  isLoadingMarkets = signal(false);
   isMarketDropdownOpen = signal(false);
-  marketOptions: MarketOptionResponse[] = [];
-  isLoadingProducts = false;
+  marketOptions = signal<MarketOptionResponse[]>([]);
+  isLoadingProducts = signal(false);
   isProductDropdownOpen = signal(false);
-  productOptions: ProductOptionResponse[] = [];
+  productOptions = signal<ProductOptionResponse[]>([]);
   openLocationDropdown = signal<LocationDropdown | null>(null);
   private readonly marketSearch$ = new Subject<string>();
   private readonly productSearch$ = new Subject<string>();
@@ -121,9 +121,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     return Math.min(this.currentPage * this.pageSize, this.totalCount);
   }
 
-  get hasErrorMessage(): boolean {
-    return Boolean(this.errorMessageKey);
-  }
+  readonly hasErrorMessage = computed(() => Boolean(this.errorMessageKey()));
 
   get emptyStateMessageKey(): string {
     if (!this.hasPriceScope()) {
@@ -224,9 +222,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.clearMarketSelection();
     this.clearProductSelection();
     this.clearResults();
-    this.locationStatusMessageKey = this.selectedUnionOrWardId()
+    this.locationStatusMessageKey.set(this.selectedUnionOrWardId()
       ? 'productPrices.status.showingLocalPrices'
-      : '';
+      : '');
     this.openLocationDropdown.set(null);
 
     if (this.selectedUnionOrWardId()) {
@@ -272,23 +270,23 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedUnionOrWardId.set(null);
     this.clearMarketSelection();
     this.clearProductSelection();
-    this.locationStatusMessageKey = '';
+    this.locationStatusMessageKey.set('');
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
   }
 
   async useMyLocation(): Promise<void> {
-    this.isRequestingGps = true;
-    this.gpsStatusMessageKey = 'productPrices.gps.detecting';
-    this.locationStatusMessageKey = '';
-    this.locationErrorMessageKey = '';
+    this.isRequestingGps.set(true);
+    this.gpsStatusMessageKey.set('productPrices.gps.detecting');
+    this.locationStatusMessageKey.set('');
+    this.locationErrorMessageKey.set('');
     this.clearMarketSelection();
     this.clearProductSelection();
     this.clearResults();
 
     try {
       const snapshot = await this.userTracking.requestBrowserLocation();
-      this.gpsStatusMessageKey = this.toGpsStatusMessageKey(snapshot);
+      this.gpsStatusMessageKey.set(this.toGpsStatusMessageKey(snapshot));
 
       if (
         snapshot.gpsPermissionStatus !== 'granted' ||
@@ -303,13 +301,13 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       );
 
       if (!approximateLocation) {
-        this.locationStatusMessageKey = 'productPrices.status.detectAreaFailed';
+        this.locationStatusMessageKey.set('productPrices.status.detectAreaFailed');
         return;
       }
 
       await this.applyResolvedLocation(approximateLocation);
     } finally {
-      this.isRequestingGps = false;
+      this.isRequestingGps.set(false);
     }
   }
 
@@ -341,9 +339,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedMarketId.set(market.marketId);
     this.marketSearchText.set(market.displayLabel || market.marketName);
     this.clearProductSelection();
-    this.marketOptions = [];
+    this.marketOptions.set([]);
     this.isMarketDropdownOpen.set(false);
-    this.marketErrorMessageKey = '';
+    this.marketErrorMessageKey.set('');
     this.clearResults();
     this.applyMarketLocation(market, previousLocation);
     this.loadPublicPrices();
@@ -384,7 +382,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       this.clearResults();
     }
 
-    this.productStatusMessageKey = '';
+    this.productStatusMessageKey.set('');
 
     this.isProductDropdownOpen.set(true);
     this.productSearch$.next(value);
@@ -394,10 +392,10 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedProduct.set(product);
     this.selectedProductId.set(product.productId);
     this.productSearchText.set(this.productDisplayName(product));
-    this.productOptions = [];
+    this.productOptions.set([]);
     this.isProductDropdownOpen.set(false);
-    this.productErrorMessageKey = '';
-    this.productStatusMessageKey = '';
+    this.productErrorMessageKey.set('');
+    this.productStatusMessageKey.set('');
     this.clearResults();
     this.loadPublicPrices();
   }
@@ -457,19 +455,19 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   selectedDivisionName(): string {
-    return this.locationName(this.divisionOptions.find(option => option.id === this.selectedDivisionId()));
+    return this.locationName(this.divisionOptions().find(option => option.id === this.selectedDivisionId()));
   }
 
   selectedDistrictName(): string {
-    return this.locationName(this.districtOptions.find(option => option.id === this.selectedDistrictId()));
+    return this.locationName(this.districtOptions().find(option => option.id === this.selectedDistrictId()));
   }
 
   selectedUpazilaName(): string {
-    return this.locationName(this.upazilaOptions.find(option => option.id === this.selectedUpazilaId()));
+    return this.locationName(this.upazilaOptions().find(option => option.id === this.selectedUpazilaId()));
   }
 
   selectedUnionOrWardName(): string {
-    return this.locationName(this.unionOrWardOptions.find(option => option.id === this.selectedUnionOrWardId()));
+    return this.locationName(this.unionOrWardOptions().find(option => option.id === this.selectedUnionOrWardId()));
   }
 
   productDisplayName(product: ProductOptionResponse): string {
@@ -525,90 +523,90 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private loadDivisions(): void {
-    this.isLoadingDivisions = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingDivisions.set(true);
+    this.locationErrorMessageKey.set('');
 
     this.locations.getDivisions().subscribe({
       next: divisions => {
-        this.divisionOptions = divisions;
-        this.isLoadingDivisions = false;
+        this.divisionOptions.set(divisions);
+        this.isLoadingDivisions.set(false);
         this.restoreSavedLocationIfPossible();
       },
       error: () => {
-        this.divisionOptions = [];
-        this.locationErrorMessageKey = 'productPrices.errors.loadDivisions';
-        this.isLoadingDivisions = false;
+        this.divisionOptions.set([]);
+        this.locationErrorMessageKey.set('productPrices.errors.loadDivisions');
+        this.isLoadingDivisions.set(false);
       },
     });
   }
 
   private loadDistricts(divisionId: string): void {
-    this.isLoadingDistricts = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingDistricts.set(true);
+    this.locationErrorMessageKey.set('');
 
     this.locations.getDistricts(divisionId).subscribe({
       next: districts => {
-        this.districtOptions = districts;
-        this.isLoadingDistricts = false;
+        this.districtOptions.set(districts);
+        this.isLoadingDistricts.set(false);
       },
       error: () => {
-        this.districtOptions = [];
-        this.locationErrorMessageKey = 'productPrices.errors.loadDistricts';
-        this.isLoadingDistricts = false;
+        this.districtOptions.set([]);
+        this.locationErrorMessageKey.set('productPrices.errors.loadDistricts');
+        this.isLoadingDistricts.set(false);
       },
     });
   }
 
   private loadUpazilas(districtId: string): void {
-    this.isLoadingUpazilas = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingUpazilas.set(true);
+    this.locationErrorMessageKey.set('');
 
     this.locations.getUpazilas(districtId).subscribe({
       next: upazilas => {
-        this.upazilaOptions = upazilas;
-        this.isLoadingUpazilas = false;
+        this.upazilaOptions.set(upazilas);
+        this.isLoadingUpazilas.set(false);
       },
       error: () => {
-        this.upazilaOptions = [];
-        this.locationErrorMessageKey = 'productPrices.errors.loadUpazilas';
-        this.isLoadingUpazilas = false;
+        this.upazilaOptions.set([]);
+        this.locationErrorMessageKey.set('productPrices.errors.loadUpazilas');
+        this.isLoadingUpazilas.set(false);
       },
     });
   }
 
   private loadUnionOrWards(upazilaId: string): void {
-    this.isLoadingUnionOrWards = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingUnionOrWards.set(true);
+    this.locationErrorMessageKey.set('');
 
     this.locations.getUnionOrWards(upazilaId).subscribe({
       next: unionOrWards => {
-        this.unionOrWardOptions = unionOrWards;
-        this.isLoadingUnionOrWards = false;
+        this.unionOrWardOptions.set(unionOrWards);
+        this.isLoadingUnionOrWards.set(false);
       },
       error: () => {
-        this.unionOrWardOptions = [];
-        this.locationErrorMessageKey = 'productPrices.errors.loadUnions';
-        this.isLoadingUnionOrWards = false;
+        this.unionOrWardOptions.set([]);
+        this.locationErrorMessageKey.set('productPrices.errors.loadUnions');
+        this.isLoadingUnionOrWards.set(false);
       },
     });
   }
 
   private resetBelowDivision(): void {
     this.selectedDistrictId.set(null);
-    this.districtOptions = [];
+    this.districtOptions.set([]);
     this.resetBelowDistrict();
   }
 
   private resetBelowDistrict(): void {
     this.selectedUpazilaId.set(null);
-    this.upazilaOptions = [];
+    this.upazilaOptions.set([]);
     this.resetBelowUpazila();
   }
 
   private resetBelowUpazila(): void {
     this.selectedUnionOrWardId.set(null);
-    this.unionOrWardOptions = [];
-    this.locationStatusMessageKey = '';
+    this.unionOrWardOptions.set([]);
+    this.locationStatusMessageKey.set('');
   }
 
   private clearResults(): void {
@@ -616,7 +614,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.totalCount = 0;
     this.serverTotalPages = 1;
-    this.errorMessageKey = '';
+    this.errorMessageKey.set('');
   }
 
   locationName(option: LocationResponse | undefined): string {
@@ -639,7 +637,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
         debounceTime(250),
         switchMap(search => this.loadMarketOptions(search)),
       ).subscribe(options => {
-        this.marketOptions = options;
+        this.marketOptions.set(options);
       }),
     );
   }
@@ -650,7 +648,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
         debounceTime(250),
         switchMap(search => this.loadProductOptions(search)),
       ).subscribe(options => {
-        this.productOptions = options;
+        this.productOptions.set(options);
       }),
     );
   }
@@ -662,8 +660,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   private loadMarketOptions(search: string) {
     const requestScope = this.currentMarketOptionScopeKey();
     const effectiveSearch = this.effectiveMarketSearch(search);
-    this.isLoadingMarkets = true;
-    this.marketErrorMessageKey = '';
+    this.isLoadingMarkets.set(true);
+    this.marketErrorMessageKey.set('');
 
     return this.markets.getMarketOptions({
       search: effectiveSearch,
@@ -678,11 +676,11 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       }),
       map(response => requestScope === this.currentMarketOptionScopeKey() ? response.data : []),
       catchError(() => {
-        this.marketErrorMessageKey = 'productPrices.errors.loadMarkets';
+        this.marketErrorMessageKey.set('productPrices.errors.loadMarkets');
         return of([]);
       }),
       finalize(() => {
-        this.isLoadingMarkets = false;
+        this.isLoadingMarkets.set(false);
       }),
     );
   }
@@ -697,8 +695,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     const requestScope = this.currentProductOptionScopeKey();
-    this.isLoadingProducts = true;
-    this.productErrorMessageKey = '';
+    this.isLoadingProducts.set(true);
+    this.productErrorMessageKey.set('');
 
     return this.products.getProductOptions({
       search: search.trim() || undefined,
@@ -711,11 +709,11 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       }),
       map(response => requestScope === this.currentProductOptionScopeKey() ? response.data : []),
       catchError(() => {
-        this.productErrorMessageKey = 'productPrices.errors.loadProducts';
+        this.productErrorMessageKey.set('productPrices.errors.loadProducts');
         return of([]);
       }),
       finalize(() => {
-        this.isLoadingProducts = false;
+        this.isLoadingProducts.set(false);
       }),
     );
   }
@@ -740,13 +738,13 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     if (changedLocation) {
-      this.locationStatusMessageKey = 'productPrices.status.locationUpdatedForMarket';
+      this.locationStatusMessageKey.set('productPrices.status.locationUpdatedForMarket');
       return;
     }
 
-    this.locationStatusMessageKey = this.selectedUnionOrWardId()
+    this.locationStatusMessageKey.set(this.selectedUnionOrWardId()
       ? 'productPrices.status.showingLocalPrices'
-      : '';
+      : '');
   }
 
   private loadPublicPrices(): void {
@@ -756,7 +754,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
-    this.errorMessageKey = '';
+    this.errorMessageKey.set('');
 
     this.productPrices.getPublicProductPrices({
       unionOrWardId: this.selectedUnionOrWardId() ?? undefined,
@@ -775,7 +773,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
         this.priceRows = [];
         this.totalCount = 0;
         this.serverTotalPages = 1;
-        this.errorMessageKey = 'productPrices.errors.loadPrices';
+        this.errorMessageKey.set('productPrices.errors.loadPrices');
         this.isLoading = false;
       },
     });
@@ -795,7 +793,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     }
 
     try {
-      if (!this.divisionOptions.some(division => division.id === savedLocation.divisionId)) {
+      if (!this.divisionOptions().some(division => division.id === savedLocation.divisionId)) {
         this.userTracking.clearLastKnownLocation();
         return;
       }
@@ -822,26 +820,27 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       this.selectedDistrictId.set(savedLocation.districtId);
       this.selectedUpazilaId.set(savedLocation.upazilaId);
       this.selectedUnionOrWardId.set(savedLocation.unionOrWardId);
-      this.districtOptions = districts;
-      this.upazilaOptions = upazilas;
-      this.unionOrWardOptions = unionOrWards;
-      this.locationStatusMessageKey = 'productPrices.status.restoredLocation';
+      this.districtOptions.set(districts);
+      this.upazilaOptions.set(upazilas);
+      this.unionOrWardOptions.set(unionOrWards);
+      this.locationStatusMessageKey.set('productPrices.status.restoredLocation');
       this.loadPublicPrices();
     } catch {
       this.userTracking.clearLastKnownLocation();
-      this.locationErrorMessageKey = 'productPrices.errors.restoreLocation';
+      this.locationErrorMessageKey.set('productPrices.errors.restoreLocation');
     }
   }
 
   private async applyResolvedLocation(location: ResolvedApproximateLocation): Promise<void> {
-    const divisions = this.divisionOptions.length
-      ? this.divisionOptions
+    const currentDivisionOptions = this.divisionOptions();
+    const divisions = currentDivisionOptions.length
+      ? currentDivisionOptions
       : await firstValueFrom(this.locations.getDivisions());
-    this.divisionOptions = divisions;
+    this.divisionOptions.set(divisions);
 
     const matchedDivision = this.findLocationMatch(location.divisionName, divisions);
     if (!matchedDivision) {
-      this.locationStatusMessageKey = 'productPrices.status.areaMatchFailed';
+      this.locationStatusMessageKey.set('productPrices.status.areaMatchFailed');
       return;
     }
 
@@ -849,72 +848,72 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedDistrictId.set(null);
     this.selectedUpazilaId.set(null);
     this.selectedUnionOrWardId.set(null);
-    this.districtOptions = await this.getDistrictOptions(matchedDivision.id);
-    this.upazilaOptions = [];
-    this.unionOrWardOptions = [];
+    this.districtOptions.set(await this.getDistrictOptions(matchedDivision.id));
+    this.upazilaOptions.set([]);
+    this.unionOrWardOptions.set([]);
 
-    const matchedDistrict = this.findLocationMatch(location.districtName, this.districtOptions);
+    const matchedDistrict = this.findLocationMatch(location.districtName, this.districtOptions());
     if (!matchedDistrict) {
-      this.locationStatusMessageKey = 'productPrices.status.foundDivision';
+      this.locationStatusMessageKey.set('productPrices.status.foundDivision');
       return;
     }
 
     this.selectedDistrictId.set(matchedDistrict.id);
-    this.upazilaOptions = await this.getUpazilaOptions(matchedDistrict.id);
+    this.upazilaOptions.set(await this.getUpazilaOptions(matchedDistrict.id));
 
-    const matchedUpazila = this.findLocationMatch(location.upazilaName, this.upazilaOptions, true);
+    const matchedUpazila = this.findLocationMatch(location.upazilaName, this.upazilaOptions(), true);
     if (!matchedUpazila) {
-      this.locationStatusMessageKey = 'productPrices.status.foundDistrict';
+      this.locationStatusMessageKey.set('productPrices.status.foundDistrict');
       return;
     }
 
     this.selectedUpazilaId.set(matchedUpazila.id);
-    this.unionOrWardOptions = await this.getUnionOrWardOptions(matchedUpazila.id);
+    this.unionOrWardOptions.set(await this.getUnionOrWardOptions(matchedUpazila.id));
     this.selectedUnionOrWardId.set(null);
-    this.locationStatusMessageKey = 'productPrices.status.foundApproximateArea';
+    this.locationStatusMessageKey.set('productPrices.status.foundApproximateArea');
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
   }
 
   private async getDistrictOptions(divisionId: string): Promise<LocationResponse[]> {
-    this.isLoadingDistricts = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingDistricts.set(true);
+    this.locationErrorMessageKey.set('');
 
     try {
       return await firstValueFrom(this.locations.getDistricts(divisionId));
     } catch {
-      this.locationErrorMessageKey = 'productPrices.errors.loadDistricts';
+      this.locationErrorMessageKey.set('productPrices.errors.loadDistricts');
       return [];
     } finally {
-      this.isLoadingDistricts = false;
+      this.isLoadingDistricts.set(false);
     }
   }
 
   private async getUpazilaOptions(districtId: string): Promise<LocationResponse[]> {
-    this.isLoadingUpazilas = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingUpazilas.set(true);
+    this.locationErrorMessageKey.set('');
 
     try {
       return await firstValueFrom(this.locations.getUpazilas(districtId));
     } catch {
-      this.locationErrorMessageKey = 'productPrices.errors.loadUpazilas';
+      this.locationErrorMessageKey.set('productPrices.errors.loadUpazilas');
       return [];
     } finally {
-      this.isLoadingUpazilas = false;
+      this.isLoadingUpazilas.set(false);
     }
   }
 
   private async getUnionOrWardOptions(upazilaId: string): Promise<LocationResponse[]> {
-    this.isLoadingUnionOrWards = true;
-    this.locationErrorMessageKey = '';
+    this.isLoadingUnionOrWards.set(true);
+    this.locationErrorMessageKey.set('');
 
     try {
       return await firstValueFrom(this.locations.getUnionOrWards(upazilaId));
     } catch {
-      this.locationErrorMessageKey = 'productPrices.errors.loadUnions';
+      this.locationErrorMessageKey.set('productPrices.errors.loadUnions');
       return [];
     } finally {
-      this.isLoadingUnionOrWards = false;
+      this.isLoadingUnionOrWards.set(false);
     }
   }
 
@@ -1009,19 +1008,19 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.selectedMarket.set(null);
     this.selectedMarketId.set(null);
     this.marketSearchText.set('');
-    this.marketOptions = [];
+    this.marketOptions.set([]);
     this.isMarketDropdownOpen.set(false);
-    this.marketErrorMessageKey = '';
+    this.marketErrorMessageKey.set('');
   }
 
   private clearProductSelection(): void {
     this.selectedProduct.set(null);
     this.selectedProductId.set(null);
     this.productSearchText.set('');
-    this.productOptions = [];
+    this.productOptions.set([]);
     this.isProductDropdownOpen.set(false);
-    this.productErrorMessageKey = '';
-    this.productStatusMessageKey = '';
+    this.productErrorMessageKey.set('');
+    this.productStatusMessageKey.set('');
   }
 
   private closeDropdowns(): void {
