@@ -51,7 +51,7 @@
             </button>
           </div>
           <small *ngIf="isLoadingDivisions()">Loading divisions...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDivisionId()">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !selectedDivisionId()">
             Division is required.
           </em>
         </label>
@@ -78,7 +78,7 @@
             </button>
           </div>
           <small *ngIf="isLoadingDistricts()">Loading districts...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedDistrictId()">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !selectedDistrictId()">
             District is required.
           </em>
         </label>
@@ -105,7 +105,7 @@
             </button>
           </div>
           <small *ngIf="isLoadingUpazilas()">Loading upazilas...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUpazilaId()">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !selectedUpazilaId()">
             Upazila / City Corporation is required.
           </em>
         </label>
@@ -132,7 +132,7 @@
             </button>
           </div>
           <small *ngIf="isLoadingUnionOrWards()">Loading unions/wards...</small>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedUnionOrWardId()">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !selectedUnionOrWardId()">
             Ward / Union is required.
           </em>
         </label>
@@ -141,12 +141,13 @@
           <span>Area / Village</span>
           <input
             type="text"
-            [(ngModel)]="selectedArea"
+            [ngModel]="selectedArea()"
+            (ngModelChange)="selectedArea.set($event)"
             placeholder="Enter area or village"
             spellcheck="false"
             [attr.aria-describedby]="'market-location-helper'"
           />
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !selectedArea.trim()">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !selectedArea().trim()">
             Area / Village is required.
           </em>
         </label>
@@ -155,7 +156,8 @@
           <span>Moholla</span>
           <input
             type="text"
-            [(ngModel)]="villageOrMoholla"
+            [ngModel]="villageOrMoholla()"
+            (ngModelChange)="villageOrMoholla.set($event)"
             spellcheck="false"
             [placeholder]="'markets.form.villagePlaceholder' | translate"
           />
@@ -167,14 +169,14 @@
           <input
             #marketInput
             type="text"
-            [(ngModel)]="selectedMarket"
-            (ngModelChange)="onMarketNameChange()"
+            [ngModel]="selectedMarket()"
+            (ngModelChange)="selectedMarket.set($event); onMarketNameChange()"
             spellcheck="false"
             [placeholder]="'markets.form.marketPlaceholder' | translate"
-            [attr.aria-describedby]="shouldShowDuplicateMarketError ? 'market-duplicate-error' : showMarketValidation ? 'market-name-error' : 'market-location-helper'"
-            [attr.aria-invalid]="showMarketValidation || shouldShowDuplicateMarketError"
+            [attr.aria-describedby]="shouldShowDuplicateMarketError ? 'market-duplicate-error' : showMarketValidation() ? 'market-name-error' : 'market-location-helper'"
+            [attr.aria-invalid]="showMarketValidation() || shouldShowDuplicateMarketError"
           />
-          <em class="field-error validation-slot" id="market-name-error" [class.visible]="showMarketValidation && !selectedMarket.trim()">
+          <em class="field-error validation-slot" id="market-name-error" [class.visible]="showMarketValidation() && !selectedMarket().trim()">
             {{ 'markets.form.marketRequired' | translate }}
           </em>
           <em class="field-error validation-slot" id="market-duplicate-error" [class.visible]="shouldShowDuplicateMarketError">
@@ -186,7 +188,8 @@
           <span>{{ 'markets.form.landmark' | translate }}</span>
           <input
             type="text"
-            [(ngModel)]="landmark"
+            [ngModel]="landmark()"
+            (ngModelChange)="landmark.set($event)"
             spellcheck="false"
             [placeholder]="'markets.form.landmarkPlaceholder' | translate"
           />
@@ -196,13 +199,13 @@
         <label>
           <span>{{ 'markets.form.marketType' | translate }}</span>
           <div class="clearable-field select-clearable">
-            <select [(ngModel)]="marketType">
+            <select [ngModel]="marketType()" (ngModelChange)="marketType.set($event)">
               <option *ngFor="let type of marketTypes" [value]="type.value">
                 {{ type.labelKey | translate }}
               </option>
             </select>
           </div>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !marketType">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !marketType()">
             Market type is required.
           </em>
         </label>
@@ -210,13 +213,13 @@
         <label>
           <span>{{ 'markets.form.operatingSchedule' | translate }}</span>
           <div class="clearable-field select-clearable">
-            <select [(ngModel)]="operatingDays">
+            <select [ngModel]="operatingDays()" (ngModelChange)="operatingDays.set($event)">
               <option *ngFor="let schedule of operatingSchedules" [value]="schedule.value">
                 {{ schedule.labelKey | translate }}
               </option>
             </select>
           </div>
-          <em class="field-error validation-slot" [class.visible]="showMarketValidation && !operatingDays">
+          <em class="field-error validation-slot" [class.visible]="showMarketValidation() && !operatingDays()">
             Operating schedule is required.
           </em>
         </label>
@@ -224,7 +227,8 @@
         <label class="full-width">
           <span>{{ 'markets.form.notes' | translate }}</span>
           <textarea
-            [(ngModel)]="notes"
+            [ngModel]="notes()"
+            (ngModelChange)="notes.set($event)"
             rows="4"
             spellcheck="false"
             [placeholder]="'markets.form.notesPlaceholder' | translate"
@@ -290,15 +294,15 @@
     </div>
 
     <div class="market-list">
-      <p *ngIf="isLoadingMarkets">Loading markets...</p>
-      <p *ngIf="!isLoadingMarkets && marketErrorMessage">{{ marketErrorMessage }}</p>
-      <p *ngIf="!isLoadingMarkets && !marketErrorMessage && nearbyMarkets.length === 0">No markets found yet.</p>
+      <p *ngIf="isLoadingMarkets()">Loading markets...</p>
+      <p *ngIf="!isLoadingMarkets() && marketErrorMessage">{{ marketErrorMessage }}</p>
+      <p *ngIf="!isLoadingMarkets() && !marketErrorMessage && nearbyMarkets().length === 0">No markets found yet.</p>
       <button
         class="market-card"
-        *ngFor="let market of nearbyMarkets"
+        *ngFor="let market of nearbyMarkets()"
         type="button"
-        [class.active]="selectedMarket === market.name"
-        [attr.aria-pressed]="selectedMarket === market.name"
+        [class.active]="selectedMarket() === market.name"
+        [attr.aria-pressed]="selectedMarket() === market.name"
         [attr.aria-label]="
           ('markets.nearby.selectAria' | translate) + ' ' +
           market.name + ', ' +

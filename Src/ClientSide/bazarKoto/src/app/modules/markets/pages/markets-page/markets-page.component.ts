@@ -78,16 +78,16 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   selectedDistrictId = signal('');
   selectedUpazilaId = signal('');
   selectedUnionOrWardId = signal('');
-  selectedArea = '';
-  selectedMarketId = '';
-  selectedMarket = '';
-  villageOrMoholla = '';
-  landmark = '';
-  marketType = 'Retail';
-  operatingDays = 'Daily';
-  notes = '';
-  showMarketValidation = false;
-  isLoadingMarkets = true;
+  selectedArea = signal('');
+  selectedMarketId = signal('');
+  selectedMarket = signal('');
+  villageOrMoholla = signal('');
+  landmark = signal('');
+  marketType = signal('Retail');
+  operatingDays = signal('Daily');
+  notes = signal('');
+  showMarketValidation = signal(false);
+  isLoadingMarkets = signal(true);
   isLoadingDivisions = signal(false);
   isLoadingDistricts = signal(false);
   isLoadingUpazilas = signal(false);
@@ -96,17 +96,17 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   locationErrorMessage = signal('');
   marketErrorMessage = '';
   marketSuccessMessage = '';
-  divisionSearch = '';
-  districtSearch = '';
-  upazilaSearch = '';
-  unionOrWardSearch = '';
-  marketSearch = '';
+  divisionSearch = signal('');
+  districtSearch = signal('');
+  upazilaSearch = signal('');
+  unionOrWardSearch = signal('');
+  marketSearch = signal('');
   isDivisionInputActive = false;
   divisions = signal<LocationResponse[]>([]);
   districts = signal<LocationResponse[]>([]);
   upazilas = signal<LocationResponse[]>([]);
   unionOrWards = signal<LocationResponse[]>([]);
-  nearbyMarkets: Market[] = [];
+  nearbyMarkets = signal<Market[]>([]);
 
   constructor(
     private readonly router: Router,
@@ -155,10 +155,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   get matchingMarkets(): Market[] {
-    return this.nearbyMarkets.filter(
+    return this.nearbyMarkets().filter(
       (market) =>
         market.districtId === this.selectedDistrictId() &&
-        market.area === this.selectedArea,
+        market.area === this.selectedArea(),
     );
   }
 
@@ -176,22 +176,22 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       this.selectedDistrictName,
       this.selectedUpazilaName,
       this.selectedUnionOrWardName,
-      this.selectedArea.trim(),
-      this.villageOrMoholla.trim(),
-      this.selectedMarket.trim(),
+      this.selectedArea().trim(),
+      this.villageOrMoholla().trim(),
+      this.selectedMarket().trim(),
     ].filter(Boolean);
   }
 
   onDivisionChange(): void {
-    this.divisionSearch = this.selectedDivisionName;
-    this.districtSearch = '';
-    this.upazilaSearch = '';
-    this.unionOrWardSearch = '';
+    this.divisionSearch.set(this.selectedDivisionName);
+    this.districtSearch.set('');
+    this.upazilaSearch.set('');
+    this.unionOrWardSearch.set('');
     this.selectedDistrictId.set('');
     this.selectedUpazilaId.set('');
     this.selectedUnionOrWardId.set('');
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.districts.set([]);
     this.upazilas.set([]);
     this.unionOrWards.set([]);
@@ -200,34 +200,34 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   onDistrictChange(): void {
-    this.districtSearch = this.selectedDistrictName;
-    this.upazilaSearch = '';
-    this.unionOrWardSearch = '';
+    this.districtSearch.set(this.selectedDistrictName);
+    this.upazilaSearch.set('');
+    this.unionOrWardSearch.set('');
     this.selectedUpazilaId.set('');
     this.selectedUnionOrWardId.set('');
     this.upazilas.set([]);
     this.unionOrWards.set([]);
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadUpazilas();
     this.loadMarkets();
   }
 
   onUpazilaChange(): void {
-    this.upazilaSearch = this.selectedUpazilaName;
-    this.unionOrWardSearch = '';
+    this.upazilaSearch.set(this.selectedUpazilaName);
+    this.unionOrWardSearch.set('');
     this.selectedUnionOrWardId.set('');
     this.unionOrWards.set([]);
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadUnionOrWards();
     this.loadMarkets();
   }
 
   onUnionOrWardChange(): void {
-    this.unionOrWardSearch = this.selectedUnionOrWardName;
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.unionOrWardSearch.set(this.selectedUnionOrWardName);
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadMarkets();
   }
 
@@ -237,51 +237,51 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
   clearDivisionSelection(): void {
     this.selectedDivisionId.set('');
-    this.divisionSearch = '';
+    this.divisionSearch.set('');
     this.selectedDistrictId.set('');
     this.selectedUpazilaId.set('');
     this.selectedUnionOrWardId.set('');
-    this.districtSearch = '';
-    this.upazilaSearch = '';
-    this.unionOrWardSearch = '';
+    this.districtSearch.set('');
+    this.upazilaSearch.set('');
+    this.unionOrWardSearch.set('');
     this.districts.set([]);
     this.upazilas.set([]);
     this.unionOrWards.set([]);
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadMarkets();
   }
 
   clearDistrictSelection(): void {
     this.selectedDistrictId.set('');
-    this.districtSearch = '';
+    this.districtSearch.set('');
     this.selectedUpazilaId.set('');
     this.selectedUnionOrWardId.set('');
-    this.upazilaSearch = '';
-    this.unionOrWardSearch = '';
+    this.upazilaSearch.set('');
+    this.unionOrWardSearch.set('');
     this.upazilas.set([]);
     this.unionOrWards.set([]);
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadMarkets();
   }
 
   clearUpazilaSelection(): void {
     this.selectedUpazilaId.set('');
-    this.upazilaSearch = '';
+    this.upazilaSearch.set('');
     this.selectedUnionOrWardId.set('');
-    this.unionOrWardSearch = '';
+    this.unionOrWardSearch.set('');
     this.unionOrWards.set([]);
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadMarkets();
   }
 
   clearUnionOrWardSelection(): void {
     this.selectedUnionOrWardId.set('');
-    this.unionOrWardSearch = '';
-    this.selectedMarketId = '';
-    this.selectedMarket = '';
+    this.unionOrWardSearch.set('');
+    this.selectedMarketId.set('');
+    this.selectedMarket.set('');
     this.loadMarkets();
   }
 
@@ -307,14 +307,14 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.selectedDistrictId.set(market.districtId);
     this.selectedUpazilaId.set(market.upazilaId);
     this.selectedUnionOrWardId.set(market.unionOrWardId ?? '');
-    this.divisionSearch = this.selectedDivisionName;
-    this.districtSearch = market.district;
-    this.upazilaSearch = this.selectedUpazilaName;
-    this.unionOrWardSearch = this.selectedUnionOrWardName;
-    this.selectedArea = market.area;
-    this.selectedMarketId = market.id;
-    this.selectedMarket = market.name;
-    this.showMarketValidation = false;
+    this.divisionSearch.set(this.selectedDivisionName);
+    this.districtSearch.set(market.district);
+    this.upazilaSearch.set(this.selectedUpazilaName);
+    this.unionOrWardSearch.set(this.selectedUnionOrWardName);
+    this.selectedArea.set(market.area);
+    this.selectedMarketId.set(market.id);
+    this.selectedMarket.set(market.name);
+    this.showMarketValidation.set(false);
     this.focusMarketInput();
   }
 
@@ -386,7 +386,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   private submitMarket(navigateWhenExisting: boolean): void {
-    this.showMarketValidation = true;
+    this.showMarketValidation.set(true);
     this.marketSuccessMessage = '';
     this.marketErrorMessage = '';
     this.duplicateMarketFingerprint = '';
@@ -399,7 +399,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     const duplicateMarket = this.findSelectedNearbyMarket();
 
     if (duplicateMarket) {
-      this.selectedMarketId = duplicateMarket.id;
+      this.selectedMarketId.set(duplicateMarket.id);
       this.marketErrorMessage = this.duplicateMarketMessage;
       this.duplicateMarketFingerprint = this.getDuplicateMarketFingerprint();
       this.persistDraftIfChanged(true);
@@ -412,13 +412,13 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       districtId: this.selectedDistrictId(),
       upazilaId: this.selectedUpazilaId(),
       unionOrWardId: this.selectedUnionOrWardId() || null,
-      area: this.selectedArea,
-      marketName: this.selectedMarket,
-      villageOrMoholla: this.villageOrMoholla,
-      landmark: this.landmark,
-      notes: this.notes.trim() || null,
-      marketType: this.mapMarketType(this.marketType),
-      operatingSchedule: this.mapSchedule(this.operatingDays),
+      area: this.selectedArea(),
+      marketName: this.selectedMarket(),
+      villageOrMoholla: this.villageOrMoholla(),
+      landmark: this.landmark(),
+      notes: this.notes().trim() || null,
+      marketType: this.mapMarketType(this.marketType()),
+      operatingSchedule: this.mapSchedule(this.operatingDays()),
     }).pipe(finalize(() => this.isSubmittingMarket = false)).subscribe({
       next: response => {
         if (!response.success || !response.data) {
@@ -427,7 +427,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
         }
 
         const isExistingMarket = response.message === this.duplicateMarketMessage;
-        this.selectedMarketId = this.extractCreatedMarketId(response.data) || this.selectedMarketId;
+        this.selectedMarketId.set(this.extractCreatedMarketId(response.data) || this.selectedMarketId());
         this.persistDraftIfChanged(true);
 
         if (isExistingMarket && !navigateWhenExisting) {
@@ -437,7 +437,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
         }
 
         this.marketSuccessMessage = 'Market submitted successfully.';
-        this.showMarketValidation = false;
+        this.showMarketValidation.set(false);
         this.router.navigate(['/products']);
       },
       error: error => {
@@ -451,7 +451,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   continueToProducts(): void {
-    this.showMarketValidation = true;
+    this.showMarketValidation.set(true);
     this.marketSuccessMessage = '';
 
     if (!this.isMarketFormValid()) {
@@ -467,7 +467,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     const duplicateMarket = this.findSelectedNearbyMarket();
 
     if (duplicateMarket) {
-      this.selectedMarketId = duplicateMarket.id;
+      this.selectedMarketId.set(duplicateMarket.id);
       this.persistDraftIfChanged(true);
       this.router.navigate(['/products']);
       return;
@@ -475,7 +475,7 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
 
     this.syncSelectedMarketIdFromNearbyMarkets(true);
 
-    if (!this.selectedMarketId) {
+    if (!this.selectedMarketId()) {
       this.submitMarket(true);
       return;
     }
@@ -566,19 +566,19 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
   }
 
   private loadMarkets(): void {
-    this.isLoadingMarkets = true;
+    this.isLoadingMarkets.set(true);
 
     this.api.get<MarketResponse[]>('/Markets', {
       divisionId: this.selectedDivisionId(),
       districtId: this.selectedDistrictId(),
       upazilaId: this.selectedUpazilaId(),
       unionOrWardId: this.selectedUnionOrWardId(),
-      search: this.marketSearch,
+      search: this.marketSearch(),
       pageNumber: 1,
       pageSize: 10,
     }).subscribe({
       next: markets => {
-        this.nearbyMarkets = markets.slice(0, 10).map(market => ({
+        this.nearbyMarkets.set(markets.slice(0, 10).map(market => ({
           id: market.id,
           name: market.marketName,
           area: market.area,
@@ -589,13 +589,13 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
           unionOrWardId: market.unionOrWardId,
           contributors: 0,
           updated: market.updatedAt ? new Date(market.updatedAt).toLocaleDateString() : 'recently',
-        }));
+        })));
         this.syncSelectedMarketIdFromNearbyMarkets(false);
-        this.isLoadingMarkets = false;
+        this.isLoadingMarkets.set(false);
       },
       error: error => {
         this.marketErrorMessage = error instanceof Error ? error.message : 'Unable to load markets.';
-        this.isLoadingMarkets = false;
+        this.isLoadingMarkets.set(false);
       },
     });
   }
@@ -645,19 +645,19 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     this.selectedDistrictId.set(draft.selectedDistrictId ?? '');
     this.selectedUpazilaId.set(draft.selectedUpazilaId ?? '');
     this.selectedUnionOrWardId.set(draft.selectedUnionOrWardId ?? '');
-    this.selectedArea = draft.selectedArea ?? '';
-    this.selectedMarketId = draft.selectedMarketId ?? '';
-    this.selectedMarket = draft.selectedMarket ?? '';
-    this.villageOrMoholla = draft.villageOrMoholla ?? '';
-    this.landmark = draft.landmark ?? '';
-    this.marketType = draft.marketType ?? 'Retail';
-    this.operatingDays = draft.operatingDays ?? 'Daily';
-    this.notes = draft.notes ?? '';
-    this.divisionSearch = draft.divisionSearch ?? '';
-    this.districtSearch = draft.districtSearch ?? '';
-    this.upazilaSearch = draft.upazilaSearch ?? '';
-    this.unionOrWardSearch = draft.unionOrWardSearch ?? '';
-    this.marketSearch = draft.marketSearch ?? '';
+    this.selectedArea.set(draft.selectedArea ?? '');
+    this.selectedMarketId.set(draft.selectedMarketId ?? '');
+    this.selectedMarket.set(draft.selectedMarket ?? '');
+    this.villageOrMoholla.set(draft.villageOrMoholla ?? '');
+    this.landmark.set(draft.landmark ?? '');
+    this.marketType.set(draft.marketType ?? 'Retail');
+    this.operatingDays.set(draft.operatingDays ?? 'Daily');
+    this.notes.set(draft.notes ?? '');
+    this.divisionSearch.set(draft.divisionSearch ?? '');
+    this.districtSearch.set(draft.districtSearch ?? '');
+    this.upazilaSearch.set(draft.upazilaSearch ?? '');
+    this.unionOrWardSearch.set(draft.unionOrWardSearch ?? '');
+    this.marketSearch.set(draft.marketSearch ?? '');
     this.lastDraftJson = JSON.stringify(this.getDraftData());
   }
 
@@ -667,10 +667,10 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       this.selectedDistrictId() &&
       this.selectedUpazilaId() &&
       this.selectedUnionOrWardId() &&
-      this.selectedArea.trim() &&
-      this.selectedMarket.trim() &&
-      this.marketType &&
-      this.operatingDays
+      this.selectedArea().trim() &&
+      this.selectedMarket().trim() &&
+      this.marketType() &&
+      this.operatingDays()
     );
   }
 
@@ -682,19 +682,19 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
     const selectedNearbyMarket = this.findSelectedNearbyMarket();
 
     if (selectedNearbyMarket) {
-      this.selectedMarketId = selectedNearbyMarket.id;
+      this.selectedMarketId.set(selectedNearbyMarket.id);
       return;
     }
 
     if (clearWhenMissing) {
-      this.selectedMarketId = '';
+      this.selectedMarketId.set('');
     }
   }
 
   private findSelectedNearbyMarket(): Market | undefined {
-    const normalizedMarketName = this.normalizeComparableText(this.selectedMarket);
+    const normalizedMarketName = this.normalizeComparableText(this.selectedMarket());
 
-    return this.nearbyMarkets.find(market =>
+    return this.nearbyMarkets().find(market =>
       market.divisionId === this.selectedDivisionId() &&
       market.districtId === this.selectedDistrictId() &&
       market.upazilaId === this.selectedUpazilaId() &&
@@ -772,8 +772,8 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       this.selectedDistrictId(),
       this.selectedUpazilaId(),
       this.selectedUnionOrWardId(),
-      this.normalizeComparableText(this.selectedArea),
-      this.normalizeComparableText(this.selectedMarket),
+      this.normalizeComparableText(this.selectedArea()),
+      this.normalizeComparableText(this.selectedMarket()),
     ].join('|');
   }
 
@@ -795,19 +795,19 @@ export class MarketsPageComponent implements AfterViewInit, AfterViewChecked, On
       selectedDistrictId: this.selectedDistrictId(),
       selectedUpazilaId: this.selectedUpazilaId(),
       selectedUnionOrWardId: this.selectedUnionOrWardId(),
-      selectedArea: this.selectedArea,
-      selectedMarketId: this.selectedMarketId,
-      selectedMarket: this.selectedMarket,
-      villageOrMoholla: this.villageOrMoholla,
-      landmark: this.landmark,
-      marketType: this.marketType,
-      operatingDays: this.operatingDays,
-      notes: this.notes,
-      divisionSearch: this.divisionSearch,
-      districtSearch: this.districtSearch,
-      upazilaSearch: this.upazilaSearch,
-      unionOrWardSearch: this.unionOrWardSearch,
-      marketSearch: this.marketSearch,
+      selectedArea: this.selectedArea(),
+      selectedMarketId: this.selectedMarketId(),
+      selectedMarket: this.selectedMarket(),
+      villageOrMoholla: this.villageOrMoholla(),
+      landmark: this.landmark(),
+      marketType: this.marketType(),
+      operatingDays: this.operatingDays(),
+      notes: this.notes(),
+      divisionSearch: this.divisionSearch(),
+      districtSearch: this.districtSearch(),
+      upazilaSearch: this.upazilaSearch(),
+      unionOrWardSearch: this.unionOrWardSearch(),
+      marketSearch: this.marketSearch(),
     };
   }
 
