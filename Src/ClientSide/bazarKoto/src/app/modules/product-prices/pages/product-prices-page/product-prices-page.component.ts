@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, finalize, firstValueFrom, map, of, Subject, Subscription, switchMap, tap } from 'rxjs';
@@ -22,17 +22,17 @@ type LocationDropdown = 'division' | 'district' | 'upazila' | 'unionOrWard';
 })
 export class ProductPricesPageComponent implements OnInit, OnDestroy {
   searchTerm = '';
-  selectedCategory: PriceCategory = 'all';
-  selectedDivisionId: string | null = null;
-  selectedDistrictId: string | null = null;
-  selectedUpazilaId: string | null = null;
-  selectedUnionOrWardId: string | null = null;
-  selectedMarketId: string | null = null;
-  selectedMarket: MarketOptionResponse | null = null;
-  selectedProductId: string | null = null;
-  selectedProduct: ProductOptionResponse | null = null;
-  marketSearchText = '';
-  productSearchText = '';
+  selectedCategory = signal<PriceCategory>('all');
+  selectedDivisionId = signal<string | null>(null);
+  selectedDistrictId = signal<string | null>(null);
+  selectedUpazilaId = signal<string | null>(null);
+  selectedUnionOrWardId = signal<string | null>(null);
+  selectedMarketId = signal<string | null>(null);
+  selectedMarket = signal<MarketOptionResponse | null>(null);
+  selectedProductId = signal<string | null>(null);
+  selectedProduct = signal<ProductOptionResponse | null>(null);
+  marketSearchText = signal('');
+  productSearchText = signal('');
   currentPage = 1;
   readonly pageSize = 20;
   totalCount = 0;
@@ -56,12 +56,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   isLoadingUpazilas = false;
   isLoadingUnionOrWards = false;
   isLoadingMarkets = false;
-  isMarketDropdownOpen = false;
+  isMarketDropdownOpen = signal(false);
   marketOptions: MarketOptionResponse[] = [];
   isLoadingProducts = false;
-  isProductDropdownOpen = false;
+  isProductDropdownOpen = signal(false);
   productOptions: ProductOptionResponse[] = [];
-  openLocationDropdown: LocationDropdown | null = null;
+  openLocationDropdown = signal<LocationDropdown | null>(null);
   private readonly marketSearch$ = new Subject<string>();
   private readonly productSearch$ = new Subject<string>();
   private readonly subscriptions = new Subscription();
@@ -97,17 +97,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  get hasSelectedUnionOrWard(): boolean {
-    return this.selectedUnionOrWardId !== null;
-  }
-
-  get hasPriceScope(): boolean {
-    return this.hasSelectedUnionOrWard || this.selectedMarketId !== null;
-  }
-
-  get canSearchProducts(): boolean {
-    return this.hasPriceScope;
-  }
+  readonly hasSelectedUnionOrWard = computed(() => this.selectedUnionOrWardId() !== null);
+  readonly hasPriceScope = computed(() => this.hasSelectedUnionOrWard() || this.selectedMarketId() !== null);
+  readonly canSearchProducts = computed(() => this.hasPriceScope());
 
   get filteredRows(): PublicProductPriceResponse[] {
     return this.priceRows;
@@ -134,15 +126,15 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   get emptyStateMessageKey(): string {
-    if (!this.hasPriceScope) {
+    if (!this.hasPriceScope()) {
       return 'productPrices.states.selectLocation';
     }
 
-    if (this.selectedProductId) {
+    if (this.selectedProductId()) {
       return 'productPrices.states.noProductPrices';
     }
 
-    if (this.selectedMarketId) {
+    if (this.selectedMarketId()) {
       return 'productPrices.states.noMarketPrices';
     }
 
@@ -150,7 +142,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   setCategory(category: PriceCategory): void {
-    this.selectedCategory = category;
+    this.selectedCategory.set(category);
     this.currentPage = 1;
   }
 
@@ -177,67 +169,67 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   onDivisionChange(divisionId: string): void {
-    this.selectedDivisionId = divisionId || null;
+    this.selectedDivisionId.set(divisionId || null);
     this.resetBelowDivision();
     this.clearMarketSelection();
     this.clearProductSelection();
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
 
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (!this.selectedDivisionId) {
+    if (!this.selectedDivisionId()) {
       return;
     }
 
-    this.loadDistricts(this.selectedDivisionId);
+    this.loadDistricts(this.selectedDivisionId()!);
   }
 
   onDistrictChange(districtId: string): void {
-    this.selectedDistrictId = districtId || null;
+    this.selectedDistrictId.set(districtId || null);
     this.resetBelowDistrict();
     this.clearMarketSelection();
     this.clearProductSelection();
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
 
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (!this.selectedDistrictId) {
+    if (!this.selectedDistrictId()) {
       return;
     }
 
-    this.loadUpazilas(this.selectedDistrictId);
+    this.loadUpazilas(this.selectedDistrictId()!);
   }
 
   onUpazilaChange(upazilaId: string): void {
-    this.selectedUpazilaId = upazilaId || null;
+    this.selectedUpazilaId.set(upazilaId || null);
     this.resetBelowUpazila();
     this.clearMarketSelection();
     this.clearProductSelection();
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
 
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (!this.selectedUpazilaId) {
+    if (!this.selectedUpazilaId()) {
       return;
     }
 
-    this.loadUnionOrWards(this.selectedUpazilaId);
+    this.loadUnionOrWards(this.selectedUpazilaId()!);
   }
 
   onUnionOrWardChange(unionOrWardId: string): void {
-    this.selectedUnionOrWardId = unionOrWardId || null;
+    this.selectedUnionOrWardId.set(unionOrWardId || null);
     this.clearMarketSelection();
     this.clearProductSelection();
     this.clearResults();
-    this.locationStatusMessageKey = this.selectedUnionOrWardId
+    this.locationStatusMessageKey = this.selectedUnionOrWardId()
       ? 'productPrices.status.showingLocalPrices'
       : '';
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (this.selectedUnionOrWardId) {
+    if (this.selectedUnionOrWardId()) {
       this.saveCompleteLocation();
       this.loadPublicPrices();
     } else {
@@ -246,8 +238,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   clearDivision(): void {
-    this.openLocationDropdown = null;
-    this.selectedDivisionId = null;
+    this.openLocationDropdown.set(null);
+    this.selectedDivisionId.set(null);
     this.resetBelowDivision();
     this.clearMarketSelection();
     this.clearProductSelection();
@@ -256,8 +248,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   clearDistrict(): void {
-    this.openLocationDropdown = null;
-    this.selectedDistrictId = null;
+    this.openLocationDropdown.set(null);
+    this.selectedDistrictId.set(null);
     this.resetBelowDistrict();
     this.clearMarketSelection();
     this.clearProductSelection();
@@ -266,8 +258,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   clearUpazila(): void {
-    this.openLocationDropdown = null;
-    this.selectedUpazilaId = null;
+    this.openLocationDropdown.set(null);
+    this.selectedUpazilaId.set(null);
     this.resetBelowUpazila();
     this.clearMarketSelection();
     this.clearProductSelection();
@@ -276,8 +268,8 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   clearUnionOrWard(): void {
-    this.openLocationDropdown = null;
-    this.selectedUnionOrWardId = null;
+    this.openLocationDropdown.set(null);
+    this.selectedUnionOrWardId.set(null);
     this.clearMarketSelection();
     this.clearProductSelection();
     this.locationStatusMessageKey = '';
@@ -322,34 +314,35 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   onMarketFocus(): void {
-    this.openLocationDropdown = null;
-    this.isMarketDropdownOpen = true;
-    this.searchMarkets(this.marketSearchText);
+    this.openLocationDropdown.set(null);
+    this.isMarketDropdownOpen.set(true);
+    this.searchMarkets(this.marketSearchText());
   }
 
   onMarketInputChange(value: string): void {
-    this.marketSearchText = value;
+    this.marketSearchText.set(value);
 
-    if (this.selectedMarket && value !== (this.selectedMarket.displayLabel || this.selectedMarket.marketName)) {
-      this.selectedMarket = null;
-      this.selectedMarketId = null;
+    const selectedMarket = this.selectedMarket();
+    if (selectedMarket && value !== (selectedMarket.displayLabel || selectedMarket.marketName)) {
+      this.selectedMarket.set(null);
+      this.selectedMarketId.set(null);
       this.clearProductSelection();
       this.clearResults();
     }
 
-    this.isMarketDropdownOpen = true;
+    this.isMarketDropdownOpen.set(true);
     this.marketSearch$.next(value);
   }
 
   selectMarket(market: MarketOptionResponse): void {
     const previousLocation = this.currentLocationKey();
 
-    this.selectedMarket = market;
-    this.selectedMarketId = market.marketId;
-    this.marketSearchText = market.displayLabel || market.marketName;
+    this.selectedMarket.set(market);
+    this.selectedMarketId.set(market.marketId);
+    this.marketSearchText.set(market.displayLabel || market.marketName);
     this.clearProductSelection();
     this.marketOptions = [];
-    this.isMarketDropdownOpen = false;
+    this.isMarketDropdownOpen.set(false);
     this.marketErrorMessageKey = '';
     this.clearResults();
     this.applyMarketLocation(market, previousLocation);
@@ -361,47 +354,48 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.clearProductSelection();
     this.clearResults();
 
-    if (this.hasPriceScope) {
+    if (this.hasPriceScope()) {
       this.loadPublicPrices();
     }
   }
 
   onProductFocus(): void {
-    if (!this.canSearchProducts) {
+    if (!this.canSearchProducts()) {
       return;
     }
 
-    this.openLocationDropdown = null;
-    this.isProductDropdownOpen = true;
-    this.searchProducts(this.productSearchText);
+    this.openLocationDropdown.set(null);
+    this.isProductDropdownOpen.set(true);
+    this.searchProducts(this.productSearchText());
   }
 
   onProductInputChange(value: string): void {
-    if (!this.canSearchProducts) {
+    if (!this.canSearchProducts()) {
       this.clearProductSelection();
       return;
     }
 
-    this.productSearchText = value;
+    this.productSearchText.set(value);
 
-    if (this.selectedProduct && value !== this.productDisplayName(this.selectedProduct)) {
-      this.selectedProduct = null;
-      this.selectedProductId = null;
+    const selectedProduct = this.selectedProduct();
+    if (selectedProduct && value !== this.productDisplayName(selectedProduct)) {
+      this.selectedProduct.set(null);
+      this.selectedProductId.set(null);
       this.clearResults();
     }
 
     this.productStatusMessageKey = '';
 
-    this.isProductDropdownOpen = true;
+    this.isProductDropdownOpen.set(true);
     this.productSearch$.next(value);
   }
 
   selectProduct(product: ProductOptionResponse): void {
-    this.selectedProduct = product;
-    this.selectedProductId = product.productId;
-    this.productSearchText = this.productDisplayName(product);
+    this.selectedProduct.set(product);
+    this.selectedProductId.set(product.productId);
+    this.productSearchText.set(this.productDisplayName(product));
     this.productOptions = [];
-    this.isProductDropdownOpen = false;
+    this.isProductDropdownOpen.set(false);
     this.productErrorMessageKey = '';
     this.productStatusMessageKey = '';
     this.clearResults();
@@ -412,7 +406,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.clearProductSelection();
     this.clearResults();
 
-    if (this.hasPriceScope) {
+    if (this.hasPriceScope()) {
       this.loadPublicPrices();
     }
   }
@@ -438,12 +432,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.openLocationDropdown = this.openLocationDropdown === dropdown ? null : dropdown;
+    this.openLocationDropdown.update(currentDropdown => currentDropdown === dropdown ? null : dropdown);
     this.closeSearchDropdowns();
   }
 
   isLocationDropdownOpen(dropdown: LocationDropdown): boolean {
-    return this.openLocationDropdown === dropdown;
+    return this.openLocationDropdown() === dropdown;
   }
 
   selectDivision(divisionId: string): void {
@@ -463,19 +457,19 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   selectedDivisionName(): string {
-    return this.locationName(this.divisionOptions.find(option => option.id === this.selectedDivisionId));
+    return this.locationName(this.divisionOptions.find(option => option.id === this.selectedDivisionId()));
   }
 
   selectedDistrictName(): string {
-    return this.locationName(this.districtOptions.find(option => option.id === this.selectedDistrictId));
+    return this.locationName(this.districtOptions.find(option => option.id === this.selectedDistrictId()));
   }
 
   selectedUpazilaName(): string {
-    return this.locationName(this.upazilaOptions.find(option => option.id === this.selectedUpazilaId));
+    return this.locationName(this.upazilaOptions.find(option => option.id === this.selectedUpazilaId()));
   }
 
   selectedUnionOrWardName(): string {
-    return this.locationName(this.unionOrWardOptions.find(option => option.id === this.selectedUnionOrWardId));
+    return this.locationName(this.unionOrWardOptions.find(option => option.id === this.selectedUnionOrWardId()));
   }
 
   productDisplayName(product: ProductOptionResponse): string {
@@ -600,19 +594,19 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private resetBelowDivision(): void {
-    this.selectedDistrictId = null;
+    this.selectedDistrictId.set(null);
     this.districtOptions = [];
     this.resetBelowDistrict();
   }
 
   private resetBelowDistrict(): void {
-    this.selectedUpazilaId = null;
+    this.selectedUpazilaId.set(null);
     this.upazilaOptions = [];
     this.resetBelowUpazila();
   }
 
   private resetBelowUpazila(): void {
-    this.selectedUnionOrWardId = null;
+    this.selectedUnionOrWardId.set(null);
     this.unionOrWardOptions = [];
     this.locationStatusMessageKey = '';
   }
@@ -673,14 +667,14 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     return this.markets.getMarketOptions({
       search: effectiveSearch,
-      divisionId: this.selectedDivisionId ?? undefined,
-      districtId: this.selectedDistrictId ?? undefined,
-      upazilaId: this.selectedUpazilaId ?? undefined,
-      unionOrWardId: this.selectedUnionOrWardId ?? undefined,
+      divisionId: this.selectedDivisionId() ?? undefined,
+      districtId: this.selectedDistrictId() ?? undefined,
+      upazilaId: this.selectedUpazilaId() ?? undefined,
+      unionOrWardId: this.selectedUnionOrWardId() ?? undefined,
       pageSize: 8,
     }).pipe(
       tap(() => {
-        this.isMarketDropdownOpen = true;
+        this.isMarketDropdownOpen.set(true);
       }),
       map(response => requestScope === this.currentMarketOptionScopeKey() ? response.data : []),
       catchError(() => {
@@ -698,7 +692,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private loadProductOptions(search: string) {
-    if (!this.canSearchProducts) {
+    if (!this.canSearchProducts()) {
       return of([]);
     }
 
@@ -708,12 +702,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
     return this.products.getProductOptions({
       search: search.trim() || undefined,
-      unionOrWardId: this.selectedMarketId ? undefined : this.selectedUnionOrWardId ?? undefined,
-      marketId: this.selectedMarketId ?? undefined,
+      unionOrWardId: this.selectedMarketId() ? undefined : this.selectedUnionOrWardId() ?? undefined,
+      marketId: this.selectedMarketId() ?? undefined,
       pageSize: 8,
     }).pipe(
       tap(() => {
-        this.isProductDropdownOpen = true;
+        this.isProductDropdownOpen.set(true);
       }),
       map(response => requestScope === this.currentProductOptionScopeKey() ? response.data : []),
       catchError(() => {
@@ -730,16 +724,16 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     const marketLocation = this.marketLocationKey(market);
     const changedLocation = previousLocation !== marketLocation;
 
-    this.selectedDivisionId = market.divisionId;
-    this.selectedDistrictId = market.districtId;
-    this.selectedUpazilaId = market.upazilaId;
-    this.selectedUnionOrWardId = market.unionOrWardId ?? null;
+    this.selectedDivisionId.set(market.divisionId);
+    this.selectedDistrictId.set(market.districtId);
+    this.selectedUpazilaId.set(market.upazilaId);
+    this.selectedUnionOrWardId.set(market.unionOrWardId ?? null);
 
     this.loadDistricts(market.divisionId);
     this.loadUpazilas(market.districtId);
     this.loadUnionOrWards(market.upazilaId);
 
-    if (this.selectedUnionOrWardId) {
+    if (this.selectedUnionOrWardId()) {
       this.saveCompleteLocation();
     } else {
       this.userTracking.clearLastKnownLocation();
@@ -750,13 +744,13 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.locationStatusMessageKey = this.selectedUnionOrWardId
+    this.locationStatusMessageKey = this.selectedUnionOrWardId()
       ? 'productPrices.status.showingLocalPrices'
       : '';
   }
 
   private loadPublicPrices(): void {
-    if (!this.hasPriceScope) {
+    if (!this.hasPriceScope()) {
       this.clearResults();
       return;
     }
@@ -765,9 +759,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
     this.errorMessageKey = '';
 
     this.productPrices.getPublicProductPrices({
-      unionOrWardId: this.selectedUnionOrWardId ?? undefined,
-      marketId: this.selectedMarketId ?? undefined,
-      productId: this.selectedProductId ?? undefined,
+      unionOrWardId: this.selectedUnionOrWardId() ?? undefined,
+      marketId: this.selectedMarketId() ?? undefined,
+      productId: this.selectedProductId() ?? undefined,
       pageNumber: this.currentPage,
       pageSize: this.pageSize,
     }).subscribe({
@@ -824,10 +818,10 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.selectedDivisionId = savedLocation.divisionId;
-      this.selectedDistrictId = savedLocation.districtId;
-      this.selectedUpazilaId = savedLocation.upazilaId;
-      this.selectedUnionOrWardId = savedLocation.unionOrWardId;
+      this.selectedDivisionId.set(savedLocation.divisionId);
+      this.selectedDistrictId.set(savedLocation.districtId);
+      this.selectedUpazilaId.set(savedLocation.upazilaId);
+      this.selectedUnionOrWardId.set(savedLocation.unionOrWardId);
       this.districtOptions = districts;
       this.upazilaOptions = upazilas;
       this.unionOrWardOptions = unionOrWards;
@@ -851,10 +845,10 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedDivisionId = matchedDivision.id;
-    this.selectedDistrictId = null;
-    this.selectedUpazilaId = null;
-    this.selectedUnionOrWardId = null;
+    this.selectedDivisionId.set(matchedDivision.id);
+    this.selectedDistrictId.set(null);
+    this.selectedUpazilaId.set(null);
+    this.selectedUnionOrWardId.set(null);
     this.districtOptions = await this.getDistrictOptions(matchedDivision.id);
     this.upazilaOptions = [];
     this.unionOrWardOptions = [];
@@ -865,7 +859,7 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedDistrictId = matchedDistrict.id;
+    this.selectedDistrictId.set(matchedDistrict.id);
     this.upazilaOptions = await this.getUpazilaOptions(matchedDistrict.id);
 
     const matchedUpazila = this.findLocationMatch(location.upazilaName, this.upazilaOptions, true);
@@ -874,9 +868,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedUpazilaId = matchedUpazila.id;
+    this.selectedUpazilaId.set(matchedUpazila.id);
     this.unionOrWardOptions = await this.getUnionOrWardOptions(matchedUpazila.id);
-    this.selectedUnionOrWardId = null;
+    this.selectedUnionOrWardId.set(null);
     this.locationStatusMessageKey = 'productPrices.status.foundApproximateArea';
     this.userTracking.clearLastKnownLocation();
     this.clearResults();
@@ -982,16 +976,16 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private saveCompleteLocation(): void {
-    if (!this.selectedDivisionId || !this.selectedDistrictId || !this.selectedUpazilaId || !this.selectedUnionOrWardId) {
+    if (!this.selectedDivisionId() || !this.selectedDistrictId() || !this.selectedUpazilaId() || !this.selectedUnionOrWardId()) {
       this.userTracking.clearLastKnownLocation();
       return;
     }
 
     this.userTracking.saveLastKnownLocation({
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId,
+      divisionId: this.selectedDivisionId()!,
+      districtId: this.selectedDistrictId()!,
+      upazilaId: this.selectedUpazilaId()!,
+      unionOrWardId: this.selectedUnionOrWardId()!,
     });
   }
 
@@ -1012,78 +1006,78 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
   }
 
   private clearMarketSelection(): void {
-    this.selectedMarket = null;
-    this.selectedMarketId = null;
-    this.marketSearchText = '';
+    this.selectedMarket.set(null);
+    this.selectedMarketId.set(null);
+    this.marketSearchText.set('');
     this.marketOptions = [];
-    this.isMarketDropdownOpen = false;
+    this.isMarketDropdownOpen.set(false);
     this.marketErrorMessageKey = '';
   }
 
   private clearProductSelection(): void {
-    this.selectedProduct = null;
-    this.selectedProductId = null;
-    this.productSearchText = '';
+    this.selectedProduct.set(null);
+    this.selectedProductId.set(null);
+    this.productSearchText.set('');
     this.productOptions = [];
-    this.isProductDropdownOpen = false;
+    this.isProductDropdownOpen.set(false);
     this.productErrorMessageKey = '';
     this.productStatusMessageKey = '';
   }
 
   private closeDropdowns(): void {
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
     this.closeSearchDropdowns();
   }
 
   private closeSearchDropdowns(): void {
-    this.isMarketDropdownOpen = false;
-    this.isProductDropdownOpen = false;
+    this.isMarketDropdownOpen.set(false);
+    this.isProductDropdownOpen.set(false);
   }
 
   private toggleMarketDropdown(): void {
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (this.isMarketDropdownOpen) {
-      this.isMarketDropdownOpen = false;
+    if (this.isMarketDropdownOpen()) {
+      this.isMarketDropdownOpen.set(false);
       return;
     }
 
-    this.isMarketDropdownOpen = true;
-    this.searchMarkets(this.marketSearchText);
+    this.isMarketDropdownOpen.set(true);
+    this.searchMarkets(this.marketSearchText());
   }
 
   private toggleProductDropdown(): void {
-    if (!this.canSearchProducts) {
+    if (!this.canSearchProducts()) {
       return;
     }
 
-    this.openLocationDropdown = null;
+    this.openLocationDropdown.set(null);
 
-    if (this.isProductDropdownOpen) {
-      this.isProductDropdownOpen = false;
+    if (this.isProductDropdownOpen()) {
+      this.isProductDropdownOpen.set(false);
       return;
     }
 
-    this.isProductDropdownOpen = true;
-    this.searchProducts(this.productSearchText);
+    this.isProductDropdownOpen.set(true);
+    this.searchProducts(this.productSearchText());
   }
 
   private currentLocationKey(): string {
     return [
-      this.selectedDivisionId ?? '',
-      this.selectedDistrictId ?? '',
-      this.selectedUpazilaId ?? '',
-      this.selectedUnionOrWardId ?? '',
+      this.selectedDivisionId() ?? '',
+      this.selectedDistrictId() ?? '',
+      this.selectedUpazilaId() ?? '',
+      this.selectedUnionOrWardId() ?? '',
     ].join('|');
   }
 
   private currentMarketOptionScopeKey(): string {
     return [
-      this.selectedDivisionId ?? '',
-      this.selectedDistrictId ?? '',
-      this.selectedUpazilaId ?? '',
-      this.selectedUnionOrWardId ?? '',
-      this.effectiveMarketSearch(this.marketSearchText) ?? '',
+      this.selectedDivisionId() ?? '',
+      this.selectedDistrictId() ?? '',
+      this.selectedUpazilaId() ?? '',
+      this.selectedUnionOrWardId() ?? '',
+      this.effectiveMarketSearch(this.marketSearchText()) ?? '',
     ].join('|');
   }
 
@@ -1094,11 +1088,12 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
       return undefined;
     }
 
-    if (!this.selectedMarket) {
+    const selectedMarket = this.selectedMarket();
+    if (!selectedMarket) {
       return normalizedSearch;
     }
 
-    const selectedDisplayText = this.selectedMarket.displayLabel || this.selectedMarket.marketName;
+    const selectedDisplayText = selectedMarket.displayLabel || selectedMarket.marketName;
     if (normalizedSearch === selectedDisplayText) {
       return undefined;
     }
@@ -1108,9 +1103,9 @@ export class ProductPricesPageComponent implements OnInit, OnDestroy {
 
   private currentProductOptionScopeKey(): string {
     return [
-      this.selectedUnionOrWardId ?? '',
-      this.selectedMarketId ?? '',
-      this.productSearchText.trim(),
+      this.selectedUnionOrWardId() ?? '',
+      this.selectedMarketId() ?? '',
+      this.productSearchText().trim(),
     ].join('|');
   }
 

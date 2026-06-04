@@ -23,7 +23,7 @@
       <div class="filter-grid" [attr.aria-label]="'productPrices.filters.ariaLabel' | translate">
         <div class="filter-control">
           <span id="division-filter-label">{{ 'productPrices.location.division' | translate }}</span>
-          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedDivisionId">
+          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedDivisionId()">
             <button
               type="button"
               class="combo-select select-trigger"
@@ -32,10 +32,10 @@
               [disabled]="isLoadingDivisions"
               (click)="toggleLocationDropdown('division', isLoadingDivisions)"
             >
-              <span>{{ selectedDivisionId ? selectedDivisionName() : ('productPrices.location.selectDivision' | translate) }}</span>
+              <span>{{ selectedDivisionId() ? selectedDivisionName() : ('productPrices.location.selectDivision' | translate) }}</span>
             </button>
             <button
-              *ngIf="selectedDivisionId"
+              *ngIf="selectedDivisionId()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.location.clearDivision' | translate"
@@ -53,7 +53,7 @@
                 type="button"
                 class="option-row"
                 role="option"
-                [attr.aria-selected]="division.id === selectedDivisionId"
+                [attr.aria-selected]="division.id === selectedDivisionId()"
                 (click)="selectDivision(division.id)"
               >
                 <strong>{{ locationName(division) }}</strong>
@@ -65,19 +65,19 @@
 
         <div class="filter-control">
           <span id="district-filter-label">{{ 'productPrices.location.district' | translate }}</span>
-          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedDistrictId">
+          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedDistrictId()">
             <button
               type="button"
               class="combo-select select-trigger"
               aria-labelledby="district-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('district')"
-              [disabled]="!selectedDivisionId || isLoadingDistricts"
-              (click)="toggleLocationDropdown('district', !selectedDivisionId || isLoadingDistricts)"
+              [disabled]="!selectedDivisionId() || isLoadingDistricts"
+              (click)="toggleLocationDropdown('district', !selectedDivisionId() || isLoadingDistricts)"
             >
-              <span>{{ selectedDistrictId ? selectedDistrictName() : ('productPrices.location.selectDistrict' | translate) }}</span>
+              <span>{{ selectedDistrictId() ? selectedDistrictName() : ('productPrices.location.selectDistrict' | translate) }}</span>
             </button>
             <button
-              *ngIf="selectedDistrictId"
+              *ngIf="selectedDistrictId()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.location.clearDistrict' | translate"
@@ -95,7 +95,7 @@
                 type="button"
                 class="option-row"
                 role="option"
-                [attr.aria-selected]="district.id === selectedDistrictId"
+                [attr.aria-selected]="district.id === selectedDistrictId()"
                 (click)="selectDistrict(district.id)"
               >
                 <strong>{{ locationName(district) }}</strong>
@@ -107,19 +107,19 @@
 
         <div class="filter-control">
           <span id="upazila-filter-label">{{ 'productPrices.location.upazila' | translate }}</span>
-          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedUpazilaId">
+          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedUpazilaId()">
             <button
               type="button"
               class="combo-select select-trigger"
               aria-labelledby="upazila-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('upazila')"
-              [disabled]="!selectedDistrictId || isLoadingUpazilas"
-              (click)="toggleLocationDropdown('upazila', !selectedDistrictId || isLoadingUpazilas)"
+              [disabled]="!selectedDistrictId() || isLoadingUpazilas"
+              (click)="toggleLocationDropdown('upazila', !selectedDistrictId() || isLoadingUpazilas)"
             >
-              <span>{{ selectedUpazilaId ? selectedUpazilaName() : ('productPrices.location.selectUpazila' | translate) }}</span>
+              <span>{{ selectedUpazilaId() ? selectedUpazilaName() : ('productPrices.location.selectUpazila' | translate) }}</span>
             </button>
             <button
-              *ngIf="selectedUpazilaId"
+              *ngIf="selectedUpazilaId()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.location.clearUpazila' | translate"
@@ -137,7 +137,7 @@
                 type="button"
                 class="option-row"
                 role="option"
-                [attr.aria-selected]="upazila.id === selectedUpazilaId"
+                [attr.aria-selected]="upazila.id === selectedUpazilaId()"
                 (click)="selectUpazila(upazila.id)"
               >
                 <strong>{{ locationName(upazila) }}</strong>
@@ -149,19 +149,19 @@
 
         <div class="filter-control">
           <span id="union-filter-label">{{ 'productPrices.location.unionOrWard' | translate }}</span>
-          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedUnionOrWardId">
+          <div class="clearable-field select-clearable custom-select" [class.has-clear-value]="selectedUnionOrWardId()">
             <button
               type="button"
               class="combo-select select-trigger"
               aria-labelledby="union-filter-label"
               [attr.aria-expanded]="isLocationDropdownOpen('unionOrWard')"
-              [disabled]="!selectedUpazilaId || isLoadingUnionOrWards"
-              (click)="toggleLocationDropdown('unionOrWard', !selectedUpazilaId || isLoadingUnionOrWards)"
+              [disabled]="!selectedUpazilaId() || isLoadingUnionOrWards"
+              (click)="toggleLocationDropdown('unionOrWard', !selectedUpazilaId() || isLoadingUnionOrWards)"
             >
-              <span>{{ selectedUnionOrWardId ? selectedUnionOrWardName() : ('productPrices.location.selectUnionOrWard' | translate) }}</span>
+              <span>{{ selectedUnionOrWardId() ? selectedUnionOrWardName() : ('productPrices.location.selectUnionOrWard' | translate) }}</span>
             </button>
             <button
-              *ngIf="selectedUnionOrWardId"
+              *ngIf="selectedUnionOrWardId()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.location.clearUnionOrWard' | translate"
@@ -179,7 +179,7 @@
                 type="button"
                 class="option-row"
                 role="option"
-                [attr.aria-selected]="unionOrWard.id === selectedUnionOrWardId"
+                [attr.aria-selected]="unionOrWard.id === selectedUnionOrWardId()"
                 (click)="selectUnionOrWard(unionOrWard.id)"
               >
                 <strong>{{ locationName(unionOrWard) }}</strong>
@@ -193,7 +193,7 @@
           <span id="market-filter-label">{{ 'productPrices.market.label' | translate }}</span>
           <div
             class="clearable-field datalist-clearable market-combo"
-            [class.has-clear-value]="selectedMarketId || marketSearchText"
+            [class.has-clear-value]="selectedMarketId() || marketSearchText()"
             (mousedown)="onComboFieldMouseDown($event, 'market')"
           >
             <input
@@ -201,22 +201,22 @@
               class="combo-input"
               aria-labelledby="market-filter-label"
               aria-autocomplete="list"
-              [attr.aria-expanded]="isMarketDropdownOpen"
-              [ngModel]="marketSearchText"
+              [attr.aria-expanded]="isMarketDropdownOpen()"
+              [ngModel]="marketSearchText()"
               (ngModelChange)="onMarketInputChange($event)"
               (focus)="onMarketFocus()"
               [placeholder]="'productPrices.market.placeholder' | translate"
               autocomplete="off"
             />
             <button
-              *ngIf="!selectedMarketId && !marketSearchText"
+              *ngIf="!selectedMarketId() && !marketSearchText()"
               type="button"
               class="combo-arrow-button"
               [attr.aria-label]="'productPrices.market.label' | translate"
               (mousedown)="onComboArrowMouseDown($event, 'market')"
             ></button>
             <button
-              *ngIf="selectedMarketId || marketSearchText"
+              *ngIf="selectedMarketId() || marketSearchText()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.market.clear' | translate"
@@ -226,7 +226,7 @@
               &times;
             </button>
 
-            <div class="options-panel" role="listbox" *ngIf="isMarketDropdownOpen">
+            <div class="options-panel" role="listbox" *ngIf="isMarketDropdownOpen()">
               <p class="option-status" *ngIf="isLoadingMarkets">{{ 'productPrices.loading.markets' | translate }}</p>
               <p class="option-status error" *ngIf="marketErrorMessageKey">{{ marketErrorMessageKey | translate }}</p>
               <p
@@ -254,7 +254,7 @@
           <span id="product-filter-label">{{ 'productPrices.product.label' | translate }}</span>
           <div
             class="clearable-field datalist-clearable product-combo"
-            [class.has-clear-value]="selectedProductId || productSearchText"
+            [class.has-clear-value]="selectedProductId() || productSearchText()"
             (mousedown)="onComboFieldMouseDown($event, 'product')"
           >
             <input
@@ -262,23 +262,23 @@
               class="combo-input"
               aria-labelledby="product-filter-label"
               aria-autocomplete="list"
-              [attr.aria-expanded]="isProductDropdownOpen && canSearchProducts"
-              [ngModel]="productSearchText"
+              [attr.aria-expanded]="isProductDropdownOpen() && canSearchProducts()"
+              [ngModel]="productSearchText()"
               (ngModelChange)="onProductInputChange($event)"
               (focus)="onProductFocus()"
               [placeholder]="'productPrices.product.placeholder' | translate"
               autocomplete="off"
-              [disabled]="!canSearchProducts"
+              [disabled]="!canSearchProducts()"
             />
             <button
-              *ngIf="canSearchProducts && !selectedProductId && !productSearchText"
+              *ngIf="canSearchProducts() && !selectedProductId() && !productSearchText()"
               type="button"
               class="combo-arrow-button"
               [attr.aria-label]="'productPrices.product.label' | translate"
               (mousedown)="onComboArrowMouseDown($event, 'product')"
             ></button>
             <button
-              *ngIf="selectedProductId || productSearchText"
+              *ngIf="selectedProductId() || productSearchText()"
               type="button"
               class="clear-field-button"
               [attr.aria-label]="'productPrices.product.clear' | translate"
@@ -288,7 +288,7 @@
               &times;
             </button>
 
-            <div class="options-panel" role="listbox" *ngIf="isProductDropdownOpen && canSearchProducts">
+            <div class="options-panel" role="listbox" *ngIf="isProductDropdownOpen() && canSearchProducts()">
               <p class="option-status" *ngIf="isLoadingProducts">{{ 'productPrices.loading.products' | translate }}</p>
               <p class="option-status error" *ngIf="productErrorMessageKey">{{ productErrorMessageKey | translate }}</p>
               <p
@@ -311,7 +311,7 @@
           </div>
           <small>
             {{
-              canSearchProducts
+              canSearchProducts()
                 ? ('productPrices.product.helperEnabled' | translate)
                 : ('productPrices.product.helperDisabled' | translate)
             }}
@@ -319,7 +319,7 @@
         </label>
       </div>
 
-      <p class="filter-note" *ngIf="!canSearchProducts">
+      <p class="filter-note" *ngIf="!canSearchProducts()">
         {{ 'productPrices.filters.selectUnionFirst' | translate }}
       </p>
       <p class="filter-note success" *ngIf="locationStatusMessageKey">
@@ -341,14 +341,14 @@
       <p class="table-status error" *ngIf="hasErrorMessage">
         {{ errorMessageKey | translate }}
       </p>
-      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage && !hasPriceScope">
+      <p class="table-status safe-empty" *ngIf="!isLoading && !hasErrorMessage && !hasPriceScope()">
         {{ emptyStateMessageKey | translate }}
       </p>
-      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length === 0">
+      <p class="table-status" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length === 0">
         {{ emptyStateMessageKey | translate }}
       </p>
 
-      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length > 0">
+      <div class="price-table-wrap" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length > 0">
         <table>
           <thead>
             <tr>
@@ -378,7 +378,7 @@
         </table>
       </div>
 
-      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope && filteredRows.length > 0">
+      <div class="price-card-list" *ngIf="!isLoading && !hasErrorMessage && hasPriceScope() && filteredRows.length > 0">
         <article class="mobile-price-card" *ngFor="let row of pagedRows">
           <div>
             <span class="category-pill">{{ row.categoryNameEn }}</span>
@@ -401,7 +401,7 @@
         </article>
       </div>
 
-      <div class="pagination-bar" *ngIf="hasPriceScope && filteredRows.length > 0">
+      <div class="pagination-bar" *ngIf="hasPriceScope() && filteredRows.length > 0">
         <span>{{ 'productPrices.pagination.showing' | translate }} {{ pageStart }}-{{ pageEnd }} {{ 'productPrices.pagination.of' | translate }} {{ totalCount }} {{ 'productPrices.pagination.results' | translate }}</span>
 
         <div>
