@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -11,12 +11,13 @@ import { Auth } from '../../../../core/services/auth';
   standalone: true,
   templateUrl: './admin-login.component.html',
   styleUrl: './admin-login.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminLoginComponent {
-  email = '';
-  password = '';
-  isSubmitting = false;
-  errorMessage = '';
+  email = signal('');
+  password = signal('');
+  isSubmitting = signal(false);
+  errorMessage = signal('');
 
   constructor(
     private readonly auth: Auth,
@@ -24,20 +25,20 @@ export class AdminLoginComponent {
   ) {}
 
   login(): void {
-    if (!this.email || !this.password || this.isSubmitting) {
+    if (!this.email() || !this.password() || this.isSubmitting()) {
       return;
     }
 
-    this.isSubmitting = true;
-    this.errorMessage = '';
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
 
-    this.auth.login(this.email, this.password).subscribe({
+    this.auth.login(this.email(), this.password()).subscribe({
       next: () => {
         void this.router.navigate(['/admin/dashboard']);
       },
       error: error => {
-        this.errorMessage = error instanceof Error ? error.message : 'Login failed.';
-        this.isSubmitting = false;
+        this.errorMessage.set(error instanceof Error ? error.message : 'Login failed.');
+        this.isSubmitting.set(false);
       },
     });
   }

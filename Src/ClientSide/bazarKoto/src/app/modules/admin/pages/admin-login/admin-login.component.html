@@ -19,7 +19,8 @@
           name="email"
           autocomplete="email"
           placeholder="admin@bazarkoto.com"
-          [(ngModel)]="email"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
           required
         />
       </label>
@@ -31,15 +32,16 @@
           name="password"
           autocomplete="current-password"
           placeholder="Enter password"
-          [(ngModel)]="password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
           required
         />
       </label>
 
-      <p class="login-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="login-error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
 
-      <button type="submit" [disabled]="isSubmitting">
-        {{ isSubmitting ? 'Signing in...' : 'Continue' }}
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Signing in...' : 'Continue' }}
       </button>
     </form>
   </section>
