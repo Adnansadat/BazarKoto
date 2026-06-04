@@ -143,8 +143,8 @@
           <span class="field-error" *ngIf="priceErrorMessage">{{ priceErrorMessage }}</span>
           <span class="status-message" *ngIf="priceSuccessMessage">{{ priceSuccessMessage }}</span>
           <span class="loading-message" *ngIf="isLoadingPrices">Loading markets, products, and prices...</span>
-          <span class="field-error" *ngIf="locationErrorMessage">{{ locationErrorMessage }}</span>
-          <span class="field-error" *ngIf="productErrorMessage">{{ productErrorMessage }}</span>
+          <span class="field-error" *ngIf="locationErrorMessage()">{{ locationErrorMessage() }}</span>
+          <span class="field-error" *ngIf="productErrorMessage()">{{ productErrorMessage() }}</span>
         </div>
 
         <div class="primary-actions">

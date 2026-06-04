@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
@@ -105,13 +105,13 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   private langChangeSubscription?: Subscription;
   private initialPriceInputFocusChecks = 0;
 
-  selectedDivisionId = '';
-  selectedDistrictId = '';
-  selectedUpazilaId = '';
-  selectedUnionOrWardId = '';
-  selectedMarketId = '';
-  selectedProductId = '';
-  selectedCategoryId = '';
+  selectedDivisionId = signal('');
+  selectedDistrictId = signal('');
+  selectedUpazilaId = signal('');
+  selectedUnionOrWardId = signal('');
+  selectedMarketId = signal('');
+  selectedProductId = signal('');
+  selectedCategoryId = signal('');
   existingPriceId = '';
   loadedExistingPricePerUnit: number | null = null;
   selectedUnit = 'kg';
@@ -128,31 +128,31 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   isUpdateSuccessOpen = false;
   showPriceValidation = false;
   isLoadingPrices = true;
-  isLoadingDivisions = false;
-  isLoadingDistricts = false;
-  isLoadingUpazilas = false;
-  isLoadingUnionOrWards = false;
-  isLoadingMarkets = false;
-  isLoadingCategories = false;
-  isLoadingProducts = false;
+  isLoadingDivisions = signal(false);
+  isLoadingDistricts = signal(false);
+  isLoadingUpazilas = signal(false);
+  isLoadingUnionOrWards = signal(false);
+  isLoadingMarkets = signal(false);
+  isLoadingCategories = signal(false);
+  isLoadingProducts = signal(false);
   isLoadingSummary = false;
   isLoadingExistingPrice = false;
   isSubmittingPrice = false;
   priceErrorMessage = '';
   priceSuccessMessage = '';
-  locationErrorMessage = '';
-  productErrorMessage = '';
+  locationErrorMessage = signal('');
+  productErrorMessage = signal('');
   modalProductName = '';
   modalMarketName = '';
-  marketSearch = '';
-  productSearch = '';
-  divisions: LocationResponse[] = [];
-  districts: LocationResponse[] = [];
-  upazilas: LocationResponse[] = [];
-  unionOrWards: LocationResponse[] = [];
-  categories: ProductCategoryResponse[] = [];
-  markets: MarketResponse[] = [];
-  products: ProductResponse[] = [];
+  marketSearch = signal('');
+  productSearch = signal('');
+  divisions = signal<LocationResponse[]>([]);
+  districts = signal<LocationResponse[]>([]);
+  upazilas = signal<LocationResponse[]>([]);
+  unionOrWards = signal<LocationResponse[]>([]);
+  categories = signal<ProductCategoryResponse[]>([]);
+  markets = signal<MarketResponse[]>([]);
+  products = signal<ProductResponse[]>([]);
   todayPrices: PriceSubmissionResponse[] = [];
   priceSummary?: PriceSummaryResponse;
 
@@ -252,18 +252,18 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   get selectedMarketName(): string {
-    return this.markets.find(market => market.id === this.selectedMarketId)?.marketName
+    return this.markets().find(market => market.id === this.selectedMarketId())?.marketName
       ?? this.getStoredSelectedMarketName()
       ?? '';
   }
 
   get selectedProductName(): string {
-    const product = this.products.find(item => item.id === this.selectedProductId);
+    const product = this.products().find(item => item.id === this.selectedProductId());
     return product ? this.getProductName(product) : this.getStoredSelectedProductName();
   }
 
   get selectedCategoryName(): string {
-    const category = this.categories.find(item => item.id === this.selectedCategoryId);
+    const category = this.categories().find(item => item.id === this.selectedCategoryId());
     return category ? this.getCategoryName(category) : '';
   }
 
@@ -366,14 +366,14 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   onDivisionChange(): void {
-    this.selectedDistrictId = '';
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
-    this.selectedMarketId = '';
-    this.districts = [];
-    this.upazilas = [];
-    this.unionOrWards = [];
-    this.markets = [];
+    this.selectedDistrictId.set('');
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
+    this.selectedMarketId.set('');
+    this.districts.set([]);
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
+    this.markets.set([]);
     this.loadDistricts();
     this.loadMarkets();
     this.loadTodayPrices();
@@ -381,12 +381,12 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   onDistrictChange(): void {
-    this.selectedUpazilaId = '';
-    this.selectedUnionOrWardId = '';
-    this.selectedMarketId = '';
-    this.upazilas = [];
-    this.unionOrWards = [];
-    this.markets = [];
+    this.selectedUpazilaId.set('');
+    this.selectedUnionOrWardId.set('');
+    this.selectedMarketId.set('');
+    this.upazilas.set([]);
+    this.unionOrWards.set([]);
+    this.markets.set([]);
     this.loadUpazilas();
     this.loadMarkets();
     this.loadTodayPrices();
@@ -394,10 +394,10 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   onUpazilaChange(): void {
-    this.selectedUnionOrWardId = '';
-    this.selectedMarketId = '';
-    this.unionOrWards = [];
-    this.markets = [];
+    this.selectedUnionOrWardId.set('');
+    this.selectedMarketId.set('');
+    this.unionOrWards.set([]);
+    this.markets.set([]);
     this.loadUnionOrWards();
     this.loadMarkets();
     this.loadTodayPrices();
@@ -405,7 +405,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   onUnionOrWardChange(): void {
-    this.selectedMarketId = '';
+    this.selectedMarketId.set('');
     this.loadMarkets();
     this.loadTodayPrices();
     this.loadPriceSummary();
@@ -419,15 +419,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   onCategoryChange(): void {
-    this.selectedProductId = '';
+    this.selectedProductId.set('');
     this.clearLoadedExistingPrice();
-    this.products = [];
+    this.products.set([]);
     this.loadProducts();
     this.loadTodayPrices();
   }
 
   onProductChange(): void {
-    const product = this.products.find(item => item.id === this.selectedProductId);
+    const product = this.products().find(item => item.id === this.selectedProductId());
     this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
     this.clearLoadedExistingPrice();
     this.loadTodayPrices();
@@ -447,7 +447,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    if (!this.selectedMarketId || !this.selectedProductId) {
+    if (!this.selectedMarketId() || !this.selectedProductId()) {
       this.priceErrorMessage = 'Market and product are selected, but their database records could not be loaded. Please start the backend and reload this page before submitting.';
       return;
     }
@@ -473,8 +473,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     const trackingContext = this.getSubmissionTrackingContext();
 
     this.api.post<PriceSubmissionResponse>('/Prices', {
-      marketId: this.selectedMarketId,
-      productId: this.selectedProductId,
+      marketId: this.selectedMarketId(),
+      productId: this.selectedProductId(),
       unit: this.selectedUnit,
       pricePerUnit: this.price,
       quantityChecked: this.quantity,
@@ -546,15 +546,15 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     this.priceErrorMessage = '';
     this.priceSuccessMessage = '';
 
-    if (!this.selectedMarketId || !this.selectedProductId) {
+    if (!this.selectedMarketId() || !this.selectedProductId()) {
       this.priceErrorMessage = 'Select an existing market and product before loading a price.';
       return;
     }
 
     this.isLoadingExistingPrice = true;
     this.api.get<PriceSubmissionResponse>('/Prices/latest', {
-      marketId: this.selectedMarketId,
-      productId: this.selectedProductId,
+      marketId: this.selectedMarketId(),
+      productId: this.selectedProductId(),
     }).pipe(finalize(() => this.isLoadingExistingPrice = false)).subscribe({
       next: existingPrice => {
         this.existingPriceId = existingPrice.id;
@@ -591,8 +591,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
     this.isSubmittingPrice = true;
     this.api.put(`/Prices/${this.existingPriceId}`, {
-      marketId: this.selectedMarketId,
-      productId: this.selectedProductId,
+      marketId: this.selectedMarketId(),
+      productId: this.selectedProductId(),
       unit: this.selectedUnit,
       pricePerUnit: this.price,
       quantityChecked: this.quantity,
@@ -620,7 +620,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private loadExistingPriceIfReady(): void {
-    if (this.selectedMarketId && this.selectedProductId) {
+    if (this.selectedMarketId() && this.selectedProductId()) {
       this.loadExistingPrice();
     }
   }
@@ -648,11 +648,11 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private get hasSelectedMarketContext(): boolean {
-    return Boolean(this.selectedMarketId || this.selectedMarketName.trim());
+    return Boolean(this.selectedMarketId() || this.selectedMarketName.trim());
   }
 
   private get hasSelectedProductContext(): boolean {
-    return Boolean(this.selectedProductId || this.selectedProductName.trim());
+    return Boolean(this.selectedProductId() || this.selectedProductName.trim());
   }
 
   private toDisplaySellerType(value: string): string {
@@ -777,13 +777,13 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    this.selectedDivisionId = draft.selectedDivisionId ?? '';
-    this.selectedDistrictId = draft.selectedDistrictId ?? '';
-    this.selectedUpazilaId = draft.selectedUpazilaId ?? '';
-    this.selectedUnionOrWardId = draft.selectedUnionOrWardId ?? '';
-    this.selectedMarketId = draft.selectedMarketId ?? '';
-    this.selectedProductId = draft.selectedProductId ?? '';
-    this.selectedCategoryId = draft.selectedCategoryId ?? '';
+    this.selectedDivisionId.set(draft.selectedDivisionId ?? '');
+    this.selectedDistrictId.set(draft.selectedDistrictId ?? '');
+    this.selectedUpazilaId.set(draft.selectedUpazilaId ?? '');
+    this.selectedUnionOrWardId.set(draft.selectedUnionOrWardId ?? '');
+    this.selectedMarketId.set(draft.selectedMarketId ?? '');
+    this.selectedProductId.set(draft.selectedProductId ?? '');
+    this.selectedCategoryId.set(draft.selectedCategoryId ?? '');
     this.selectedUnit = draft.selectedUnit ?? 'kg';
     this.price = draft.price ?? 0;
     this.quantity = draft.quantity ?? 1;
@@ -793,8 +793,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     this.priceSource = draft.priceSource ?? 'Observed in market';
     this.quality = draft.quality ?? 'Standard';
     this.notes = draft.notes ?? '';
-    this.marketSearch = draft.marketSearch ?? '';
-    this.productSearch = draft.productSearch ?? '';
+    this.marketSearch.set(draft.marketSearch ?? '');
+    this.productSearch.set(draft.productSearch ?? '');
     this.lastDraftJson = JSON.stringify(this.getDraftData());
   }
 
@@ -812,12 +812,12 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       return;
     }
 
-    this.selectedDivisionId = marketDraft.selectedDivisionId ?? '';
-    this.selectedDistrictId = marketDraft.selectedDistrictId ?? '';
-    this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? '';
-    this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? '';
-    this.selectedMarketId = marketDraft.selectedMarketId ?? '';
-    this.marketSearch = marketDraft.selectedMarket ?? '';
+    this.selectedDivisionId.set(marketDraft.selectedDivisionId ?? '');
+    this.selectedDistrictId.set(marketDraft.selectedDistrictId ?? '');
+    this.selectedUpazilaId.set(marketDraft.selectedUpazilaId ?? '');
+    this.selectedUnionOrWardId.set(marketDraft.selectedUnionOrWardId ?? '');
+    this.selectedMarketId.set(marketDraft.selectedMarketId ?? '');
+    this.marketSearch.set(marketDraft.selectedMarket ?? '');
     this.clearLoadedExistingPrice();
     this.persistDraftIfChanged(true);
   }
@@ -836,13 +836,13 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
 
   private getDraftData(): object {
     return {
-      selectedDivisionId: this.selectedDivisionId,
-      selectedDistrictId: this.selectedDistrictId,
-      selectedUpazilaId: this.selectedUpazilaId,
-      selectedUnionOrWardId: this.selectedUnionOrWardId,
-      selectedMarketId: this.selectedMarketId,
-      selectedProductId: this.selectedProductId,
-      selectedCategoryId: this.selectedCategoryId,
+      selectedDivisionId: this.selectedDivisionId(),
+      selectedDistrictId: this.selectedDistrictId(),
+      selectedUpazilaId: this.selectedUpazilaId(),
+      selectedUnionOrWardId: this.selectedUnionOrWardId(),
+      selectedMarketId: this.selectedMarketId(),
+      selectedProductId: this.selectedProductId(),
+      selectedCategoryId: this.selectedCategoryId(),
       selectedUnit: this.selectedUnit,
       price: this.price,
       quantity: this.quantity,
@@ -852,76 +852,76 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       priceSource: this.priceSource,
       quality: this.quality,
       notes: this.notes,
-      marketSearch: this.marketSearch,
-      productSearch: this.productSearch,
+      marketSearch: this.marketSearch(),
+      productSearch: this.productSearch(),
     };
   }
 
   loadDivisions(): void {
-    this.isLoadingDivisions = true;
+    this.isLoadingDivisions.set(true);
     this.api.get<LocationResponse[]>('/locations/divisions')
-      .pipe(finalize(() => this.isLoadingDivisions = false))
+      .pipe(finalize(() => this.isLoadingDivisions.set(false)))
       .subscribe({
-        next: divisions => this.divisions = divisions,
-        error: error => this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load divisions.',
+        next: divisions => this.divisions.set(divisions),
+        error: error => this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load divisions.'),
       });
   }
 
   loadDistricts(): void {
-    if (!this.selectedDivisionId) {
+    if (!this.selectedDivisionId()) {
       return;
     }
 
-    this.isLoadingDistricts = true;
-    this.api.get<LocationResponse[]>('/locations/districts', { divisionId: this.selectedDivisionId })
-      .pipe(finalize(() => this.isLoadingDistricts = false))
+    this.isLoadingDistricts.set(true);
+    this.api.get<LocationResponse[]>('/locations/districts', { divisionId: this.selectedDivisionId() })
+      .pipe(finalize(() => this.isLoadingDistricts.set(false)))
       .subscribe({
-        next: districts => this.districts = districts,
-        error: error => this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load districts.',
+        next: districts => this.districts.set(districts),
+        error: error => this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load districts.'),
       });
   }
 
   loadUpazilas(): void {
-    if (!this.selectedDistrictId) {
+    if (!this.selectedDistrictId()) {
       return;
     }
 
-    this.isLoadingUpazilas = true;
-    this.api.get<LocationResponse[]>('/locations/upazilas', { districtId: this.selectedDistrictId })
-      .pipe(finalize(() => this.isLoadingUpazilas = false))
+    this.isLoadingUpazilas.set(true);
+    this.api.get<LocationResponse[]>('/locations/upazilas', { districtId: this.selectedDistrictId() })
+      .pipe(finalize(() => this.isLoadingUpazilas.set(false)))
       .subscribe({
-        next: upazilas => this.upazilas = upazilas,
-        error: error => this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load upazilas.',
+        next: upazilas => this.upazilas.set(upazilas),
+        error: error => this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load upazilas.'),
       });
   }
 
   loadUnionOrWards(): void {
-    if (!this.selectedUpazilaId) {
+    if (!this.selectedUpazilaId()) {
       return;
     }
 
-    this.isLoadingUnionOrWards = true;
-    this.api.get<LocationResponse[]>('/locations/unions-or-wards', { upazilaId: this.selectedUpazilaId })
-      .pipe(finalize(() => this.isLoadingUnionOrWards = false))
+    this.isLoadingUnionOrWards.set(true);
+    this.api.get<LocationResponse[]>('/locations/unions-or-wards', { upazilaId: this.selectedUpazilaId() })
+      .pipe(finalize(() => this.isLoadingUnionOrWards.set(false)))
       .subscribe({
-        next: unionOrWards => this.unionOrWards = unionOrWards,
-        error: error => this.locationErrorMessage = error instanceof Error ? error.message : 'Unable to load unions/wards.',
+        next: unionOrWards => this.unionOrWards.set(unionOrWards),
+        error: error => this.locationErrorMessage.set(error instanceof Error ? error.message : 'Unable to load unions/wards.'),
       });
   }
 
   loadMarkets(): void {
-    this.isLoadingMarkets = true;
+    this.isLoadingMarkets.set(true);
     this.api.get<MarketResponse[]>('/Markets', {
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId,
-      search: this.marketSearch,
+      divisionId: this.selectedDivisionId(),
+      districtId: this.selectedDistrictId(),
+      upazilaId: this.selectedUpazilaId(),
+      unionOrWardId: this.selectedUnionOrWardId(),
+      search: this.marketSearch(),
       pageNumber: 1,
       pageSize: 20,
-    }).pipe(finalize(() => this.isLoadingMarkets = false)).subscribe({
+    }).pipe(finalize(() => this.isLoadingMarkets.set(false))).subscribe({
       next: markets => {
-        this.markets = markets;
+        this.markets.set(markets);
         this.applyStoredMarketSelection();
       },
       error: error => this.priceErrorMessage = error instanceof Error ? error.message : 'Unable to load markets.',
@@ -929,7 +929,7 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   }
 
   private applyStoredMarketSelection(): void {
-    if (this.markets.length === 0) {
+    if (this.markets().length === 0) {
       return;
     }
 
@@ -943,26 +943,26 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }>>(this.marketDraftKey);
 
     if (this.resolveSelectedMarketIdFromLoadedMarkets()) {
-      this.selectedDivisionId = marketDraft?.selectedDivisionId ?? this.selectedDivisionId;
-      this.selectedDistrictId = marketDraft?.selectedDistrictId ?? this.selectedDistrictId;
-      this.selectedUpazilaId = marketDraft?.selectedUpazilaId ?? this.selectedUpazilaId;
-      this.selectedUnionOrWardId = marketDraft?.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+      this.selectedDivisionId.set(marketDraft?.selectedDivisionId ?? this.selectedDivisionId());
+      this.selectedDistrictId.set(marketDraft?.selectedDistrictId ?? this.selectedDistrictId());
+      this.selectedUpazilaId.set(marketDraft?.selectedUpazilaId ?? this.selectedUpazilaId());
+      this.selectedUnionOrWardId.set(marketDraft?.selectedUnionOrWardId ?? this.selectedUnionOrWardId());
       this.loadTodayPrices();
       this.loadPriceSummary();
       this.loadExistingPriceIfReady();
       return;
     }
 
-    if (this.selectedMarketId && this.markets.some(market => market.id === this.selectedMarketId)) {
+    if (this.selectedMarketId() && this.markets().some(market => market.id === this.selectedMarketId())) {
       return;
     }
 
-    if (marketDraft?.selectedMarketId && !this.selectedMarketId) {
-      this.selectedMarketId = marketDraft.selectedMarketId;
-      this.selectedDivisionId = marketDraft.selectedDivisionId ?? this.selectedDivisionId;
-      this.selectedDistrictId = marketDraft.selectedDistrictId ?? this.selectedDistrictId;
-      this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? this.selectedUpazilaId;
-      this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+    if (marketDraft?.selectedMarketId && !this.selectedMarketId()) {
+      this.selectedMarketId.set(marketDraft.selectedMarketId);
+      this.selectedDivisionId.set(marketDraft.selectedDivisionId ?? this.selectedDivisionId());
+      this.selectedDistrictId.set(marketDraft.selectedDistrictId ?? this.selectedDistrictId());
+      this.selectedUpazilaId.set(marketDraft.selectedUpazilaId ?? this.selectedUpazilaId());
+      this.selectedUnionOrWardId.set(marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId());
       this.loadTodayPrices();
       this.loadPriceSummary();
       this.loadExistingPriceIfReady();
@@ -974,68 +974,69 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
     }
 
     const normalizedStoredMarket = this.normalizeComparableText(marketDraft.selectedMarket);
-    const storedMarket = this.markets.find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
+    const storedMarket = this.markets().find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
 
     if (!storedMarket) {
       return;
     }
 
-    this.selectedMarketId = storedMarket.id;
-    this.selectedDivisionId = marketDraft.selectedDivisionId ?? this.selectedDivisionId;
-    this.selectedDistrictId = marketDraft.selectedDistrictId ?? this.selectedDistrictId;
-    this.selectedUpazilaId = marketDraft.selectedUpazilaId ?? this.selectedUpazilaId;
-    this.selectedUnionOrWardId = marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId;
+    this.selectedMarketId.set(storedMarket.id);
+    this.selectedDivisionId.set(marketDraft.selectedDivisionId ?? this.selectedDivisionId());
+    this.selectedDistrictId.set(marketDraft.selectedDistrictId ?? this.selectedDistrictId());
+    this.selectedUpazilaId.set(marketDraft.selectedUpazilaId ?? this.selectedUpazilaId());
+    this.selectedUnionOrWardId.set(marketDraft.selectedUnionOrWardId ?? this.selectedUnionOrWardId());
     this.loadTodayPrices();
     this.loadPriceSummary();
     this.loadExistingPriceIfReady();
   }
 
   loadCategories(): void {
-    this.isLoadingCategories = true;
+    this.isLoadingCategories.set(true);
     this.api.get<ProductCategoryResponse[]>('/product-categories')
-      .pipe(finalize(() => this.isLoadingCategories = false))
+      .pipe(finalize(() => this.isLoadingCategories.set(false)))
       .subscribe({
         next: categories => {
-          this.categories = categories;
+          this.categories.set(categories);
           const storedProduct = this.getStoredSelectedProduct();
           if (storedProduct?.categoryId) {
-            this.selectedCategoryId = storedProduct.categoryId;
-            this.selectedProductId = storedProduct.id;
+            this.selectedCategoryId.set(storedProduct.categoryId);
+            this.selectedProductId.set(storedProduct.id);
           }
-          if (!this.selectedCategoryId) {
-            this.selectedCategoryId = categories[0]?.id ?? '';
+          if (!this.selectedCategoryId()) {
+            this.selectedCategoryId.set(categories[0]?.id ?? '');
           }
           this.loadProducts();
         },
-        error: error => this.productErrorMessage = error instanceof Error ? error.message : 'Unable to load product categories.',
+        error: error => this.productErrorMessage.set(error instanceof Error ? error.message : 'Unable to load product categories.'),
       });
   }
 
   loadProducts(): void {
-    this.isLoadingProducts = true;
+    this.isLoadingProducts.set(true);
     this.api.get<ProductResponse[]>('/Products', {
-      categoryId: this.selectedCategoryId,
-      search: this.productSearch,
+      categoryId: this.selectedCategoryId(),
+      search: this.productSearch(),
       pageNumber: 1,
       pageSize: 20,
-    }).pipe(finalize(() => this.isLoadingProducts = false)).subscribe({
+    }).pipe(finalize(() => this.isLoadingProducts.set(false))).subscribe({
       next: products => {
         const storedProduct = this.getStoredSelectedProduct();
-        this.products = storedProduct && storedProduct.categoryId === this.selectedCategoryId && !products.some(product => product.id === storedProduct.id)
+        const nextProducts = storedProduct && storedProduct.categoryId === this.selectedCategoryId() && !products.some(product => product.id === storedProduct.id)
           ? [storedProduct, ...products]
           : products;
-        const selectedProduct = products.find(product => product.id === this.selectedProductId);
-        if (!selectedProduct && storedProduct?.categoryId === this.selectedCategoryId) {
-          this.selectedProductId = storedProduct.id;
+        this.products.set(nextProducts);
+        const selectedProduct = products.find(product => product.id === this.selectedProductId());
+        if (!selectedProduct && storedProduct?.categoryId === this.selectedCategoryId()) {
+          this.selectedProductId.set(storedProduct.id);
         } else if (!selectedProduct) {
-          this.selectedProductId = this.products[0]?.id ?? '';
+          this.selectedProductId.set(this.products()[0]?.id ?? '');
         }
-        const product = this.products.find(item => item.id === this.selectedProductId);
+        const product = this.products().find(item => item.id === this.selectedProductId());
         this.selectedUnit = product?.primaryUnit ?? this.selectedUnit;
         this.loadPriceSummary();
         this.loadExistingPriceIfReady();
       },
-      error: error => this.productErrorMessage = error instanceof Error ? error.message : 'Unable to load products.',
+      error: error => this.productErrorMessage.set(error instanceof Error ? error.message : 'Unable to load products.'),
     });
   }
 
@@ -1079,22 +1080,22 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   private resolveSelectedMarketIdFromLoadedMarkets(): boolean {
     const storedMarketName = this.getStoredSelectedMarketName();
 
-    if (!storedMarketName || this.markets.length === 0) {
+    if (!storedMarketName || this.markets().length === 0) {
       return false;
     }
 
     const normalizedStoredMarket = this.normalizeComparableText(storedMarketName);
-    const matchingMarket = this.markets.find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
+    const matchingMarket = this.markets().find(market => this.normalizeComparableText(market.marketName) === normalizedStoredMarket);
 
-    if (!matchingMarket || matchingMarket.id === this.selectedMarketId) {
+    if (!matchingMarket || matchingMarket.id === this.selectedMarketId()) {
       return false;
     }
 
-    this.selectedMarketId = matchingMarket.id;
-    this.selectedDivisionId = matchingMarket.divisionId || this.selectedDivisionId;
-    this.selectedDistrictId = matchingMarket.districtId || this.selectedDistrictId;
-    this.selectedUpazilaId = matchingMarket.upazilaId || this.selectedUpazilaId;
-    this.selectedUnionOrWardId = matchingMarket.unionOrWardId || this.selectedUnionOrWardId;
+    this.selectedMarketId.set(matchingMarket.id);
+    this.selectedDivisionId.set(matchingMarket.divisionId || this.selectedDivisionId());
+    this.selectedDistrictId.set(matchingMarket.districtId || this.selectedDistrictId());
+    this.selectedUpazilaId.set(matchingMarket.upazilaId || this.selectedUpazilaId());
+    this.selectedUnionOrWardId.set(matchingMarket.unionOrWardId || this.selectedUnionOrWardId());
     this.clearLoadedExistingPrice();
     this.persistDraftIfChanged(true);
 
@@ -1114,13 +1115,13 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   private loadTodayPrices(): void {
     this.isLoadingPrices = true;
     this.api.get<PriceSubmissionResponse[]>('/Prices/today', {
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId,
-      marketId: this.selectedMarketId,
-      categoryId: this.selectedCategoryId,
-      productId: this.selectedProductId,
+      divisionId: this.selectedDivisionId(),
+      districtId: this.selectedDistrictId(),
+      upazilaId: this.selectedUpazilaId(),
+      unionOrWardId: this.selectedUnionOrWardId(),
+      marketId: this.selectedMarketId(),
+      categoryId: this.selectedCategoryId(),
+      productId: this.selectedProductId(),
     }).pipe(finalize(() => this.isLoadingPrices = false)).subscribe({
       next: prices => {
         this.todayPrices = prices;
@@ -1134,13 +1135,13 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
   private loadPriceSummary(): void {
     this.isLoadingSummary = true;
     this.api.get<PriceSummaryResponse>('/Prices/summary', {
-      divisionId: this.selectedDivisionId,
-      districtId: this.selectedDistrictId,
-      upazilaId: this.selectedUpazilaId,
-      unionOrWardId: this.selectedUnionOrWardId,
-      marketId: this.selectedMarketId,
-      categoryId: this.selectedCategoryId,
-      productId: this.selectedProductId,
+      divisionId: this.selectedDivisionId(),
+      districtId: this.selectedDistrictId(),
+      upazilaId: this.selectedUpazilaId(),
+      unionOrWardId: this.selectedUnionOrWardId(),
+      marketId: this.selectedMarketId(),
+      categoryId: this.selectedCategoryId(),
+      productId: this.selectedProductId(),
     }).pipe(finalize(() => this.isLoadingSummary = false)).subscribe({
       next: summary => this.priceSummary = summary,
       error: () => this.priceSummary = undefined,
