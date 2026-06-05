@@ -17,6 +17,20 @@ public interface IPriceRepository
         SubmissionStatus? status = null,
         CancellationToken cancellationToken = default);
 
+    Task<(IReadOnlyList<PriceSubmission> Items, int TotalCount)> GetPageAsync(
+        Guid? divisionId = null,
+        Guid? districtId = null,
+        Guid? upazilaId = null,
+        Guid? unionOrWardId = null,
+        Guid? marketId = null,
+        Guid? categoryId = null,
+        Guid? productId = null,
+        DateOnly? date = null,
+        SubmissionStatus? status = null,
+        int pageNumber = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PriceSubmission>> GetPublicProductPricesAsync(
         Guid? divisionId = null,
         Guid? districtId = null,

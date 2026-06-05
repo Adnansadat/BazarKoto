@@ -35,7 +35,7 @@ public class PriceService : IPriceService
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetPricesAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
     {
-        var prices = await _priceRepository.GetAsync(
+        var (prices, totalCount) = await _priceRepository.GetPageAsync(
             divisionId: request.DivisionId,
             districtId: request.DistrictId,
             upazilaId: request.UpazilaId,
@@ -45,9 +45,11 @@ public class PriceService : IPriceService
             productId: request.ProductId,
             date: request.Date,
             status: ParseSubmissionStatus(request.Status),
+            pageNumber: request.PageNumber,
+            pageSize: request.PageSize,
             cancellationToken: cancellationToken);
 
-        return Page(prices.Select(ToResponse), request);
+        return ToPagedResponse(prices.Select(ToResponse), totalCount, request);
     }
 
     public async Task<AdminPriceListResponse> GetAdminPricesAsync(AdminPriceSearchRequest request, CancellationToken cancellationToken = default)
@@ -590,6 +592,19 @@ public class PriceService : IPriceService
             PageSize = request.PageSize,
             TotalCount = list.Count,
             TotalPages = (int)Math.Ceiling(list.Count / (double)request.PageSize)
+        };
+    }
+
+    private static PagedResponse<T> ToPagedResponse<T>(IEnumerable<T> items, int totalCount, PaginationRequest request)
+    {
+        return new PagedResponse<T>
+        {
+            Message = "Success",
+            Data = items.ToList(),
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
         };
     }
 

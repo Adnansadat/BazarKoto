@@ -27,54 +27,74 @@ public class PriceRepository : IPriceRepository
         SubmissionStatus? status = null,
         CancellationToken cancellationToken = default)
     {
-        var query = Query().AsNoTracking();
-
-        if (divisionId.HasValue)
-        {
-            query = query.Where(x => x.Market != null && x.Market.DivisionId == divisionId.Value);
-        }
-
-        if (districtId.HasValue)
-        {
-            query = query.Where(x => x.Market != null && x.Market.DistrictId == districtId.Value);
-        }
-
-        if (upazilaId.HasValue)
-        {
-            query = query.Where(x => x.Market != null && x.Market.UpazilaId == upazilaId.Value);
-        }
-
-        if (unionOrWardId.HasValue)
-        {
-            query = query.Where(x => x.Market != null && x.Market.UnionOrWardId == unionOrWardId.Value);
-        }
-
-        if (marketId.HasValue)
-        {
-            query = query.Where(x => x.MarketId == marketId.Value);
-        }
-
-        if (categoryId.HasValue)
-        {
-            query = query.Where(x => x.Product != null && x.Product.CategoryId == categoryId.Value);
-        }
-
-        if (productId.HasValue)
-        {
-            query = query.Where(x => x.ProductId == productId.Value);
-        }
-
-        if (date.HasValue)
-        {
-            query = query.Where(x => x.PriceDate == date.Value);
-        }
-
-        if (status.HasValue)
-        {
-            query = query.Where(x => x.Status == status.Value);
-        }
+        var query = ApplyFilters(
+            Query().AsNoTracking(),
+            divisionId,
+            districtId,
+            upazilaId,
+            unionOrWardId,
+            marketId,
+            categoryId,
+            productId,
+            date,
+            status);
 
         return await query.OrderByDescending(x => x.PriceDate).ThenByDescending(x => x.CreatedAt).ToListAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<PriceSubmission> Items, int TotalCount)> GetPageAsync(
+        Guid? divisionId = null,
+        Guid? districtId = null,
+        Guid? upazilaId = null,
+        Guid? unionOrWardId = null,
+        Guid? marketId = null,
+        Guid? categoryId = null,
+        Guid? productId = null,
+        DateOnly? date = null,
+        SubmissionStatus? status = null,
+        int pageNumber = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplyFilters(
+            _dbContext.PriceSubmissions.AsNoTracking(),
+            divisionId,
+            districtId,
+            upazilaId,
+            unionOrWardId,
+            marketId,
+            categoryId,
+            productId,
+            date,
+            status);
+
+        var skippedCount = (pageNumber - 1) * pageSize;
+        var pageIds = await query
+            .OrderByDescending(x => x.PriceDate)
+            .ThenByDescending(x => x.CreatedAt)
+            .Skip(skippedCount)
+            .Take(pageSize)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        var totalCount = pageIds.Count < pageSize
+            ? skippedCount + pageIds.Count
+            : await query.CountAsync(cancellationToken);
+
+        if (pageIds.Count == 0)
+        {
+            return ([], totalCount);
+        }
+
+        var orderById = pageIds.Select((id, index) => new { id, index }).ToDictionary(x => x.id, x => x.index);
+        var items = await Query()
+            .AsNoTracking()
+            .Where(x => pageIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        items = items.OrderBy(x => orderById[x.Id]).ToList();
+
+        return (items, totalCount);
     }
 
     public async Task<IReadOnlyList<PriceSubmission>> GetPublicProductPricesAsync(
@@ -280,5 +300,65 @@ public class PriceRepository : IPriceRepository
             .Include(x => x.Product)
             .ThenInclude(x => x!.Category)
             .Include(x => x.SubmittedByUser);
+    }
+
+    private static IQueryable<PriceSubmission> ApplyFilters(
+        IQueryable<PriceSubmission> query,
+        Guid? divisionId,
+        Guid? districtId,
+        Guid? upazilaId,
+        Guid? unionOrWardId,
+        Guid? marketId,
+        Guid? categoryId,
+        Guid? productId,
+        DateOnly? date,
+        SubmissionStatus? status)
+    {
+        if (divisionId.HasValue)
+        {
+            query = query.Where(x => x.Market != null && x.Market.DivisionId == divisionId.Value);
+        }
+
+        if (districtId.HasValue)
+        {
+            query = query.Where(x => x.Market != null && x.Market.DistrictId == districtId.Value);
+        }
+
+        if (upazilaId.HasValue)
+        {
+            query = query.Where(x => x.Market != null && x.Market.UpazilaId == upazilaId.Value);
+        }
+
+        if (unionOrWardId.HasValue)
+        {
+            query = query.Where(x => x.Market != null && x.Market.UnionOrWardId == unionOrWardId.Value);
+        }
+
+        if (marketId.HasValue)
+        {
+            query = query.Where(x => x.MarketId == marketId.Value);
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(x => x.Product != null && x.Product.CategoryId == categoryId.Value);
+        }
+
+        if (productId.HasValue)
+        {
+            query = query.Where(x => x.ProductId == productId.Value);
+        }
+
+        if (date.HasValue)
+        {
+            query = query.Where(x => x.PriceDate == date.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(x => x.Status == status.Value);
+        }
+
+        return query;
     }
 }
