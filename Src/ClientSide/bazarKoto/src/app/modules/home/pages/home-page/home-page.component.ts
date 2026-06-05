@@ -19,20 +19,6 @@ interface AveragePrice {
   searchable: string;
 }
 
-interface PriceSubmissionResponse {
-  marketName?: string;
-  productName?: string;
-  productNameEn?: string;
-  productNameBn?: string;
-  category?: string;
-  categoryNameEn?: string;
-  categoryNameBn?: string;
-  unit: string;
-  pricePerUnit: number;
-  priceDate: string;
-  createdAt?: string;
-}
-
 interface CategoryLink {
   titleKey: string;
   descriptionKey: string;
@@ -284,9 +270,9 @@ export class HomePageComponent implements OnInit {
     this.isLoadingPrices.set(true);
     this.priceErrorMessageKey.set('');
 
-    this.api.get<PriceSubmissionResponse[]>('/Prices', { pageSize: 100 }).subscribe({
+    this.api.get<AveragePrice[]>('/Prices/home-preview').subscribe({
       next: prices => {
-        this.averagePrices.set(this.toAveragePrices(prices));
+        this.averagePrices.set(prices);
         this.isLoadingPrices.set(false);
       },
       error: () => {
@@ -294,84 +280,5 @@ export class HomePageComponent implements OnInit {
         this.isLoadingPrices.set(false);
       },
     });
-  }
-
-  private toAveragePrices(prices: PriceSubmissionResponse[]): AveragePrice[] {
-    const groupedPrices = new Map<string, PriceSubmissionResponse[]>();
-
-    for (const price of prices) {
-      const productName = this.getStableProductName(price);
-
-      if (!productName || price.pricePerUnit <= 0) {
-        continue;
-      }
-
-      const key = `${productName}|${price.marketName ?? ''}|${price.unit}`;
-      groupedPrices.set(key, [...(groupedPrices.get(key) ?? []), price]);
-    }
-
-    return Array.from(groupedPrices.values()).map(group => {
-      const ordered = [...group].sort((first, second) => this.getPriceTime(second) - this.getPriceTime(first));
-      const latest = ordered[0];
-      const previous = ordered[1];
-      const productName = this.getStableProductName(latest);
-      const categoryName = latest.categoryNameEn || latest.category || latest.categoryNameBn || '';
-
-      return {
-        productNameEn: latest.productNameEn || latest.productName || latest.productNameBn || '',
-        productNameBn: latest.productNameBn,
-        market: latest.marketName ?? 'Bangladesh',
-        category: this.mapCategory(categoryName),
-        categoryNameEn: latest.categoryNameEn || latest.category,
-        categoryNameBn: latest.categoryNameBn,
-        unit: latest.unit,
-        average: latest.pricePerUnit,
-        change: this.calculateChange(latest, previous),
-        searchable: `${productName} ${latest.marketName ?? ''} ${categoryName} ${latest.categoryNameBn ?? ''}`,
-      };
-    });
-  }
-
-  private getPriceTime(price: PriceSubmissionResponse): number {
-    return new Date(price.createdAt || price.priceDate).getTime();
-  }
-
-  private calculateChange(latest: PriceSubmissionResponse, previous?: PriceSubmissionResponse): number {
-    if (!previous || previous.pricePerUnit === 0) {
-      return 0;
-    }
-
-    return Math.round(((latest.pricePerUnit - previous.pricePerUnit) / previous.pricePerUnit) * 100);
-  }
-
-  private getStableProductName(price: PriceSubmissionResponse): string {
-    return price.productNameEn || price.productName || price.productNameBn || '';
-  }
-
-  private mapCategory(category: string): Exclude<PriceCategory, 'all'> {
-    const normalized = category.toLowerCase();
-
-    if (
-      normalized.includes('rice') ||
-      normalized.includes('grain') ||
-      normalized.includes('staple') ||
-      normalized.includes('grocery') ||
-      normalized.includes('flour') ||
-      normalized.includes('oil')
-    ) {
-      return 'staples';
-    }
-
-    if (
-      normalized.includes('fish') ||
-      normalized.includes('meat') ||
-      normalized.includes('poultry') ||
-      normalized.includes('egg') ||
-      normalized.includes('protein')
-    ) {
-      return 'protein';
-    }
-
-    return 'vegetables';
   }
 }

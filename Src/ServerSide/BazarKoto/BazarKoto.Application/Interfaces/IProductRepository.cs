@@ -1,4 +1,5 @@
 using BazarKoto.Domain.Entities;
+using BazarKoto.Domain.Enums;
 
 namespace BazarKoto.Application.Interfaces;
 
@@ -9,6 +10,8 @@ public interface IProductRepository
     Task<int> CountAsync(Guid? categoryId = null, string? search = null, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Product>> GetOptionsAsync(Guid? categoryId = null, string? search = null, Guid? unionOrWardId = null, Guid? marketId = null, int pageNumber = 1, int pageSize = 20, CancellationToken cancellationToken = default);
     Task<int> CountOptionsAsync(Guid? categoryId = null, string? search = null, Guid? unionOrWardId = null, Guid? marketId = null, CancellationToken cancellationToken = default);
+    Task<int> CountByStatusAsync(RecordStatus status, CancellationToken cancellationToken = default);
+    Task<int> CountDistinctCategoriesAsync(RecordStatus status, CancellationToken cancellationToken = default);
     Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Product>> GetDuplicatesAsync(Guid categoryId, string slug, CancellationToken cancellationToken = default);

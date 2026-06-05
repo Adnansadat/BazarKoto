@@ -19,11 +19,7 @@ public class MarketRepository : IMarketRepository
     {
         var query = BuildQuery(divisionId, districtId, upazilaId, unionOrWardId, search);
 
-        return await query
-            .OrderBy(x => x.MarketName)
-            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
-            .Take(Math.Clamp(pageSize, 1, 100))
-            .ToListAsync(cancellationToken);
+        return await LoadPageWithLocationAsync(query, pageNumber, pageSize, cancellationToken);
     }
 
     public Task<int> CountAsync(Guid? divisionId = null, Guid? districtId = null, Guid? upazilaId = null, Guid? unionOrWardId = null, string? search = null, CancellationToken cancellationToken = default)
@@ -35,16 +31,19 @@ public class MarketRepository : IMarketRepository
     {
         var query = BuildOptionQuery(divisionId, districtId, upazilaId, unionOrWardId, search);
 
-        return await query
-            .OrderBy(x => x.MarketName)
-            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
-            .Take(Math.Clamp(pageSize, 1, 100))
-            .ToListAsync(cancellationToken);
+        return await LoadPageWithLocationAsync(query, pageNumber, pageSize, cancellationToken);
     }
 
     public Task<int> CountOptionsAsync(Guid? divisionId = null, Guid? districtId = null, Guid? upazilaId = null, Guid? unionOrWardId = null, string? search = null, CancellationToken cancellationToken = default)
     {
         return BuildOptionQuery(divisionId, districtId, upazilaId, unionOrWardId, search).CountAsync(cancellationToken);
+    }
+
+    public Task<int> CountByStatusAsync(RecordStatus status, CancellationToken cancellationToken = default)
+    {
+        return BaseQuery()
+            .Where(x => x.Status == status)
+            .CountAsync(cancellationToken);
     }
 
     public async Task<bool> ExistsAsync(Guid divisionId, Guid districtId, Guid upazilaId, Guid? unionOrWardId, string area, string marketName, CancellationToken cancellationToken = default)
@@ -71,6 +70,18 @@ public class MarketRepository : IMarketRepository
     public async Task<IReadOnlyList<Market>> GetPendingAsync(CancellationToken cancellationToken = default)
     {
         return await Query().AsNoTracking().Where(x => x.Status == RecordStatus.Pending).ToListAsync(cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<Market> Items, int TotalCount)> GetPendingPageAsync(
+        int pageNumber = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var query = BaseQuery().Where(x => x.Status == RecordStatus.Pending);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await LoadPageWithLocationAsync(query, pageNumber, pageSize, cancellationToken);
+
+        return (items, totalCount);
     }
 
     public Task<Market?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -104,16 +115,52 @@ public class MarketRepository : IMarketRepository
 
     private IQueryable<Market> BuildQuery(Guid? divisionId, Guid? districtId, Guid? upazilaId, Guid? unionOrWardId, string? search)
     {
-        var query = Query().AsNoTracking().Where(x => x.Status == RecordStatus.Approved);
+        var query = BaseQuery().Where(x => x.Status == RecordStatus.Approved);
 
         return ApplySearchAndLocationFilters(query, divisionId, districtId, upazilaId, unionOrWardId, search);
     }
 
     private IQueryable<Market> BuildOptionQuery(Guid? divisionId, Guid? districtId, Guid? upazilaId, Guid? unionOrWardId, string? search)
     {
-        var query = Query().AsNoTracking().Where(x => x.Status == RecordStatus.Approved || x.Status == RecordStatus.Pending);
+        var query = BaseQuery().Where(x => x.Status == RecordStatus.Approved || x.Status == RecordStatus.Pending);
 
         return ApplySearchAndLocationFilters(query, divisionId, districtId, upazilaId, unionOrWardId, search);
+    }
+
+    private IQueryable<Market> BaseQuery()
+    {
+        return _dbContext.Markets.AsNoTracking();
+    }
+
+    private async Task<IReadOnlyList<Market>> LoadPageWithLocationAsync(IQueryable<Market> query, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var normalizedPageNumber = Math.Max(pageNumber, 1);
+        var normalizedPageSize = Math.Clamp(pageSize, 1, 100);
+
+        var pageIds = await query
+            .OrderBy(x => x.MarketName)
+            .Skip((normalizedPageNumber - 1) * normalizedPageSize)
+            .Take(normalizedPageSize)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        if (pageIds.Count == 0)
+        {
+            return [];
+        }
+
+        var orderById = pageIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        var markets = await Query()
+            .AsNoTracking()
+            .Where(x => pageIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        return markets
+            .OrderBy(x => orderById[x.Id])
+            .ToList();
     }
 
     private static IQueryable<Market> ApplySearchAndLocationFilters(IQueryable<Market> query, Guid? divisionId, Guid? districtId, Guid? upazilaId, Guid? unionOrWardId, string? search)

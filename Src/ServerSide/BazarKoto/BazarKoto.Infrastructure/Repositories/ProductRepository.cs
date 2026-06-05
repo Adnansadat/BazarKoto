@@ -28,11 +28,7 @@ public class ProductRepository : IProductRepository
     {
         var query = BuildQuery(categoryId, search);
 
-        return await query
-            .OrderBy(x => x.NameEn)
-            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
-            .Take(Math.Clamp(pageSize, 1, 100))
-            .ToListAsync(cancellationToken);
+        return await LoadPageWithCategoryAsync(query, pageNumber, pageSize, cancellationToken);
     }
 
     public Task<int> CountAsync(Guid? categoryId = null, string? search = null, CancellationToken cancellationToken = default)
@@ -44,16 +40,30 @@ public class ProductRepository : IProductRepository
     {
         var query = BuildOptionQuery(categoryId, search, unionOrWardId, marketId);
 
-        return await query
-            .OrderBy(x => x.NameEn)
-            .Skip((Math.Max(pageNumber, 1) - 1) * Math.Clamp(pageSize, 1, 100))
-            .Take(Math.Clamp(pageSize, 1, 100))
-            .ToListAsync(cancellationToken);
+        return await LoadPageWithCategoryAsync(query, pageNumber, pageSize, cancellationToken);
     }
 
     public Task<int> CountOptionsAsync(Guid? categoryId = null, string? search = null, Guid? unionOrWardId = null, Guid? marketId = null, CancellationToken cancellationToken = default)
     {
         return BuildOptionQuery(categoryId, search, unionOrWardId, marketId).CountAsync(cancellationToken);
+    }
+
+    public Task<int> CountByStatusAsync(RecordStatus status, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Products
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.Status == status)
+            .CountAsync(cancellationToken);
+    }
+
+    public Task<int> CountDistinctCategoriesAsync(RecordStatus status, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Products
+            .AsNoTracking()
+            .Where(x => x.IsActive && x.Status == status)
+            .Select(x => x.CategoryId)
+            .Distinct()
+            .CountAsync(cancellationToken);
     }
 
     public Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -67,7 +77,6 @@ public class ProductRepository : IProductRepository
     {
         var query = _dbContext.Products
             .AsNoTracking()
-            .Include(x => x.Category)
             .Where(x => x.IsActive && x.Status == RecordStatus.Approved)
             .AsQueryable();
 
@@ -78,7 +87,6 @@ public class ProductRepository : IProductRepository
     {
         var query = _dbContext.Products
             .AsNoTracking()
-            .Include(x => x.Category)
             .Where(x => x.IsActive && (x.Status == RecordStatus.Approved || x.Status == RecordStatus.Pending))
             .AsQueryable();
 
@@ -99,6 +107,38 @@ public class ProductRepository : IProductRepository
         }
 
         return ApplyCategoryAndSearchFilters(query, categoryId, search);
+    }
+
+    private async Task<IReadOnlyList<Product>> LoadPageWithCategoryAsync(IQueryable<Product> query, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var normalizedPageNumber = Math.Max(pageNumber, 1);
+        var normalizedPageSize = Math.Clamp(pageSize, 1, 100);
+
+        var pageIds = await query
+            .OrderBy(x => x.NameEn)
+            .Skip((normalizedPageNumber - 1) * normalizedPageSize)
+            .Take(normalizedPageSize)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        if (pageIds.Count == 0)
+        {
+            return [];
+        }
+
+        var orderById = pageIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        var products = await _dbContext.Products
+            .AsNoTracking()
+            .Include(x => x.Category)
+            .Where(x => pageIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        return products
+            .OrderBy(x => orderById[x.Id])
+            .ToList();
     }
 
     private static IQueryable<Product> ApplyCategoryAndSearchFilters(IQueryable<Product> query, Guid? categoryId, string? search)

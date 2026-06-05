@@ -1,4 +1,5 @@
 using BazarKoto.Application.Interfaces;
+using BazarKoto.Contracts.Analytics;
 using BazarKoto.Domain.Entities;
 using BazarKoto.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,21 @@ public class AnalyticsRepository : IAnalyticsRepository
             .AsNoTracking()
             .OrderByDescending(x => x.VisitedAt)
             .Take(500)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<PeakHourResponse>> GetPeakHoursAsync(CancellationToken cancellationToken = default)
+    {
+        return await TrackablePageVisits()
+            .AsNoTracking()
+            .GroupBy(x => x.VisitedAt.Hour)
+            .Select(x => new PeakHourResponse
+            {
+                Hour = x.Key,
+                VisitCount = x.Count()
+            })
+            .OrderByDescending(x => x.VisitCount)
+            .ThenBy(x => x.Hour)
             .ToListAsync(cancellationToken);
     }
 

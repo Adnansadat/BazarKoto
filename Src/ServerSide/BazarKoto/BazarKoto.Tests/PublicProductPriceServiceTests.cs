@@ -29,7 +29,7 @@ public class PublicProductPriceServiceTests
         response.Data.Should().BeEmpty();
         response.TotalCount.Should().Be(0);
         response.Message.Should().Contain("Select a Union/Ward or Market");
-        _priceRepository.Verify(x => x.GetPublicProductPricesAsync(
+        _priceRepository.Verify(x => x.GetPublicProductPricesPageAsync(
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
@@ -39,6 +39,8 @@ public class PublicProductPriceServiceTests
             It.IsAny<Guid?>(),
             It.IsAny<DateOnly?>(),
             It.IsAny<string?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -48,8 +50,8 @@ public class PublicProductPriceServiceTests
         var unionOrWardId = Guid.NewGuid();
         var otherUnionOrWardId = Guid.NewGuid();
         var scopedPrice = CreatePrice(unionOrWardId: unionOrWardId);
-        _priceRepository.Setup(x => x.GetPublicProductPricesAsync(null, null, null, unionOrWardId, null, null, null, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([scopedPrice]);
+        _priceRepository.Setup(x => x.GetPublicProductPricesPageAsync(null, null, null, unionOrWardId, null, null, null, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(([scopedPrice], 1));
 
         var service = CreateService();
 
@@ -67,8 +69,8 @@ public class PublicProductPriceServiceTests
         var unionOrWardId = Guid.NewGuid();
         _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Market { Id = marketId, UnionOrWardId = unionOrWardId });
-        _priceRepository.Setup(x => x.GetPublicProductPricesAsync(null, null, null, null, marketId, null, null, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([CreatePrice(marketId: marketId, unionOrWardId: unionOrWardId, marketName: "Bou Bazar")]);
+        _priceRepository.Setup(x => x.GetPublicProductPricesPageAsync(null, null, null, null, marketId, null, null, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(([CreatePrice(marketId: marketId, unionOrWardId: unionOrWardId, marketName: "Bou Bazar")], 1));
 
         var service = CreateService();
 
@@ -84,8 +86,8 @@ public class PublicProductPriceServiceTests
     {
         var unionOrWardId = Guid.NewGuid();
         var productId = Guid.NewGuid();
-        _priceRepository.Setup(x => x.GetPublicProductPricesAsync(null, null, null, unionOrWardId, null, null, productId, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([CreatePrice(productId: productId, unionOrWardId: unionOrWardId)]);
+        _priceRepository.Setup(x => x.GetPublicProductPricesPageAsync(null, null, null, unionOrWardId, null, null, productId, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(([CreatePrice(productId: productId, unionOrWardId: unionOrWardId)], 1));
 
         var service = CreateService();
 
@@ -107,8 +109,8 @@ public class PublicProductPriceServiceTests
         var productId = Guid.NewGuid();
         _marketRepository.Setup(x => x.GetByIdAsync(marketId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Market { Id = marketId, UnionOrWardId = Guid.NewGuid() });
-        _priceRepository.Setup(x => x.GetPublicProductPricesAsync(null, null, null, null, marketId, null, productId, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([CreatePrice(productId: productId, marketId: marketId)]);
+        _priceRepository.Setup(x => x.GetPublicProductPricesPageAsync(null, null, null, null, marketId, null, productId, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(([CreatePrice(productId: productId, marketId: marketId)], 1));
 
         var service = CreateService();
 
@@ -130,8 +132,8 @@ public class PublicProductPriceServiceTests
         var otherMarketId = Guid.NewGuid();
         _marketRepository.Setup(x => x.GetByIdAsync(selectedMarketId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Market { Id = selectedMarketId, MarketName = "Bou Bazar", UnionOrWardId = Guid.NewGuid() });
-        _priceRepository.Setup(x => x.GetPublicProductPricesAsync(null, null, null, null, selectedMarketId, null, null, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([CreatePrice(marketId: selectedMarketId, marketName: "Bou Bazar")]);
+        _priceRepository.Setup(x => x.GetPublicProductPricesPageAsync(null, null, null, null, selectedMarketId, null, null, null, null, 1, 20, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(([CreatePrice(marketId: selectedMarketId, marketName: "Bou Bazar")], 1));
 
         var service = CreateService();
 
@@ -161,7 +163,7 @@ public class PublicProductPriceServiceTests
 
         response.Data.Should().BeEmpty();
         response.Message.Should().Contain("does not match");
-        _priceRepository.Verify(x => x.GetPublicProductPricesAsync(
+        _priceRepository.Verify(x => x.GetPublicProductPricesPageAsync(
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
             It.IsAny<Guid?>(),
@@ -171,6 +173,8 @@ public class PublicProductPriceServiceTests
             It.IsAny<Guid?>(),
             It.IsAny<DateOnly?>(),
             It.IsAny<string?>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 

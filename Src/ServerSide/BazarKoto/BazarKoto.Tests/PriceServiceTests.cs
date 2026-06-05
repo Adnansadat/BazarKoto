@@ -1,6 +1,7 @@
 using BazarKoto.Application.Interfaces;
 using BazarKoto.Application.Services;
 using BazarKoto.Contracts.Admin;
+using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Prices;
 using BazarKoto.Contracts.UserTracking;
 using BazarKoto.Domain.Entities;
@@ -284,6 +285,36 @@ public class PriceServiceTests
     }
 
     [Fact]
+    public async Task GetPendingPricesAsync_UsesPagedRepositoryResult()
+    {
+        var prices = new[]
+        {
+            CreatePendingPrice("Onion"),
+            CreatePendingPrice("Potato")
+        };
+
+        _priceRepository.Setup(x => x.GetPendingPageAsync(2, 2, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((prices, 5));
+
+        var service = CreateService();
+
+        var response = await service.GetPendingPricesAsync(new PaginationRequest
+        {
+            PageNumber = 2,
+            PageSize = 2
+        });
+
+        response.Data.Should().HaveCount(2);
+        response.PageNumber.Should().Be(2);
+        response.PageSize.Should().Be(2);
+        response.TotalCount.Should().Be(5);
+        response.TotalPages.Should().Be(3);
+        response.Data.Select(x => x.ProductNameEn).Should().Equal("Onion", "Potato");
+        _priceRepository.Verify(x => x.GetPendingPageAsync(2, 2, It.IsAny<CancellationToken>()), Times.Once);
+        _priceRepository.Verify(x => x.GetPendingAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task UpdateAdminPriceAsync_WithValidRequest_UpdatesEditableFields()
     {
         var priceId = Guid.NewGuid();
@@ -481,5 +512,44 @@ public class PriceServiceTests
             _priceSummaryService.Object,
             _userTrackingService.Object,
             _unitOfWork.Object);
+    }
+
+    private static PriceSubmission CreatePendingPrice(string productName)
+    {
+        var productId = Guid.NewGuid();
+        var categoryId = Guid.NewGuid();
+        var marketId = Guid.NewGuid();
+
+        return new PriceSubmission
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productId,
+            Product = new Product
+            {
+                Id = productId,
+                NameEn = productName,
+                NameBn = productName,
+                CategoryId = categoryId,
+                Category = new ProductCategory
+                {
+                    Id = categoryId,
+                    NameEn = "Vegetables",
+                    NameBn = "Vegetables"
+                }
+            },
+            MarketId = marketId,
+            Market = new Market
+            {
+                Id = marketId,
+                MarketName = "Test Market"
+            },
+            Unit = "kg",
+            PricePerUnit = 50m,
+            PriceDate = new DateOnly(2026, 6, 5),
+            SellerType = SellerType.Retail,
+            PriceSource = PriceSource.UserReported,
+            QualityGrade = QualityGrade.Standard,
+            Status = SubmissionStatus.Pending
+        };
     }
 }

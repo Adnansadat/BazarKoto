@@ -78,8 +78,8 @@ public class MarketService : IMarketService
 
     public async Task<PagedResponse<MarketResponse>> GetPendingMarketsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
     {
-        var markets = await _marketRepository.GetPendingAsync(cancellationToken);
-        return Page(markets.Select(ToResponse), request);
+        var (markets, totalCount) = await _marketRepository.GetPendingPageAsync(request.PageNumber, request.PageSize, cancellationToken);
+        return Page(markets.Select(ToResponse), request, totalCount);
     }
 
     public Task<ApiResponse<MarketResponse>> UpdateMarketAsync(Guid id, UpdateMarketRequest request, CancellationToken cancellationToken = default)

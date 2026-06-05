@@ -1153,6 +1153,8 @@ export class PricesPageComponent implements AfterViewInit, AfterViewChecked, OnI
       marketId: this.selectedMarketId(),
       categoryId: this.selectedCategoryId(),
       productId: this.selectedProductId(),
+      pageNumber: 1,
+      pageSize: 20,
     }).pipe(finalize(() => this.isLoadingPrices.set(false))).subscribe({
       next: prices => {
         this.todayPrices.set(prices);

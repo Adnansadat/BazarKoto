@@ -64,13 +64,7 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<ApiResponse<IReadOnlyList<PeakHourResponse>>> GetPeakHoursAsync(CancellationToken cancellationToken = default)
     {
-        var visits = await _analyticsRepository.GetRecentVisitsAsync(cancellationToken);
-        var peakHours = visits
-            .GroupBy(x => x.VisitedAt.Hour)
-            .Select(x => new PeakHourResponse { Hour = x.Key, VisitCount = x.Count() })
-            .OrderByDescending(x => x.VisitCount)
-            .ThenBy(x => x.Hour)
-            .ToList();
+        var peakHours = await _analyticsRepository.GetPeakHoursAsync(cancellationToken);
 
         return ApiResponse<IReadOnlyList<PeakHourResponse>>.Ok(peakHours);
     }

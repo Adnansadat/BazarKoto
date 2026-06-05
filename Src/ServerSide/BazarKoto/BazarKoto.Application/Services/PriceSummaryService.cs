@@ -1,4 +1,5 @@
 using BazarKoto.Application.Interfaces;
+using BazarKoto.Application.Features.Prices;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Prices;
 using BazarKoto.Domain.Entities;
@@ -24,56 +25,43 @@ public class PriceSummaryService : IPriceSummaryService
 
     public async Task RecalculateDailySummaryAsync(DateOnly date, CancellationToken cancellationToken = default)
     {
-        var approvedPrices = await _priceRepository.GetAsync(
-            date: date,
-            status: SubmissionStatus.Approved,
-            cancellationToken: cancellationToken);
+        var summaries = await _priceRepository.GetDailySummaryAggregatesAsync(
+            date,
+            SubmissionStatus.Approved,
+            cancellationToken);
 
-        var groupedPrices = approvedPrices
-            .Where(x => x.Market is not null)
-            .GroupBy(x => new
-            {
-                x.ProductId,
-                x.MarketId,
-                x.Market!.DivisionId,
-                x.Market.DistrictId,
-                x.Market.UpazilaId,
-                x.Market.UnionOrWardId,
-                x.PriceDate
-            });
-
-        foreach (var group in groupedPrices)
+        foreach (var calculatedSummary in summaries)
         {
             var summary = await _priceSummaryRepository.GetForUpsertAsync(
-                group.Key.ProductId,
-                group.Key.MarketId,
-                group.Key.DivisionId,
-                group.Key.DistrictId,
-                group.Key.UpazilaId,
-                group.Key.UnionOrWardId,
-                group.Key.PriceDate,
+                calculatedSummary.ProductId,
+                calculatedSummary.MarketId,
+                calculatedSummary.DivisionId,
+                calculatedSummary.DistrictId,
+                calculatedSummary.UpazilaId,
+                calculatedSummary.UnionOrWardId,
+                calculatedSummary.PriceDate,
                 cancellationToken);
 
             if (summary is null)
             {
                 summary = new DailyPriceSummary
                 {
-                    ProductId = group.Key.ProductId,
-                    MarketId = group.Key.MarketId,
-                    DivisionId = group.Key.DivisionId,
-                    DistrictId = group.Key.DistrictId,
-                    UpazilaId = group.Key.UpazilaId,
-                    UnionOrWardId = group.Key.UnionOrWardId,
-                    PriceDate = group.Key.PriceDate
+                    ProductId = calculatedSummary.ProductId,
+                    MarketId = calculatedSummary.MarketId,
+                    DivisionId = calculatedSummary.DivisionId,
+                    DistrictId = calculatedSummary.DistrictId,
+                    UpazilaId = calculatedSummary.UpazilaId,
+                    UnionOrWardId = calculatedSummary.UnionOrWardId,
+                    PriceDate = calculatedSummary.PriceDate
                 };
 
                 await _priceSummaryRepository.AddAsync(summary, cancellationToken);
             }
 
-            summary.MinPrice = group.Min(x => x.PricePerUnit);
-            summary.MaxPrice = group.Max(x => x.PricePerUnit);
-            summary.AveragePrice = group.Average(x => x.PricePerUnit);
-            summary.SubmissionCount = group.Count();
+            summary.MinPrice = calculatedSummary.MinPrice;
+            summary.MaxPrice = calculatedSummary.MaxPrice;
+            summary.AveragePrice = calculatedSummary.AveragePrice;
+            summary.SubmissionCount = calculatedSummary.SubmissionCount;
             summary.LastUpdatedAt = DateTime.UtcNow;
         }
 
@@ -82,50 +70,54 @@ public class PriceSummaryService : IPriceSummaryService
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetPriceSummariesAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
     {
-        var summaries = await GetSummariesAsync(request, request.Date, cancellationToken);
-        return Page(summaries.Select(ToPriceResponse), request);
+        var (summaries, totalCount) = await GetSummariesPageAsync(request, request.Date, cancellationToken);
+        return ToPagedResponse(summaries.Select(ToPriceResponse), totalCount, request);
     }
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetTodaySummaryAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var summaries = await GetSummariesAsync(request, today, cancellationToken);
-        return Page(summaries.Select(ToPriceResponse), request);
+        var (summaries, totalCount) = await GetSummariesPageAsync(request, today, cancellationToken);
+        return ToPagedResponse(summaries.Select(ToPriceResponse), totalCount, request);
     }
 
     public async Task<ApiResponse<PriceSummaryResponse>> GetSummaryAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
     {
-        var summaries = await GetSummariesAsync(request, request.Date, cancellationToken);
-        var first = summaries.FirstOrDefault();
+        var summary = await GetSummaryAggregateAsync(request, request.Date, cancellationToken);
 
-        if (first is null)
+        if (summary is null)
         {
             return ApiResponse<PriceSummaryResponse>.Ok(new PriceSummaryResponse(), "No price summary found.");
         }
 
-        var submissionCount = summaries.Sum(x => x.SubmissionCount);
-        var weightedTotal = summaries.Sum(x => x.AveragePrice * x.SubmissionCount);
-
-        return ApiResponse<PriceSummaryResponse>.Ok(new PriceSummaryResponse
-        {
-            ProductId = first.ProductId,
-            ProductName = first.Product?.NameEn ?? string.Empty,
-            Unit = first.Product?.PrimaryUnit ?? string.Empty,
-            MinimumPrice = summaries.Min(x => x.MinPrice),
-            MaximumPrice = summaries.Max(x => x.MaxPrice),
-            AveragePrice = submissionCount == 0 ? 0 : weightedTotal / submissionCount,
-            SubmissionCount = submissionCount,
-            FromDate = summaries.Min(x => x.PriceDate),
-            ToDate = summaries.Max(x => x.PriceDate)
-        });
+        return ApiResponse<PriceSummaryResponse>.Ok(ToSummaryResponse(summary));
     }
 
-    private Task<IReadOnlyList<DailyPriceSummary>> GetSummariesAsync(
+    private Task<(IReadOnlyList<DailyPriceSummary> Items, int TotalCount)> GetSummariesPageAsync(
         PriceSearchRequest request,
         DateOnly? date,
         CancellationToken cancellationToken)
     {
-        return _priceSummaryRepository.GetAsync(
+        return _priceSummaryRepository.GetPageAsync(
+            request.DivisionId,
+            request.DistrictId,
+            request.UpazilaId,
+            request.UnionOrWardId,
+            request.MarketId,
+            request.CategoryId,
+            request.ProductId,
+            date,
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private Task<PriceSummaryAggregate?> GetSummaryAggregateAsync(
+        PriceSearchRequest request,
+        DateOnly? date,
+        CancellationToken cancellationToken)
+    {
+        return _priceSummaryRepository.GetAggregateAsync(
             request.DivisionId,
             request.DistrictId,
             request.UpazilaId,
@@ -176,6 +168,35 @@ public class PriceSummaryService : IPriceSummaryService
             PageSize = request.PageSize,
             TotalCount = list.Count,
             TotalPages = (int)Math.Ceiling(list.Count / (double)request.PageSize)
+        };
+    }
+
+    private static PagedResponse<T> ToPagedResponse<T>(IEnumerable<T> items, int totalCount, PaginationRequest request)
+    {
+        return new PagedResponse<T>
+        {
+            Message = "Success",
+            Data = items.ToList(),
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
+        };
+    }
+
+    private static PriceSummaryResponse ToSummaryResponse(PriceSummaryAggregate summary)
+    {
+        return new PriceSummaryResponse
+        {
+            ProductId = summary.ProductId,
+            ProductName = summary.ProductName,
+            Unit = summary.Unit,
+            MinimumPrice = summary.MinimumPrice,
+            MaximumPrice = summary.MaximumPrice,
+            AveragePrice = summary.SubmissionCount == 0 ? 0 : summary.WeightedPriceTotal / summary.SubmissionCount,
+            SubmissionCount = summary.SubmissionCount,
+            FromDate = summary.FromDate,
+            ToDate = summary.ToDate
         };
     }
 }

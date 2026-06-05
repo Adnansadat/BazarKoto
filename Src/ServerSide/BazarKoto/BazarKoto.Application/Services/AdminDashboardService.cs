@@ -2,6 +2,7 @@ using BazarKoto.Application.Interfaces;
 using BazarKoto.Contracts.Analytics;
 using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Common;
+using BazarKoto.Domain.Enums;
 
 namespace BazarKoto.Application.Services;
 
@@ -56,15 +57,18 @@ public class AdminDashboardService : IAdminDashboardService
 
     private async Task<AdminDashboardResponse> BuildDashboardAsync(CancellationToken cancellationToken)
     {
-        var markets = await _marketRepository.GetAsync(cancellationToken: cancellationToken);
-        var products = await _productRepository.GetAsync(cancellationToken: cancellationToken);
-        var prices = await _priceRepository.GetAsync(cancellationToken: cancellationToken);
-        var pendingMarkets = await _marketRepository.GetPendingAsync(cancellationToken);
-        var pendingPrices = await _priceRepository.GetPendingAsync(cancellationToken);
-        var visits = await _analyticsRepository.GetRecentVisitsAsync(cancellationToken);
         var today = GetBangladeshDayStartUtc(DateTime.UtcNow);
+        var totalMarkets = await _marketRepository.CountAsync(cancellationToken: cancellationToken);
+        var totalProducts = await _productRepository.CountAsync(cancellationToken: cancellationToken);
+        var totalCategories = await _productRepository.CountDistinctCategoriesAsync(RecordStatus.Approved, cancellationToken);
+        var totalPriceSubmissions = await _priceRepository.CountAsync(cancellationToken: cancellationToken);
+        var pendingMarkets = await _marketRepository.CountByStatusAsync(RecordStatus.Pending, cancellationToken);
+        var pendingProducts = await _productRepository.CountByStatusAsync(RecordStatus.Pending, cancellationToken);
+        var pendingPrices = await _priceRepository.CountAsync(SubmissionStatus.Pending, cancellationToken);
+        var flaggedPrices = await _priceRepository.CountAsync(SubmissionStatus.Flagged, cancellationToken);
         var newContactMessages = await _contactRepository.CountAsync(status: "New", cancellationToken: cancellationToken);
         var inProgressContactMessages = await _contactRepository.CountAsync(status: "InProgress", cancellationToken: cancellationToken);
+        var peakHours = await _analyticsRepository.GetPeakHoursAsync(cancellationToken);
 
         return new AdminDashboardResponse
         {
@@ -79,26 +83,21 @@ public class AdminDashboardService : IAdminDashboardService
             },
             Records = new AdminMetricResponse
             {
-                TotalMarkets = markets.Count,
-                TotalProducts = products.Count,
-                TotalCategories = products.Select(x => x.CategoryId).Distinct().Count(),
-                TotalPriceSubmissions = prices.Count,
+                TotalMarkets = totalMarkets,
+                TotalProducts = totalProducts,
+                TotalCategories = totalCategories,
+                TotalPriceSubmissions = totalPriceSubmissions,
                 TotalContributors = 0
             },
             Moderation = new ModerationQueueResponse
             {
-                PendingMarkets = pendingMarkets.Count,
-                PendingProducts = products.Count(x => x.Status.ToString() == "Pending"),
-                PendingPriceSubmissions = pendingPrices.Count,
-                FlaggedPriceSubmissions = prices.Count(x => x.Status.ToString() == "Flagged"),
+                PendingMarkets = pendingMarkets,
+                PendingProducts = pendingProducts,
+                PendingPriceSubmissions = pendingPrices,
+                FlaggedPriceSubmissions = flaggedPrices,
                 PendingContactMessages = newContactMessages + inProgressContactMessages
             },
-            PeakHours = visits
-                .GroupBy(x => x.VisitedAt.Hour)
-                .Select(x => new PeakHourResponse { Hour = x.Key, VisitCount = x.Count() })
-                .OrderByDescending(x => x.VisitCount)
-                .ThenBy(x => x.Hour)
-                .ToList()
+            PeakHours = peakHours.ToList()
         };
     }
 

@@ -1,3 +1,4 @@
+using BazarKoto.Contracts.Analytics;
 using BazarKoto.Domain.Entities;
 
 namespace BazarKoto.Application.Interfaces;
@@ -10,4 +11,5 @@ public interface IAnalyticsRepository
     Task<int> GetUniqueVisitorsAsync(CancellationToken cancellationToken = default);
     Task<int> GetUniqueVisitorsSinceAsync(DateTime sinceUtc, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<PageVisit>> GetRecentVisitsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PeakHourResponse>> GetPeakHoursAsync(CancellationToken cancellationToken = default);
 }

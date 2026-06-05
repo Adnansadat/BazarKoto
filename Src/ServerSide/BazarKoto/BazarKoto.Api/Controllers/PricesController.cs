@@ -27,6 +27,12 @@ public class PricesController : ControllerBase
         return Ok(await _priceService.GetLatestPriceAsync(request, cancellationToken));
     }
 
+    [HttpGet("home-preview")]
+    public async Task<IActionResult> GetHomePricePreview(CancellationToken cancellationToken)
+    {
+        return Ok(await _priceService.GetHomePricePreviewAsync(cancellationToken));
+    }
+
     [HttpPost]
     public async Task<IActionResult> SubmitPrice(SubmitPriceRequest request, CancellationToken cancellationToken)
     {

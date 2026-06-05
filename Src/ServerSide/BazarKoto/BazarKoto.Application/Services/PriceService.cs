@@ -1,4 +1,5 @@
 using BazarKoto.Application.Interfaces;
+using BazarKoto.Application.Features.Prices;
 using BazarKoto.Contracts.Admin;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Contracts.Prices;
@@ -195,7 +196,7 @@ public class PriceService : IPriceService
             }
         }
 
-        var prices = await _priceRepository.GetPublicProductPricesAsync(
+        var (prices, totalCount) = await _priceRepository.GetPublicProductPricesPageAsync(
             divisionId: request.DivisionId,
             districtId: request.DistrictId,
             upazilaId: request.UpazilaId,
@@ -205,9 +206,11 @@ public class PriceService : IPriceService
             productId: request.ProductId,
             date: request.Date,
             search: request.Search,
+            pageNumber: request.PageNumber,
+            pageSize: request.PageSize,
             cancellationToken: cancellationToken);
 
-        return Page(prices.Select(ToPublicResponse), request);
+        return ToPagedResponse(prices.Select(ToPublicResponse), totalCount, request);
     }
 
     public async Task<ApiResponse<PriceSubmissionResponse>> GetLatestPriceAsync(PriceSearchRequest request, CancellationToken cancellationToken = default)
@@ -230,6 +233,14 @@ public class PriceService : IPriceService
         }
 
         return ApiResponse<PriceSubmissionResponse>.Ok(ToResponse(latestPrice), "Latest price loaded successfully.");
+    }
+
+    public async Task<ApiResponse<IReadOnlyList<HomePricePreviewResponse>>> GetHomePricePreviewAsync(CancellationToken cancellationToken = default)
+    {
+        var prices = await _priceRepository.GetHomePricePreviewAsync(cancellationToken: cancellationToken);
+
+        return ApiResponse<IReadOnlyList<HomePricePreviewResponse>>.Ok(
+            prices.Select(ToHomePricePreviewResponse).ToList());
     }
 
     public async Task<ApiResponse<PriceSubmissionResponse>> SubmitPriceAsync(SubmitPriceRequest request, CancellationToken cancellationToken = default)
@@ -356,8 +367,12 @@ public class PriceService : IPriceService
 
     public async Task<PagedResponse<PriceSubmissionResponse>> GetPendingPricesAsync(PaginationRequest request, CancellationToken cancellationToken = default)
     {
-        var prices = await _priceRepository.GetPendingAsync(cancellationToken);
-        return Page(prices.Select(ToResponse), request);
+        var (prices, totalCount) = await _priceRepository.GetPendingPageAsync(
+            pageNumber: request.PageNumber,
+            pageSize: request.PageSize,
+            cancellationToken: cancellationToken);
+
+        return ToPagedResponse(prices.Select(ToResponse), totalCount, request);
     }
 
     public Task<ApiResponse<PriceSubmissionResponse>> ApprovePriceAsync(Guid id, CancellationToken cancellationToken = default)
@@ -489,6 +504,62 @@ public class PriceService : IPriceService
             Source = price.PriceSource.ToString(),
             UpdatedAt = price.UpdatedAt
         };
+    }
+
+    private static HomePricePreviewResponse ToHomePricePreviewResponse(HomePricePreviewItem price)
+    {
+        var productName = string.IsNullOrWhiteSpace(price.ProductNameEn) ? price.ProductNameBn : price.ProductNameEn;
+        var categoryName = string.IsNullOrWhiteSpace(price.CategoryNameEn) ? price.CategoryNameBn : price.CategoryNameEn;
+
+        return new HomePricePreviewResponse
+        {
+            ProductNameEn = price.ProductNameEn,
+            ProductNameBn = string.IsNullOrWhiteSpace(price.ProductNameBn) ? null : price.ProductNameBn,
+            Market = string.IsNullOrWhiteSpace(price.MarketName) ? "Bangladesh" : price.MarketName,
+            Category = MapHomeCategory(categoryName),
+            CategoryNameEn = string.IsNullOrWhiteSpace(price.CategoryNameEn) ? null : price.CategoryNameEn,
+            CategoryNameBn = string.IsNullOrWhiteSpace(price.CategoryNameBn) ? null : price.CategoryNameBn,
+            Unit = price.Unit,
+            Average = price.PricePerUnit,
+            Change = CalculateHomePriceChange(price.PricePerUnit, price.PreviousPricePerUnit),
+            Searchable = $"{productName} {price.MarketName} {categoryName} {price.CategoryNameBn}".Trim()
+        };
+    }
+
+    private static int CalculateHomePriceChange(decimal latestPrice, decimal? previousPrice)
+    {
+        if (!previousPrice.HasValue || previousPrice.Value == 0)
+        {
+            return 0;
+        }
+
+        return (int)Math.Round(((latestPrice - previousPrice.Value) / previousPrice.Value) * 100, MidpointRounding.AwayFromZero);
+    }
+
+    private static string MapHomeCategory(string category)
+    {
+        var normalized = category.ToLowerInvariant();
+
+        if (normalized.Contains("rice") ||
+            normalized.Contains("grain") ||
+            normalized.Contains("staple") ||
+            normalized.Contains("grocery") ||
+            normalized.Contains("flour") ||
+            normalized.Contains("oil"))
+        {
+            return "staples";
+        }
+
+        if (normalized.Contains("fish") ||
+            normalized.Contains("meat") ||
+            normalized.Contains("poultry") ||
+            normalized.Contains("egg") ||
+            normalized.Contains("protein"))
+        {
+            return "protein";
+        }
+
+        return "vegetables";
     }
 
     private static string BuildLocationLabel(PriceSubmission price)
