@@ -41,7 +41,7 @@ public static class SeedData
             return;
         }
 
-        if (await dbContext.Users.AnyAsync(x => x.Email == email, cancellationToken))
+        if (await dbContext.Users.AnyAsync(x => x.Role == UserRole.Admin, cancellationToken))
         {
             return;
         }

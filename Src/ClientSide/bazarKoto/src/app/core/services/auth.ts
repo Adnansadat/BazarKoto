@@ -18,6 +18,25 @@ export interface LoginResponse {
   role: string;
 }
 
+export interface UpdateAdminEmailRequest {
+  newEmail: string;
+  currentPassword: string;
+}
+
+export interface UpdateAdminPasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface UpdateAdminCredentialsRequest {
+  oldEmail: string;
+  newEmail: string;
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -70,6 +89,18 @@ export class Auth {
       catchError(() => of(undefined)),
       tap(() => this.logout())
     );
+  }
+
+  updateAdminEmail(request: UpdateAdminEmailRequest): Observable<void> {
+    return this.api.patch<object>('/Auth/admin/email', request).pipe(map(() => undefined));
+  }
+
+  updateAdminPassword(request: UpdateAdminPasswordRequest): Observable<void> {
+    return this.api.patch<object>('/Auth/admin/password', request).pipe(map(() => undefined));
+  }
+
+  updateAdminCredentials(request: UpdateAdminCredentialsRequest): Observable<void> {
+    return this.api.patch<object>('/Auth/admin/credentials', request).pipe(map(() => undefined));
   }
 
   isAuthenticated(): boolean {

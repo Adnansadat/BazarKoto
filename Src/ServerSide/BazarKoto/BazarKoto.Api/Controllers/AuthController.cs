@@ -43,4 +43,51 @@ public class AuthController : ControllerBase
 
         return Ok(await _authService.LogoutAsync(userId, cancellationToken));
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("admin/email")]
+    public async Task<IActionResult> UpdateAdminEmail(UpdateAdminEmailRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<object>.Fail("Unauthorized."));
+        }
+
+        return ToCredentialUpdateResult(await _authService.UpdateAdminEmailAsync(userId, request, cancellationToken));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("admin/password")]
+    public async Task<IActionResult> UpdateAdminPassword(UpdateAdminPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<object>.Fail("Unauthorized."));
+        }
+
+        return ToCredentialUpdateResult(await _authService.UpdateAdminPasswordAsync(userId, request, cancellationToken));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("admin/credentials")]
+    public async Task<IActionResult> UpdateAdminCredentials(UpdateAdminCredentialsRequest request, CancellationToken cancellationToken)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized(ApiResponse<object>.Fail("Unauthorized."));
+        }
+
+        return ToCredentialUpdateResult(await _authService.UpdateAdminCredentialsAsync(userId, request, cancellationToken));
+    }
+
+    private bool TryGetCurrentUserId(out Guid userId)
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(userIdValue, out userId);
+    }
+
+    private IActionResult ToCredentialUpdateResult(ApiResponse<object> response)
+    {
+        return response.Success ? Ok(response) : BadRequest(response);
+    }
 }

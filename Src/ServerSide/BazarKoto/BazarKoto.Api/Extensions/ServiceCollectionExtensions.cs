@@ -8,6 +8,7 @@ using BazarKoto.Application.Services;
 using BazarKoto.Application.Validators;
 using BazarKoto.Contracts.Common;
 using BazarKoto.Infrastructure;
+using BazarKoto.Infrastructure.Identity;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -116,6 +117,29 @@ public static class ServiceCollectionExtensions
                 RoleClaimType = ClaimTypes.Role,
                 NameClaimType = ClaimTypes.NameIdentifier,
                 ClockSkew = TimeSpan.FromMinutes(1)
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var tokenVersionValue = context.Principal?.FindFirstValue(JwtTokenService.TokenVersionClaim);
+
+                    if (!Guid.TryParse(userIdValue, out var userId) || !int.TryParse(tokenVersionValue, out var tokenVersion))
+                    {
+                        context.Fail("Unauthorized.");
+                        return;
+                    }
+
+                    var userRepository = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+                    var user = await userRepository.GetByIdAsync(userId, context.HttpContext.RequestAborted);
+
+                    if (user is null || !user.IsActive || user.TokenVersion != tokenVersion)
+                    {
+                        context.Fail("Unauthorized.");
+                    }
+                }
             };
         });
 

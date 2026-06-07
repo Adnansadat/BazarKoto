@@ -1,7 +1,7 @@
 <main class="admin-dashboard-page">
   <section class="dashboard-hero">
     <div>
-      <span>Admin dashboard</span>
+      <span (click)="handleSecuritySettingsTriggerClick($event)">Admin dashboard</span>
       <h1>Manage traffic, ads, and BazarKoto data</h1>
       <p>
         Track website traffic, peak hours, ad-ready page views, and the market, product, and
@@ -160,6 +160,189 @@
         </div>
       </article>
     </div>
+  </section>
+
+  <section
+    class="security-settings-modal"
+    *ngIf="isSecuritySettingsModalOpen()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="security-settings-modal-title">
+    <form class="security-settings-card" (ngSubmit)="saveSecuritySettings()">
+      <header>
+        <div>
+          <span>Admin</span>
+          <h2 id="security-settings-modal-title">Security Settings</h2>
+        </div>
+        <button
+          type="button"
+          class="price-edit-button"
+          aria-label="Close Security Settings"
+          (click)="closeSecuritySettingsModal()"
+          [disabled]="isSavingSecuritySettings()">
+          Close
+        </button>
+      </header>
+
+      <div class="security-settings-tabs" role="tablist" aria-label="Security settings mode">
+        <button
+          type="button"
+          role="tab"
+          [class.active]="securitySettingsMode() === 'email'"
+          [attr.aria-selected]="securitySettingsMode() === 'email'"
+          (click)="setSecuritySettingsMode('email')"
+          [disabled]="isSavingSecuritySettings()">
+          Email
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [class.active]="securitySettingsMode() === 'password'"
+          [attr.aria-selected]="securitySettingsMode() === 'password'"
+          (click)="setSecuritySettingsMode('password')"
+          [disabled]="isSavingSecuritySettings()">
+          Password
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [class.active]="securitySettingsMode() === 'credentials'"
+          [attr.aria-selected]="securitySettingsMode() === 'credentials'"
+          (click)="setSecuritySettingsMode('credentials')"
+          [disabled]="isSavingSecuritySettings()">
+          Email + Password
+        </button>
+      </div>
+
+      <div class="security-settings-body">
+        <div class="security-settings-grid" *ngIf="securitySettingsMode() === 'email'">
+          <label>
+            <span>New Email</span>
+            <input
+              type="email"
+              name="securityNewEmail"
+              autocomplete="email"
+              [ngModel]="securityEmailForm().newEmail"
+              (ngModelChange)="updateSecurityEmailForm('newEmail', $event)" />
+          </label>
+
+          <label>
+            <span>Current Password</span>
+            <input
+              type="password"
+              name="securityCurrentPassword"
+              autocomplete="current-password"
+              [ngModel]="securityEmailForm().currentPassword"
+              (ngModelChange)="updateSecurityEmailForm('currentPassword', $event)" />
+          </label>
+        </div>
+
+        <div class="security-settings-grid" *ngIf="securitySettingsMode() === 'password'">
+          <label>
+            <span>Old Password</span>
+            <input
+              type="password"
+              name="securityOldPassword"
+              autocomplete="current-password"
+              [ngModel]="securityPasswordForm().oldPassword"
+              (ngModelChange)="updateSecurityPasswordForm('oldPassword', $event)" />
+          </label>
+
+          <label>
+            <span>New Password</span>
+            <input
+              type="password"
+              name="securityNewPassword"
+              autocomplete="new-password"
+              [ngModel]="securityPasswordForm().newPassword"
+              (ngModelChange)="updateSecurityPasswordForm('newPassword', $event)" />
+          </label>
+
+          <label>
+            <span>Confirm Password</span>
+            <input
+              type="password"
+              name="securityConfirmPassword"
+              autocomplete="new-password"
+              [ngModel]="securityPasswordForm().confirmPassword"
+              (ngModelChange)="updateSecurityPasswordForm('confirmPassword', $event)" />
+          </label>
+        </div>
+
+        <div class="security-settings-grid" *ngIf="securitySettingsMode() === 'credentials'">
+          <label>
+            <span>Old Email</span>
+            <input
+              type="email"
+              name="securityOldEmail"
+              autocomplete="email"
+              [ngModel]="securityCredentialsForm().oldEmail"
+              (ngModelChange)="updateSecurityCredentialsForm('oldEmail', $event)" />
+          </label>
+
+          <label>
+            <span>New Email</span>
+            <input
+              type="email"
+              name="securityCredentialsNewEmail"
+              autocomplete="email"
+              [ngModel]="securityCredentialsForm().newEmail"
+              (ngModelChange)="updateSecurityCredentialsForm('newEmail', $event)" />
+          </label>
+
+          <label>
+            <span>Old Password</span>
+            <input
+              type="password"
+              name="securityCredentialsOldPassword"
+              autocomplete="current-password"
+              [ngModel]="securityCredentialsForm().oldPassword"
+              (ngModelChange)="updateSecurityCredentialsForm('oldPassword', $event)" />
+          </label>
+
+          <label>
+            <span>New Password</span>
+            <input
+              type="password"
+              name="securityCredentialsNewPassword"
+              autocomplete="new-password"
+              [ngModel]="securityCredentialsForm().newPassword"
+              (ngModelChange)="updateSecurityCredentialsForm('newPassword', $event)" />
+          </label>
+
+          <label>
+            <span>Confirm Password</span>
+            <input
+              type="password"
+              name="securityCredentialsConfirmPassword"
+              autocomplete="new-password"
+              [ngModel]="securityCredentialsForm().confirmPassword"
+              (ngModelChange)="updateSecurityCredentialsForm('confirmPassword', $event)" />
+          </label>
+        </div>
+
+        <div
+          class="security-settings-feedback"
+          *ngIf="securitySettingsValidationErrors().length > 0 || securitySettingsErrorMessage() || securitySettingsMessage()">
+          <p class="table-status error" *ngFor="let error of securitySettingsValidationErrors()">{{ error }}</p>
+          <p class="table-status error" *ngIf="securitySettingsErrorMessage()">{{ securitySettingsErrorMessage() }}</p>
+          <p class="table-status success" *ngIf="securitySettingsMessage()">{{ securitySettingsMessage() }}</p>
+        </div>
+      </div>
+
+      <footer>
+        <button
+          type="button"
+          class="price-edit-button"
+          (click)="closeSecuritySettingsModal()"
+          [disabled]="isSavingSecuritySettings()">
+          Cancel
+        </button>
+        <button type="submit" class="price-edit-button" [disabled]="isSavingSecuritySettings()">
+          {{ isSavingSecuritySettings() ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </footer>
+    </form>
   </section>
 
   <section

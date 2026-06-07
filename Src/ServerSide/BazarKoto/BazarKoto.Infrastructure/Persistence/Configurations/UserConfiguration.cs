@@ -13,6 +13,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Email).IsUnique();
         builder.Property(x => x.PasswordHash).IsRequired().HasMaxLength(512);
         builder.Property(x => x.Role).HasConversion<string>().IsRequired().HasMaxLength(64);
+        builder.Property(x => x.TokenVersion).HasDefaultValue(0);
+        builder.Property(x => x.FailedLoginCount).HasDefaultValue(0);
         builder.Property(x => x.RefreshTokenHash).HasMaxLength(512);
     }
 }

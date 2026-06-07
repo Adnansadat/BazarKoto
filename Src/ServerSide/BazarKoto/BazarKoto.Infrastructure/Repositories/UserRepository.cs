@@ -24,6 +24,11 @@ public class UserRepository : IUserRepository
         return _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
     }
 
+    public Task<User?> GetByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Users.FirstOrDefaultAsync(x => x.Email.ToUpper() == normalizedEmail, cancellationToken);
+    }
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
     {
         await _dbContext.Users.AddAsync(user, cancellationToken);

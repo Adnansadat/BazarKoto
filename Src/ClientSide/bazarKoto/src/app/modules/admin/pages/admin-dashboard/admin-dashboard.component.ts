@@ -41,6 +41,27 @@ interface PriceEditForm {
   source: string;
 }
 
+type SecuritySettingsMode = 'email' | 'password' | 'credentials';
+
+interface SecurityEmailForm {
+  newEmail: string;
+  currentPassword: string;
+}
+
+interface SecurityPasswordForm {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface SecurityCredentialsForm {
+  oldEmail: string;
+  newEmail: string;
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 interface AdminDashboardResponse {
   traffic: {
     totalVisits: number;
@@ -84,9 +105,31 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   isLoggingOut = signal(false);
   isExportingTrafficReport = signal(false);
   isPriceManagementModalOpen = signal(false);
+  isSecuritySettingsModalOpen = signal(false);
+  isSavingSecuritySettings = signal(false);
   errorMessage = signal('');
   exportMessage = signal('');
   exportErrorMessage = signal('');
+  securitySettingsMode = signal<SecuritySettingsMode>('email');
+  securitySettingsMessage = signal('');
+  securitySettingsErrorMessage = signal('');
+  securitySettingsValidationErrors = signal<string[]>([]);
+  securityEmailForm = signal<SecurityEmailForm>({
+    newEmail: '',
+    currentPassword: '',
+  });
+  securityPasswordForm = signal<SecurityPasswordForm>({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  securityCredentialsForm = signal<SecurityCredentialsForm>({
+    oldEmail: '',
+    newEmail: '',
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   priceManagementMessage = signal('');
   priceManagementSearch = signal('');
   priceManagementStatus = signal('');
@@ -143,6 +186,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private priceRecordsRequest?: Subscription;
   private priceRecordsRequestId = 0;
   private priceSearchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private securitySettingsClickCount = 0;
+  private lastSecuritySettingsClick = 0;
 
   readonly managementAreas: ManagementArea[] = [
     {
@@ -297,9 +342,57 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isPriceManagementModalOpen.set(false);
   }
 
+  handleSecuritySettingsTriggerClick(event: MouseEvent): void {
+    const now = Date.now();
+
+    this.securitySettingsClickCount = now - this.lastSecuritySettingsClick > 1600
+      ? 1
+      : this.securitySettingsClickCount + 1;
+    this.lastSecuritySettingsClick = now;
+
+    if (this.securitySettingsClickCount < 5) {
+      return;
+    }
+
+    event.preventDefault();
+    this.securitySettingsClickCount = 0;
+    this.openSecuritySettingsModal();
+  }
+
+  openSecuritySettingsModal(): void {
+    this.securitySettingsMode.set('email');
+    this.clearSecuritySettingsFeedback();
+    this.resetSecuritySettingsForms();
+    this.isSecuritySettingsModalOpen.set(true);
+  }
+
+  closeSecuritySettingsModal(): void {
+    if (this.isSavingSecuritySettings()) {
+      return;
+    }
+
+    this.isSecuritySettingsModalOpen.set(false);
+    this.clearSecuritySettingsFeedback();
+    this.resetSecuritySettingsForms();
+  }
+
+  setSecuritySettingsMode(mode: SecuritySettingsMode): void {
+    if (this.isSavingSecuritySettings()) {
+      return;
+    }
+
+    this.securitySettingsMode.set(mode);
+    this.clearSecuritySettingsFeedback();
+  }
+
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     if (this.isSavingPriceEdit()) {
+      return;
+    }
+
+    if (this.isSecuritySettingsModalOpen()) {
+      this.closeSecuritySettingsModal();
       return;
     }
 
@@ -381,6 +474,59 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       ...form,
       [field]: value,
     }));
+  }
+
+  updateSecurityEmailForm<K extends keyof SecurityEmailForm>(field: K, value: SecurityEmailForm[K]): void {
+    this.securityEmailForm.update(form => ({
+      ...form,
+      [field]: value,
+    }));
+  }
+
+  updateSecurityPasswordForm<K extends keyof SecurityPasswordForm>(field: K, value: SecurityPasswordForm[K]): void {
+    this.securityPasswordForm.update(form => ({
+      ...form,
+      [field]: value,
+    }));
+  }
+
+  updateSecurityCredentialsForm<K extends keyof SecurityCredentialsForm>(field: K, value: SecurityCredentialsForm[K]): void {
+    this.securityCredentialsForm.update(form => ({
+      ...form,
+      [field]: value,
+    }));
+  }
+
+  saveSecuritySettings(): void {
+    if (this.isSavingSecuritySettings()) {
+      return;
+    }
+
+    const validationErrors = this.validateSecuritySettingsForm();
+    this.securitySettingsValidationErrors.set(validationErrors);
+    this.securitySettingsErrorMessage.set('');
+    this.securitySettingsMessage.set('');
+
+    if (validationErrors.length > 0) {
+      return;
+    }
+
+    this.isSavingSecuritySettings.set(true);
+    const request = this.buildSecuritySettingsRequest();
+
+    request.subscribe({
+      next: () => {
+        this.securitySettingsMessage.set('Security settings updated. Please sign in again.');
+        this.isSavingSecuritySettings.set(false);
+        this.resetSecuritySettingsForms();
+        this.auth.logout();
+        void this.router.navigate(['/admin']);
+      },
+      error: error => {
+        this.isSavingSecuritySettings.set(false);
+        this.securitySettingsErrorMessage.set(error instanceof Error ? error.message : 'Unable to update security settings.');
+      },
+    });
   }
 
   savePriceEdit(): void {
@@ -467,6 +613,115 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     return 'Could not update price record. Please try again.';
+  }
+
+  private validateSecuritySettingsForm(): string[] {
+    if (this.securitySettingsMode() === 'email') {
+      const form = this.securityEmailForm();
+      return [
+        ...this.validateEmail(form.newEmail, 'New email'),
+        ...this.validateRequired(form.currentPassword, 'Current password'),
+      ];
+    }
+
+    if (this.securitySettingsMode() === 'password') {
+      const form = this.securityPasswordForm();
+      return this.validatePasswordFields(form.oldPassword, form.newPassword, form.confirmPassword);
+    }
+
+    const form = this.securityCredentialsForm();
+    return [
+      ...this.validateEmail(form.oldEmail, 'Old email'),
+      ...this.validateEmail(form.newEmail, 'New email'),
+      ...this.validatePasswordFields(form.oldPassword, form.newPassword, form.confirmPassword),
+    ];
+  }
+
+  private validateRequired(value: string, label: string): string[] {
+    return value.trim() ? [] : [`${label} is required.`];
+  }
+
+  private validateEmail(value: string, label: string): string[] {
+    const errors = this.validateRequired(value, label);
+
+    if (errors.length > 0) {
+      return errors;
+    }
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+      ? []
+      : [`${label} must be a valid email address.`];
+  }
+
+  private validatePasswordFields(oldPassword: string, newPassword: string, confirmPassword: string): string[] {
+    const errors = [
+      ...this.validateRequired(oldPassword, 'Old password'),
+      ...this.validateRequired(newPassword, 'New password'),
+      ...this.validateRequired(confirmPassword, 'Confirm password'),
+    ];
+
+    if (newPassword && newPassword.length < 12) {
+      errors.push('New password must be at least 12 characters long.');
+    }
+
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      errors.push('Confirm password must match new password.');
+    }
+
+    return errors;
+  }
+
+  private buildSecuritySettingsRequest() {
+    if (this.securitySettingsMode() === 'email') {
+      const form = this.securityEmailForm();
+      return this.auth.updateAdminEmail({
+        newEmail: form.newEmail.trim(),
+        currentPassword: form.currentPassword,
+      });
+    }
+
+    if (this.securitySettingsMode() === 'password') {
+      const form = this.securityPasswordForm();
+      return this.auth.updateAdminPassword({
+        oldPassword: form.oldPassword,
+        newPassword: form.newPassword,
+        confirmPassword: form.confirmPassword,
+      });
+    }
+
+    const form = this.securityCredentialsForm();
+    return this.auth.updateAdminCredentials({
+      oldEmail: form.oldEmail.trim(),
+      newEmail: form.newEmail.trim(),
+      oldPassword: form.oldPassword,
+      newPassword: form.newPassword,
+      confirmPassword: form.confirmPassword,
+    });
+  }
+
+  private clearSecuritySettingsFeedback(): void {
+    this.securitySettingsMessage.set('');
+    this.securitySettingsErrorMessage.set('');
+    this.securitySettingsValidationErrors.set([]);
+  }
+
+  private resetSecuritySettingsForms(): void {
+    this.securityEmailForm.set({
+      newEmail: '',
+      currentPassword: '',
+    });
+    this.securityPasswordForm.set({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    this.securityCredentialsForm.set({
+      oldEmail: '',
+      newEmail: '',
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
   }
 
   private replaceVisiblePriceRecord(updatedRecord: AdminPriceRecord): void {

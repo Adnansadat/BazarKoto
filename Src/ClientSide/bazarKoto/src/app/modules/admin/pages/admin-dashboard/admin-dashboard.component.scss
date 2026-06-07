@@ -637,6 +637,131 @@
   align-items: center;
 }
 
+.security-settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1020;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.security-settings-card {
+  width: min(640px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+}
+
+.security-settings-card header,
+.security-settings-card footer {
+  padding: 17px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.security-settings-card header {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, rgba(240, 253, 244, 0.94), rgba(255, 247, 237, 0.8));
+}
+
+.security-settings-card header span {
+  color: #ea580c;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.security-settings-card h2 {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.security-settings-tabs {
+  padding: 16px 18px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.security-settings-tabs button {
+  min-height: 36px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 0 13px;
+  background: #f0fdf4;
+  color: #047857;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.security-settings-tabs button.active {
+  border-color: rgba(234, 88, 12, 0.28);
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.security-settings-tabs button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.security-settings-body {
+  padding: 18px;
+}
+
+.security-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.security-settings-grid label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.security-settings-grid input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #dbe7e2;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.security-settings-grid input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.security-settings-feedback {
+  margin-top: 14px;
+}
+
+.security-settings-card footer {
+  border-top: 1px solid #e2e8f0;
+  align-items: center;
+}
+
 @media (max-width: 1000px) {
   .metric-grid,
   .management-grid {
@@ -685,14 +810,18 @@
   }
 
   .price-management-workspace header,
+  .security-settings-card header,
   .price-management-content {
     padding: 18px;
   }
 
   .filter-card-heading,
   .price-management-filter-grid,
+  .security-settings-grid,
   .price-edit-grid,
   .price-edit-card header,
+  .security-settings-card header,
+  .security-settings-card footer,
   .price-edit-card footer,
   .pagination-bar {
     grid-template-columns: 1fr;
